@@ -1,0 +1,12 @@
+{
+  "name": "ASSUR Hidráulica — Calculadora Manning",
+  "short_name": "ASSUR HID",
+  "description": "Calculadora hidráulica Manning para drenaje y alcantarillado: pendiente mínima, pozos de visita y perfil longitudinal. NMX-E-215 · CONAGUA.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0A2D37",
+  "theme_color": "#0A2D37",
+  "lang": "es-MX",
+  "icons": []
+}
