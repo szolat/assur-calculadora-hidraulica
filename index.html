@@ -352,9 +352,32 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       </div>
       <div id="pv-cumplimiento"></div>
       <div id="pv-cumplimiento-prof" style="margin-top:6px"></div>
+      <!-- VELOCIDAD -->
+      <div id="pv-vel-section" style="margin-top:14px">
+        <div class="result-grid" style="margin-bottom:8px">
+          <div class="result-metric">
+            <div class="val" id="pv-vel-val">—</div>
+            <div class="lbl">Velocidad del agua (m/s)</div>
+          </div>
+          <div class="result-metric">
+            <div class="val" style="font-size:1.1rem" id="pv-vel-smin">—</div>
+            <div class="lbl">S_mín aplicada (%)</div>
+          </div>
+          <div class="result-metric">
+            <div class="val" style="font-size:1.1rem" id="pv-vel-ri">—</div>
+            <div class="lbl">Radio hidráulico R (m)</div>
+          </div>
+        </div>
+        <div id="pv-vel-semaforo"></div>
+      </div>
+      <!-- ANÁLISIS DE POZO DE CAÍDA -->
+      <div id="pv-caida-section" style="margin-top:12px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--teal-d);margin-bottom:6px">⬇️ Análisis de Estructuras de Caída (SGAPDS-29)</div>
+        <div id="pv-caida-resumen"></div>
+      </div>
       <div class="table-wrap" style="margin-top:14px">
         <table id="pv-tabla">
-          <thead><tr><th>PV</th><th>Dist. acum. (m)</th><th>Dimensión pozo</th><th>Cota terreno (msnm)</th><th>Cota plantilla (msnm)</th><th>Profundidad (m)</th></tr></thead>
+          <thead><tr><th>PV</th><th>Dist. acum. (m)</th><th>Dimensión pozo</th><th>Cota terreno (msnm)</th><th>Cota plantilla (msnm)</th><th>Profundidad (m)</th><th>Desnivel tramo (m)</th><th>Tipo caída</th></tr></thead>
           <tbody id="pv-tbody"></tbody>
         </table>
       </div>
@@ -515,6 +538,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div class="result-metric"><div class="val" id="rep-smin">—</div><div class="lbl">S_mín % (Manning)</div></div>
       <div class="result-metric"><div class="val" id="rep-npv">—</div><div class="lbl">Pozos de visita</div></div>
       <div class="result-metric"><div class="val" id="rep-prof-max">—</div><div class="lbl">Prof. máx. pozo (m)</div></div>
+      <div class="result-metric"><div class="val" id="rep-pv-vel">—</div><div class="lbl">Velocidad en colector (m/s)</div></div>
+      <div class="result-metric"><div class="val" style="font-size:.9rem" id="rep-pv-caida">—</div><div class="lbl">Estructuras de caída</div></div>
       <div class="result-metric"><div class="val" id="rep-ap-vel">—</div><div class="lbl">Velocidad AP (m/s)</div></div>
       <div class="result-metric"><div class="val" id="rep-ap-hf100">—</div><div class="lbl">Pérd. AP (m/100m)</div></div>
       <div class="result-metric"><div class="val" id="rep-ap-padm">—</div><div class="lbl">P. admisible AP (kg/cm²)</div></div>
@@ -914,31 +939,47 @@ function calcPozos() {
   let profMax = 0;
   const profBajas = [];
 
+  // Pre-compute tipo caida per tramo function
+  function getTipoCaida(desnivel, Di_m) {
+    if(desnivel <= 0.60) return {tipo:'Ca\u00edda libre', cls:'ok', nota:'Sin estructura especial'};
+    if(Di_m <= 0.25 && desnivel <= 2.0) return {tipo:'Ca\u00edda adosada', cls:'warn', nota:'Pozo con ca\u00edda adosada (tubo \u226525 cm, hasta 2.0 m)'};
+    if(desnivel <= 1.50) return {tipo:'Pozo con ca\u00edda', cls:'warn', nota:'Pozo con ca\u00edda (tubo 30-76 cm)'};
+    return {tipo:'Ca\u00edda escalonada', cls:'bad', nota:'Ca\u00edda escalonada (varios tramos de 0.50 m)'};
+  }
+
   for(let i = 0; i < nPV; i++) {
     const dist        = Math.min(i * esp, Ltot);
     const cotaP       = cota0 - dist * S_min;                    // cota plantilla
     const cotaTerr    = cotaTerreno0 - dist * (pendTerreno / 100); // cota terreno
     const profundidad = cotaTerr - cotaP;                         // profundidad de excavaci\u00f3n
     const caida       = dist * S_min;
+    // Desnivel de ESTE tramo (dist desde pozo anterior = esp, except first)
+    const distTramo   = i === 0 ? 0 : Math.min(esp, Ltot - (i-1)*esp);
+    const desnivel    = distTramo * S_min;
+    const tipoCaida   = i === 0 ? {tipo:'\u2014', cls:'', nota:''} : getTipoCaida(desnivel, Di_m);
 
     if(profundidad > profMax) profMax = profundidad;
     if(profundidad < 1.20) profBajas.push({idx: i+1, prof: profundidad});
 
-    pvRows.push({idx:i+1, dist, cotaP, cotaTerr, profundidad, caida, dim: pozoInfo.dim});
+    pvRows.push({idx:i+1, dist, cotaP, cotaTerr, profundidad, caida, dim: pozoInfo.dim,
+                 desnivel: i===0 ? null : desnivel, tipoCaida});
 
     const tr = document.createElement('tr');
     const profCls = profundidad < 1.20 ? 'style="color:var(--bad);font-weight:700"' : '';
+    const desnStr = i === 0 ? '\u2014' : desnivel.toFixed(3);
+    const caidaStr = i === 0 ? '\u2014' : `<span class="${tipoCaida.cls}">${tipoCaida.tipo}</span>`;
     tr.innerHTML = `
       <td>PV-${i+1}</td>
       <td>${dist.toFixed(1)}</td>
       <td>${pozoInfo.dim}</td>
       <td>${cotaTerr.toFixed(3)}</td>
       <td>${cotaP.toFixed(3)}</td>
-      <td ${profCls}>${profundidad.toFixed(3)}</td>`;
+      <td ${profCls}>${profundidad.toFixed(3)}</td>
+      <td>${desnStr}</td>
+      <td>${caidaStr}</td>`;
     tbody.appendChild(tr);
   }
 
-  STATE.pozos.pvRows   = pvRows;
   STATE.pozos.S_min_pct = S_min * 100;
   STATE.pozos.profMax  = profMax;
 
@@ -954,6 +995,57 @@ function calcPozos() {
     profHtml = `<span class="semaforo sem-warn">\u26a0\ufe0f Revisar: hay pozos con profundidad < 1.20 m \u2014 ${lista}</span>`;
   }
   document.getElementById('pv-cumplimiento-prof').innerHTML = profHtml;
+
+  // ---- VELOCIDAD A TUBO LLENO (Manning) ----
+  // v = (1/n) * R^(2/3) * S^(1/2),  n=0.009, R=Di/4, S=S_min
+  const v_agua = (1 / n) * R23 * Math.pow(S_min, 0.5);
+  document.getElementById('pv-vel-val').textContent  = v_agua.toFixed(3);
+  document.getElementById('pv-vel-smin').textContent = (S_min * 100).toFixed(3) + '%';
+  document.getElementById('pv-vel-ri').textContent   = R.toFixed(4);
+
+  let velCls, velMsg;
+  if(v_agua < 0.60) {
+    velCls = 'sem-warn';
+    velMsg = '\u26a0\ufe0f \u00c1MBAR: Velocidad baja (' + v_agua.toFixed(3) + ' m/s) \u2014 riesgo de sedimentaci\u00f3n/azolve. Aumentar pendiente.';
+  } else if(v_agua <= 3.0) {
+    velCls = 'sem-ok';
+    velMsg = '\u2705 VERDE: Velocidad correcta (' + v_agua.toFixed(3) + ' m/s) \u2014 rango 0.60\u20133.0 m/s.';
+  } else if(v_agua <= 5.0) {
+    velCls = 'sem-warn';
+    velMsg = '\u26a0\ufe0f \u00c1MBAR: Velocidad alta (' + v_agua.toFixed(3) + ' m/s) \u2014 vigilar erosi\u00f3n. M\u00e1x. PVC: 5.0 m/s.';
+  } else {
+    velCls = 'sem-bad';
+    velMsg = '\ud83d\udd34 ROJO: Velocidad excede m\u00e1ximo permisible (' + v_agua.toFixed(3) + ' m/s > 5.0 m/s) \u2014 se requiere control de energ\u00eda / pozos de ca\u00edda.';
+  }
+  document.getElementById('pv-vel-semaforo').innerHTML =
+    `<span class="semaforo ${velCls}">${velMsg}</span>`;
+
+  // ---- AN\u00c1LISIS DE POZOS DE CA\u00cdDA ----
+  // Desnivel por tramo = esp * S_min (excepto el \u00faltimo tramo que puede ser menor)
+  const tramosConCaida = pvRows.slice(1).filter(r => r.desnivel !== null && r.desnivel > 0.60);
+  let caidaHtml;
+  if(tramosConCaida.length === 0) {
+    caidaHtml = `<span class="semaforo sem-ok">\u2705 No se requieren estructuras de ca\u00edda \u2014 todos los desniveles \u2264 0.60 m.</span>`;
+  } else {
+    // Group by tipo
+    const resumen = {};
+    tramosConCaida.forEach(r => {
+      const t = r.tipoCaida.tipo;
+      if(!resumen[t]) resumen[t] = [];
+      resumen[t].push('PV-'+r.idx);
+    });
+    const detalles = Object.entries(resumen).map(([tipo,pvs]) => `${tipo}: ${pvs.join(', ')}`).join(' | ');
+    caidaHtml = `<span class="semaforo sem-warn">\u26a0\ufe0f Se requieren estructuras de ca\u00edda en ${tramosConCaida.length} tramo(s): ${detalles}</span>`;
+  }
+  document.getElementById('pv-caida-resumen').innerHTML = caidaHtml;
+
+  // Guardar en STATE
+  STATE.pozos.pvRows    = pvRows;
+  STATE.pozos.velocidad = v_agua;
+  STATE.pozos.velCls    = velCls;
+  STATE.pozos.velMsg    = velMsg;
+  STATE.pozos.tramosConCaida = tramosConCaida;
+  STATE.pozos.caidaHtml = caidaHtml;
 
   document.getElementById('res-pozos').classList.add('visible');
 }
@@ -1123,6 +1215,9 @@ function actualizarReporte() {
   document.getElementById('rep-smin').textContent  = STATE.manning ? STATE.manning.S_min_pct.toFixed(3) : '—';
   document.getElementById('rep-npv').textContent   = STATE.pozos   ? STATE.pozos.nPV : '—';
   document.getElementById('rep-prof-max').textContent = STATE.pozos && STATE.pozos.profMax !== undefined ? STATE.pozos.profMax.toFixed(2) + ' m' : '—';
+  document.getElementById('rep-pv-vel').textContent = STATE.pozos && STATE.pozos.velocidad !== undefined ? STATE.pozos.velocidad.toFixed(3) + ' m/s' : '—';
+  document.getElementById('rep-pv-caida').textContent = STATE.pozos && STATE.pozos.tramosConCaida !== undefined
+    ? (STATE.pozos.tramosConCaida.length === 0 ? '\u2705 No requeridas' : '\u26a0\ufe0f ' + STATE.pozos.tramosConCaida.length + ' tramo(s) con caída') : '—';
 
   const vel = STATE.manning ? (STATE.manning.v_proy !== undefined ? STATE.manning.v_proy : 0.6) : null;
   document.getElementById('rep-vel').textContent = vel ? vel.toFixed(3) : '—';
@@ -1367,7 +1462,10 @@ function generarPDF() {
       ['S_mín aplicada',p.S_min_pct.toFixed(3)+'%'],
       ['Profundidad máxima',p.profMax !== undefined ? p.profMax.toFixed(2)+' m' : 'N/D'],
       ['Cota terreno inicio',p.cotaTerreno0 !== undefined ? p.cotaTerreno0.toFixed(3)+' msnm' : 'N/D'],
-      ['Pendiente terreno',p.pendTerreno !== undefined ? p.pendTerreno.toFixed(2)+'%' : 'N/D']
+      ['Pendiente terreno',p.pendTerreno !== undefined ? p.pendTerreno.toFixed(2)+'%' : 'N/D'],
+      ['Velocidad tubo lleno (Manning)',p.velocidad !== undefined ? p.velocidad.toFixed(3)+' m/s' : 'N/D'],
+      ['Estado velocidad', p.velMsg ? p.velMsg.replace(/[\u2705\u26a0\ufe0f\ud83d\udd34]/g,'').trim().substring(0,60) : 'N/D'],
+      ['Estructuras de caída', p.tramosConCaida !== undefined ? (p.tramosConCaida.length===0 ? 'No se requieren (desniveles <= 0.60 m)' : p.tramosConCaida.length+' tramo(s) requieren estructura de caída') : 'N/D']
     ];
     y = pdfTable(doc, rows4, y, W, M, INK);
 
