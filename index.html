@@ -198,40 +198,98 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       </div>
       <div id="rc-cumplimiento"></div>
     </div>
+
+    <!-- ===== PANEL ESTADÍSTICO CONAGUA ===== -->
+    <div id="panel-conagua" style="margin-top:18px;background:linear-gradient(135deg,#f5fbfa,#eaf5f5);border:1.5px solid var(--teal);border-radius:10px;padding:18px 20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:1.1rem">📊</span>
+        <strong style="color:var(--teal-d);font-size:.97rem">Estadística de precipitación (CONAGUA/INEGI)</strong>
+      </div>
+      <div class="card-sub" style="margin-bottom:12px;padding-bottom:8px">Datos CONAGUA/SMN · Serie 2013-2024 · Actualizado: abril 2025 · Próxima revisión: octubre 2026</div>
+
+      <div id="conagua-estado-nombre" style="font-size:.9rem;font-weight:700;color:var(--teal-d);margin-bottom:10px">— Seleccione un estado —</div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:.84rem;margin-bottom:14px">
+        <thead>
+          <tr>
+            <th style="background:var(--teal-d);color:#fff;padding:7px 10px;text-align:left;font-weight:600;border-radius:4px 0 0 0">Indicador</th>
+            <th style="background:var(--teal-d);color:#fff;padding:7px 10px;text-align:right;font-weight:600;border-radius:0 4px 0 0">Valor (mm/año)</th>
+          </tr>
+        </thead>
+        <tbody id="conagua-tbody">
+          <tr><td colspan="2" style="padding:8px 10px;color:#888;text-align:center">Seleccione un estado para ver estadísticas</td></tr>
+        </tbody>
+      </table>
+
+      <div id="conagua-sugerencia" style="background:#fff;border-left:4px solid var(--teal);border-radius:0 6px 6px 0;padding:10px 14px;font-size:.85rem;color:#333;margin-bottom:14px;display:none"></div>
+
+      <div style="margin-bottom:10px">
+        <div style="font-size:.8rem;font-weight:600;color:var(--teal-d);margin-bottom:6px">Precipitación anual 2013-2024 (mm/año)</div>
+        <canvas id="chart-conagua" height="80" style="width:100%"></canvas>
+      </div>
+
+      <p style="font-size:.75rem;color:#666;margin:0;font-style:italic;border-top:1px solid var(--line);padding-top:8px">
+        <strong>Nota:</strong> estos valores son precipitación media ANUAL (mm/año), referencia estadística de la zona. La intensidad de diseño del cálculo (mm/hr por periodo de retorno) proviene de curvas IDF. Use esta tabla para validar que su diseño es congruente con el histórico de la región.
+      </p>
+    </div>
+
   </div>
   <div class="legal">⚠️ Cálculo orientativo — No es un proyecto ejecutivo. Basado en SGAPDS-29 (CONAGUA 2009), EN 1433, NMX-E-215 y NOM-086-SEMARNAT. Para el diseño definitivo, consulte a un ingeniero civil o Director Responsable de Obra (DRO).</div>
 </div>
 
 <!-- ============================================================
-     SECCIÓN 2 · CANAL TECHNODRAIN
+     SECCIÓN 2 · CANAL TECHNODRAIN EVO
      ============================================================ -->
 <div id="sec-canal" class="section">
   <div class="card">
-    <h2>📐 Selección de Canal TECHNODRAIN</h2>
-    <div class="card-sub">Norma EN 1433 · Selección por capacidad hidráulica Q/m</div>
+    <h2>📐 Selección de Canal TECHNODRAIN EVO</h2>
+    <div class="card-sub">Norma EN 1433 · Catálogo EVO real · Manning n=0.011 (HDPE/polipropileno)</div>
+
+    <div class="alert alert-info" style="margin-bottom:14px">
+      📖 <strong>Área hidráulica</strong> = sección transversal ocupada por el agua (LN × tirante). Diseño al 90% de llenado con borde libre de seguridad.
+    </div>
+
     <div class="form-grid">
       <div>
-        <label>Caudal por metro Qm (l/s/m)</label>
-        <input type="number" id="can-qm" value="0.55" min="0.01" step="0.01">
+        <label>Caudal de diseño Q (l/s)</label>
+        <input type="number" id="can-q" value="10" min="0.01" step="0.1">
+      </div>
+      <div>
+        <label>Pendiente del canal S (%)</label>
+        <input type="number" id="can-s" value="0.5" min="0.001" step="0.01">
       </div>
     </div>
-    <div class="alert alert-info" id="can-hint" style="display:none">
-      💡 Valor sugerido desde Caudal calculado: <span id="can-hint-val"></span> l/s/m
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn btn-primary" onclick="calcCanal()">&#9889; Calcular Canal EVO</button>
+      <button class="btn btn-outline" id="can-use-q-btn" onclick="usarCaudalCalculado()" title="Copia Q del módulo Caudal" style="display:none">💧 Usar caudal calculado (<span id="can-q-disp">—</span> l/s)</button>
     </div>
-    <button class="btn btn-primary" onclick="calcCanal()">⚡ Calcular Canal</button>
 
     <div id="res-canal" class="result-box">
       <div class="result-grid">
-        <div class="result-metric"><div class="val" id="can-serie">—</div><div class="lbl">Serie seleccionada</div></div>
-        <div class="result-metric"><div class="val" id="can-clase">—</div><div class="lbl">Clase EN 1433</div></div>
+        <div class="result-metric"><div class="val" id="can-serie">—</div><div class="lbl">Canal EVO recomendado</div></div>
+        <div class="result-metric"><div class="val" id="can-area">—</div><div class="lbl">Área hidráulica (cm²)</div></div>
+        <div class="result-metric"><div class="val" id="can-cap">—</div><div class="lbl">Capacidad (l/s)</div></div>
+        <div class="result-metric"><div class="val" id="can-clase">—</div><div class="lbl">Clase de carga</div></div>
+        <div class="result-metric"><div class="val" id="can-llenado">—</div><div class="lbl">% llenado a Q diseño</div></div>
         <div class="result-metric"><div class="val" id="can-uso">—</div><div class="lbl">Aplicación</div></div>
-        <div class="result-metric"><div class="val" id="can-cap">—</div><div class="lbl">Capacidad (l/s/m)</div></div>
       </div>
       <div id="can-cumplimiento"></div>
       <div id="can-sediment" style="margin-top:8px"></div>
-      <div class="table-wrap">
+
+      <div class="table-wrap" style="margin-top:16px">
         <table id="can-tabla">
-          <thead><tr><th>Serie</th><th>Clase EN 1433</th><th>Carga max</th><th>Uso típico</th><th>Cap. (l/s/m)</th><th>Estado</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Canal EVO</th>
+              <th>LN×Hi (mm)</th>
+              <th>Sección LN×Hi (mm)</th>
+              <th>Área hidráulica (cm²)</th>
+              <th>Capacidad (l/s)</th>
+              <th>Clase carga</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
           <tbody id="can-tbody"></tbody>
         </table>
       </div>
@@ -656,17 +714,37 @@ const ESTADOS_I = {
   "Yucatán":[90,118,140,172,198],"Zacatecas":[52,68,80,98,112]
 };
 
-const CANALES = [
-  {s:"A100",clase:"A15",carga:"15 kN (~1.5t)",uso:"Peatonal / jardines",cap:1.5},
-  {s:"A200",clase:"A15",carga:"15 kN (~1.5t)",uso:"Cocheras residenciales",cap:3.0},
-  {s:"B125",clase:"B125",carga:"125 kN (~12.5t)",uso:"Estacionamientos",cap:5.0},
-  {s:"B150",clase:"B125",carga:"125 kN (~12.5t)",uso:"Estacionamientos medianos",cap:7.0},
-  {s:"C250",clase:"C250",carga:"250 kN (~25t)",uso:"Vialidades locales",cap:12.0},
-  {s:"D400",clase:"D400",carga:"400 kN (~40t)",uso:"Zonas industriales ligeras",cap:20.0},
-  {s:"E600",clase:"E600",carga:"600 kN (~60t)",uso:"Industrial / vialidades arteriales",cap:35.0},
-  {s:"F900-S",clase:"F900",carga:"900 kN (~90t)",uso:"Aeropuertos / muelles",cap:50.0},
-  {s:"F900",clase:"F900",carga:"900 kN (~90t)",uso:"Industrial pesado / puertos",cap:9999}
+// Catálogo REAL EVO TECHNODRAIN — medidas en mm
+// LN = ancho interior, Hi = alto interior
+// Capacidad Q se calcula dinámicamente con Manning (n=0.011, tirante 90%)
+const CANALES_EVO = [
+  {s:"EVO 100H", LN:100, Hi:150, clase:"A15–C250", carga:"A15 a C250 (250 kN)", uso:"Peatonal, jardines, estac."},
+  {s:"EVO 150H", LN:150, Hi:150, clase:"A15–C250", carga:"A15 a C250 (250 kN)", uso:"Peatonal, vialidades locales"},
+  {s:"EVO 200H", LN:200, Hi:150, clase:"A15–D400", carga:"A15 a D400 (400 kN)", uso:"Vialidades, zonas industriales"},
+  {s:"EVO 200HV",LN:200, Hi:250, clase:"A15–D400", carga:"A15 a D400 (400 kN)", uso:"Caudales elevados, industrial"},
+  {s:"EVO 100S", LN:100, Hi: 75, clase:"A15–C250", carga:"A15 a C250 (250 kN)", uso:"Serie baja, peatonal"},
+  {s:"EVO 150S", LN:150, Hi: 75, clase:"A15–C250", carga:"A15 a C250 (250 kN)", uso:"Serie baja, peatonal"},
+  {s:"EVO 200S", LN:200, Hi: 75, clase:"A15–C250", carga:"A15 a C250 (250 kN)", uso:"Serie baja, vialidades ligeras"}
 ];
+
+// Mantener alias CANALES para compatibilidad (ya no se usa en lógica)
+const CANALES = CANALES_EVO;
+
+// Función para calcular capacidad hidráulica EVO con Manning
+function calcEvoQ(LN_mm, Hi_mm, S_pct) {
+  const n = 0.011; // HDPE/polipropileno
+  const S = S_pct / 100;
+  const LN = LN_mm / 1000;
+  const Hi = Hi_mm / 1000;
+  const y  = Hi * 0.90;          // tirante al 90%
+  const A  = LN * y;             // área hidráulica m²
+  const P  = LN + 2 * y;        // perímetro mojado m
+  const R  = A / P;              // radio hidráulico m
+  const v  = (1/n) * Math.pow(R, 2/3) * Math.sqrt(S); // m/s
+  const Q  = v * A * 1000;      // l/s
+  const Acm2 = A * 1e4;         // cm²
+  return { A, Acm2, P, R, v, Q };
+}
 
 // =============================================================
 // DATOS BIAXIAL PVC-O
@@ -775,57 +853,87 @@ function calcCaudal() {
 
   document.getElementById('res-caudal').classList.add('visible');
 
-  // Sugerir en Canal
-  document.getElementById('can-hint-val').textContent = Qm.toFixed(3);
-  document.getElementById('can-hint').style.display = 'block';
-  document.getElementById('can-qm').value = Qm.toFixed(3);
+  // Actualizar panel CONAGUA con el estado seleccionado
+  actualizarPanelConagua(estado);
+
+  // Sugerir en Canal: mostrar botón "usar caudal calculado"
+  document.getElementById('can-q-disp').textContent = Q.toFixed(2);
+  document.getElementById('can-use-q-btn').style.display = 'inline-flex';
 }
 
 // =============================================================
-// SECCIÓN 2 — CANAL TECHNODRAIN
+// SECCIÓN 2 — CANAL TECHNODRAIN EVO
 // =============================================================
+function usarCaudalCalculado() {
+  if(STATE.caudal && STATE.caudal.Q > 0) {
+    document.getElementById('can-q').value = STATE.caudal.Q.toFixed(2);
+  }
+}
+
 function calcCanal() {
-  const Qm = parseFloat(document.getElementById('can-qm').value);
-  if(isNaN(Qm) || Qm <= 0) { alert('Ingrese un caudal por metro válido.'); return; }
+  const Q_dis = parseFloat(document.getElementById('can-q').value);
+  const S_pct = parseFloat(document.getElementById('can-s').value);
+  if(isNaN(Q_dis) || Q_dis <= 0) { alert('Ingrese un caudal de diseño válido (l/s).'); return; }
+  if(isNaN(S_pct) || S_pct <= 0) { alert('Ingrese una pendiente válida (%).'); return; }
 
-  const sel = CANALES.find(c => c.cap >= Qm) || CANALES[CANALES.length-1];
-  STATE.canal = { Qm, sel };
+  // Calcular capacidad de cada canal EVO a la pendiente dada
+  const canalesCalc = CANALES_EVO.map(c => {
+    const hid = calcEvoQ(c.LN, c.Hi, S_pct);
+    return Object.assign({}, c, { hid });
+  });
 
-  document.getElementById('can-serie').textContent = sel.s;
-  document.getElementById('can-clase').textContent = sel.clase;
-  document.getElementById('can-uso').textContent   = sel.uso;
-  document.getElementById('can-cap').textContent   = sel.cap === 9999 ? '> 50' : sel.cap;
+  // Selección automática: primer canal cuya capacidad >= Q de diseño
+  const sel = canalesCalc.find(c => c.hid.Q >= Q_dis) || canalesCalc[canalesCalc.length - 1];
+  const llenado = (Q_dis / sel.hid.Q * 100).toFixed(1);
 
-  const cumple = sel.cap >= Qm;
+  STATE.canal = { Q_dis, S_pct, sel, canalesCalc };
+
+  document.getElementById('can-serie').textContent  = sel.s;
+  document.getElementById('can-area').textContent   = sel.hid.Acm2.toFixed(1);
+  document.getElementById('can-cap').textContent    = sel.hid.Q.toFixed(1);
+  document.getElementById('can-clase').textContent  = sel.clase;
+  document.getElementById('can-llenado').textContent = llenado + '%';
+  document.getElementById('can-uso').textContent    = sel.uso;
+
+  const cumple = sel.hid.Q >= Q_dis;
   document.getElementById('can-cumplimiento').innerHTML =
-    `<span class="semaforo ${cumple?'sem-ok':'sem-warn'}">${cumple?'✅ EN 1433: Cumple — capacidad ≥ Qm diseño':'⚠️ EN 1433: Revisar — ningún canal cubre el caudal'}</span>`;
+    `<span class="semaforo ${cumple?'sem-ok':'sem-warn'}">${cumple
+      ? `✅ EN 1433: Cumple — ${sel.s} cap ${sel.hid.Q.toFixed(1)} l/s ≥ Q diseño ${Q_dis.toFixed(1)} l/s`
+      : `⚠️ EN 1433: Revisar — ningún canal EVO cubre el caudal de diseño`}</span>`;
 
-  // Tabla completa
+  // Tabla completa con todos los canales EVO
   const tbody = document.getElementById('can-tbody');
   tbody.innerHTML = '';
-  CANALES.forEach(c => {
+  canalesCalc.forEach(c => {
     const tr = document.createElement('tr');
-    if(c.s === sel.s) tr.classList.add('highlight');
-    const cubre = c.cap >= Qm;
+    const esSeleccionado = c.s === sel.s;
+    if(esSeleccionado) tr.classList.add('highlight');
+    const cubre = c.hid.Q >= Q_dis;
     tr.innerHTML = `
-      <td>${c.s}</td>
-      <td>${c.clase}</td>
+      <td><strong>${c.s}</strong></td>
+      <td>${c.LN}×${c.Hi}</td>
+      <td>${c.LN} mm ancho × ${c.Hi} mm alto</td>
+      <td>${c.hid.Acm2.toFixed(1)}</td>
+      <td>${c.hid.Q.toFixed(1)}</td>
       <td>${c.carga}</td>
-      <td>${c.uso}</td>
-      <td>${c.cap === 9999?'> 50':c.cap}</td>
-      <td>${c.s === sel.s ? '<span class="semaforo sem-ok">✅ Seleccionado</span>' : (cubre ? '<span style="color:var(--ok)">✓</span>' : '<span style="color:var(--bad)">✗</span>')}</td>
+      <td>${esSeleccionado
+        ? '<span class="semaforo sem-ok">✅ Seleccionado</span>'
+        : (cubre
+          ? '<span style="color:var(--ok)">✓ Cubre</span>'
+          : '<span style="color:var(--bad)">✕ Insuficiente</span>')}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  // Aviso de sedimentación por caudal por metro
+  // Aviso de sedimentación: v del canal seleccionado
   let sedHtml = '';
-  if(!isNaN(Qm) && Qm > 0) {
-    if(Qm < 0.3) {
-      sedHtml = `<span class="semaforo sem-warn">⚠️ AMBAR: Caudal muy bajo (${Qm.toFixed(3)} l/s/m) — el canal trabajaría casi vacío, posible acumulación de sedimentos. Verifique pendiente del canal o considere una sección menor.</span>`;
-    } else {
-      sedHtml = `<span class="semaforo sem-ok">✅ Caudal adecuado para arrastre (${Qm.toFixed(3)} l/s/m ≥ 0.3 l/s/m).</span>`;
-    }
+  const v = sel.hid.v;
+  if(v < 0.3) {
+    sedHtml = `<span class="semaforo sem-warn">⚠️ AMBAR: Velocidad muy baja (${v.toFixed(3)} m/s) — riesgo de sedimentación. Verifique pendiente o use sección menor.</span>`;
+  } else if(v < 0.6) {
+    sedHtml = `<span class="semaforo sem-warn">⚠️ Velocidad ${v.toFixed(3)} m/s — por debajo de 0.6 m/s. Considere aumentar pendiente para evitar sedimentos.</span>`;
+  } else {
+    sedHtml = `<span class="semaforo sem-ok">✅ Velocidad ${v.toFixed(3)} m/s ≥ 0.6 m/s — adecuada para arrastre de sedimentos.</span>`;
   }
   document.getElementById('can-sediment').innerHTML = sedHtml;
 
@@ -1228,7 +1336,7 @@ function actualizarReporte() {
   // Métricas
   document.getElementById('rep-Q').textContent     = STATE.caudal  ? STATE.caudal.Q.toFixed(2)  : '—';
   document.getElementById('rep-Qm').textContent    = STATE.caudal  ? STATE.caudal.Qm.toFixed(3) : '—';
-  document.getElementById('rep-canal').textContent = STATE.canal   ? STATE.canal.sel.s : '—';
+  document.getElementById('rep-canal').textContent = STATE.canal   ? STATE.canal.sel.s + ' (' + STATE.canal.sel.hid.Q.toFixed(1) + ' l/s)' : '—';
   document.getElementById('rep-smin').textContent  = STATE.manning ? STATE.manning.S_min_pct.toFixed(3) : '—';
   document.getElementById('rep-npv').textContent   = STATE.pozos   ? STATE.pozos.nPV : '—';
   document.getElementById('rep-prof-max').textContent = STATE.pozos && STATE.pozos.profMax !== undefined ? STATE.pozos.profMax.toFixed(2) + ' m' : '—';
@@ -1268,18 +1376,18 @@ function actualizarReporte() {
     }
   });
 
-  // Gráfica caudal vs canal
-  const qmVal  = STATE.caudal ? STATE.caudal.Qm : 0;
-  const capVal = STATE.canal  ? (STATE.canal.sel.cap === 9999 ? 55 : STATE.canal.sel.cap) : 0;
+  // Gráfica caudal vs canal EVO
+  const qDisVal = STATE.canal ? STATE.canal.Q_dis : (STATE.caudal ? STATE.caudal.Q : 0);
+  const capVal  = STATE.canal ? STATE.canal.sel.hid.Q : 0;
   if(chartCaudal) { chartCaudal.destroy(); chartCaudal = null; }
   const ctx2 = document.getElementById('chart-caudal').getContext('2d');
   chartCaudal = new Chart(ctx2, {
     type:'bar',
     data:{
-      labels:['Qm Diseño','Cap. Canal'],
+      labels:['Q Diseño (l/s)','Cap. Canal EVO (l/s)'],
       datasets:[{
-        label:'l/s/m',
-        data:[qmVal, capVal],
+        label:'l/s',
+        data:[qDisVal, capVal],
         backgroundColor:['rgba(1,105,111,.7)','rgba(209,153,0,.7)'],
         borderColor:['#01696F','#D19900'],
         borderWidth:2
@@ -1288,7 +1396,7 @@ function actualizarReporte() {
     options:{
       responsive:true,
       plugins:{legend:{display:false}},
-      scales:{y:{title:{display:true,text:'l/s/m'}}}
+      scales:{y:{title:{display:true,text:'l/s'}}}
     }
   });
 
@@ -1329,11 +1437,14 @@ function updateCompliance() {
     setCN('sgapds', ok, ok ? `C=${c.C}, A=${(c.Aha*10000).toFixed(0)}m², Tr ${[2,5,10,25,50][c.trIdx]} años — Q=${c.Q.toFixed(2)} l/s` : 'Verificar parámetros');
   } else { setCN('sgapds', null, 'Sin calcular'); }
 
-  // EN 1433
+  // EN 1433 (ahora con EVO real: Q total l/s)
   if(STATE.canal) {
     const c = STATE.canal;
-    const ok = c.sel.cap >= c.Qm;
-    setCN('en1433', ok, ok ? `${c.sel.s} (${c.sel.cap} l/s/m) ≥ Qm ${c.Qm.toFixed(3)} l/s/m` : `Cap ${c.sel.cap} < Qm ${c.Qm.toFixed(3)}`);
+    const ok = c.sel.hid.Q >= c.Q_dis;
+    const Acm2 = c.sel.hid.Acm2.toFixed(1);
+    setCN('en1433', ok,
+      ok ? `${c.sel.s} \u00c1rea ${Acm2} cm\u00b2, cap ${c.sel.hid.Q.toFixed(1)} l/s \u2265 Q ${c.Q_dis.toFixed(1)} l/s (S=${c.S_pct}%)`
+         : `Cap ${c.sel.hid.Q.toFixed(1)} l/s < Q dise\u00f1o ${c.Q_dis.toFixed(1)} l/s`);
   } else { setCN('en1433', null, 'Sin calcular'); }
 
   // NMX-E-215
@@ -1462,14 +1573,22 @@ function generarPDF() {
     y += 4;
   }
 
-  // SECCIÓN CANAL
+  // SECCIÓN CANAL EVO
   if(STATE.canal) {
     const c = STATE.canal;
-    y = pdfSection(doc, '2. Canal TECHNODRAIN Seleccionado (EN 1433)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, '2. Canal TECHNODRAIN EVO Seleccionado (EN 1433)', y, W, M, TEAL, TEALD, INK);
+    const llenado = (c.Q_dis / c.sel.hid.Q * 100).toFixed(1);
     const rows2 = [
-      ['Qm diseño',c.Qm.toFixed(3)+' l/s/m'],['Serie seleccionada',c.sel.s],
-      ['Clase EN 1433',c.sel.clase],['Carga máxima',c.sel.carga],
-      ['Uso recomendado',c.sel.uso],['Capacidad hidráulica',c.sel.cap === 9999 ? '> 50 l/s/m' : c.sel.cap+' l/s/m']
+      ['Q diseño', c.Q_dis.toFixed(1)+' l/s'],
+      ['Pendiente canal S', c.S_pct+'%'],
+      ['Canal EVO recomendado', c.sel.s],
+      ['Sección interior LN×Hi', c.sel.LN+'×'+c.sel.Hi+' mm'],
+      ['Área hidráulica (90% llenado)', c.sel.hid.Acm2.toFixed(1)+' cm²'],
+      ['Capacidad hidráulica', c.sel.hid.Q.toFixed(1)+' l/s'],
+      ['Velocidad', c.sel.hid.v.toFixed(3)+' m/s'],
+      ['% llenado a Q diseño', llenado+'%'],
+      ['Clase de carga', c.sel.carga],
+      ['Uso recomendado', c.sel.uso]
     ];
     y = pdfTable(doc, rows2, y, W, M, INK);
     y += 4;
@@ -1661,6 +1780,95 @@ function pdfTable(doc, rows, y, W, M, INK) {
   });
   return y;
 }
+
+// =============================================================
+// DATOS CONAGUA/SMN — Precipitación media ANUAL por estado
+// Fuente: CONAGUA/SMN · Serie 2013-2024 · Actualizado: abril 2025
+// =============================================================
+const CONAGUA_STATS = {"Aguascalientes":{"media":584,"min":354,"max":837,"desv":145,"tendencia":"baja","diseno":657,"u2024":596,"serie":[756,535,837,575,579,768,453,498,672,390,354,596]},"Baja California":{"media":150,"min":85,"max":263,"desv":55,"tendencia":"baja","diseno":177,"u2024":97,"serie":[194,85,263,219,132,125,206,104,99,124,148,97]},"Baja California Sur":{"media":219,"min":64,"max":362,"desv":92,"tendencia":"baja","diseno":265,"u2024":64,"serie":[229,335,362,200,175,163,271,103,174,360,187,64]},"Campeche":{"media":1383,"min":1132,"max":1779,"desv":183,"tendencia":"baja","diseno":1474,"u2024":1349,"serie":[1697,1390,1326,1177,1407,1390,1303,1779,1219,1423,1132,1349]},"Coahuila":{"media":351,"min":227,"max":555,"desv":111,"tendencia":"baja","diseno":407,"u2024":276,"serie":[444,424,525,555,359,397,262,227,246,261,242,276]},"Colima":{"media":1720,"min":1333,"max":2281,"desv":259,"tendencia":"baja","diseno":1850,"u2024":1604,"serie":[1877,1920,1957,1333,1729,1612,1817,1665,2281,1477,1371,1604]},"Chiapas":{"media":1895,"min":1614,"max":2279,"desv":201,"tendencia":"baja","diseno":1996,"u2024":1854,"serie":[2279,2056,1741,1614,1994,1705,1767,2168,1807,2054,1701,1854]},"Chihuahua":{"media":440,"min":224,"max":630,"desv":129,"tendencia":"baja","diseno":504,"u2024":244,"serie":[618,490,630,512,454,491,470,261,411,473,224,244]},"Ciudad de México":{"media":599,"min":458,"max":786,"desv":108,"tendencia":"estable","diseno":653,"u2024":765,"serie":[698,616,492,656,488,786,565,470,637,553,458,765]},"Durango":{"media":469,"min":333,"max":627,"desv":75,"tendencia":"baja","diseno":507,"u2024":379,"serie":[517,497,627,510,455,520,429,390,470,503,333,379]},"Estado de México":{"media":832,"min":720,"max":934,"desv":63,"tendencia":"estable","diseno":863,"u2024":881,"serie":[862,720,934,893,873,847,744,809,830,882,761,881]},"Guanajuato":{"media":611,"min":477,"max":806,"desv":104,"tendencia":"baja","diseno":663,"u2024":530,"serie":[761,585,806,617,605,681,530,540,720,506,477,530]},"Guerrero":{"media":1201,"min":985,"max":1496,"desv":158,"tendencia":"baja","diseno":1280,"u2024":1041,"serie":[1496,1198,1105,1087,1264,1166,1208,1165,1338,1205,985,1041]},"Hidalgo":{"media":712,"min":583,"max":887,"desv":91,"tendencia":"estable","diseno":758,"u2024":742,"serie":[839,732,735,583,721,668,625,798,760,791,757,742]},"Jalisco":{"media":876,"min":641,"max":1157,"desv":155,"tendencia":"baja","diseno":954,"u2024":772,"serie":[1078,834,1157,1003,831,943,699,788,965,762,641,772]},"Michoacán":{"media":868,"min":682,"max":1079,"desv":128,"tendencia":"baja","diseno":932,"u2024":777,"serie":[1035,876,1079,1001,836,928,757,822,962,737,682,777]},"Morelos":{"media":963,"min":784,"max":1193,"desv":125,"tendencia":"estable","diseno":1025,"u2024":1005,"serie":[1108,996,907,1193,892,1089,865,844,1063,889,784,1005]},"Nayarit":{"media":1112,"min":784,"max":1538,"desv":218,"tendencia":"baja","diseno":1221,"u2024":889,"serie":[1349,1139,1538,1148,1086,1086,1046,1094,1291,888,784,889]},"Nuevo León":{"media":572,"min":334,"max":932,"desv":169,"tendencia":"baja","diseno":656,"u2024":415,"serie":[760,541,932,646,630,711,334,460,605,398,403,415]},"Oaxaca":{"media":1003,"min":811,"max":1298,"desv":140,"tendencia":"baja","diseno":1073,"u2024":875,"serie":[1298,1059,939,905,1046,936,955,1106,1068,1050,811,875]},"Puebla":{"media":815,"min":657,"max":1024,"desv":109,"tendencia":"estable","diseno":869,"u2024":856,"serie":[958,805,868,1024,754,849,750,731,893,767,657,856]},"Querétaro":{"media":621,"min":476,"max":776,"desv":88,"tendencia":"baja","diseno":665,"u2024":538,"serie":[740,623,776,690,615,664,553,565,712,508,476,538]},"Quintana Roo":{"media":1356,"min":1086,"max":1721,"desv":192,"tendencia":"baja","diseno":1452,"u2024":1224,"serie":[1721,1403,1246,1151,1454,1310,1376,1481,1365,1328,1086,1224]},"San Luis Potosí":{"media":619,"min":421,"max":845,"desv":132,"tendencia":"baja","diseno":685,"u2024":528,"serie":[810,651,845,699,598,690,493,506,690,438,421,528]},"Sinaloa":{"media":746,"min":529,"max":1049,"desv":152,"tendencia":"baja","diseno":822,"u2024":614,"serie":[912,695,1049,829,757,794,666,650,934,572,529,614]},"Sonora":{"media":399,"min":265,"max":546,"desv":80,"tendencia":"baja","diseno":439,"u2024":316,"serie":[488,351,546,455,396,421,400,344,455,341,265,316]},"Tabasco":{"media":2236,"min":1784,"max":2801,"desv":286,"tendencia":"baja","diseno":2379,"u2024":1999,"serie":[2689,2374,2063,2007,2340,2160,2084,2578,2298,2471,1784,1999]},"Tamaulipas":{"media":691,"min":465,"max":1004,"desv":165,"tendencia":"baja","diseno":773,"u2024":549,"serie":[905,688,1004,821,672,755,551,529,820,465,519,549]},"Tlaxcala":{"media":669,"min":548,"max":823,"desv":82,"tendencia":"estable","diseno":710,"u2024":695,"serie":[787,671,694,823,624,726,617,596,748,614,548,695]},"Veracruz":{"media":1379,"min":1132,"max":1759,"desv":176,"tendencia":"baja","diseno":1467,"u2024":1248,"serie":[1700,1381,1400,1265,1444,1350,1175,1509,1491,1463,1132,1248]},"Yucatán":{"media":1097,"min":826,"max":1421,"desv":181,"tendencia":"baja","diseno":1188,"u2024":956,"serie":[1374,1152,1051,1002,1174,1048,1003,1194,1307,826,1421,956]},"Zacatecas":{"media":480,"min":313,"max":711,"desv":122,"tendencia":"baja","diseno":541,"u2024":390,"serie":[672,475,711,481,432,580,378,366,553,321,313,390]}};
+
+let chartConagua = null;
+const ANIOS_SERIE = [2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+
+function actualizarPanelConagua(estado) {
+  const d = CONAGUA_STATS[estado];
+  if (!d) return;
+
+  document.getElementById('conagua-estado-nombre').textContent = '\uD83D\uDCCD ' + estado;
+
+  const tendLabel = d.tendencia === 'baja' ? '\u2193 a la baja' : d.tendencia === 'alza' ? '\u2191 al alza' : '\u2192 estable';
+  const tendColor = d.tendencia === 'baja' ? '#b94c00' : d.tendencia === 'alza' ? '#1a7a3a' : '#01696F';
+
+  const tbody = document.getElementById('conagua-tbody');
+  tbody.innerHTML = [
+    ['Media histórica (2013-2024)', d.media + ' mm/año'],
+    ['Mínimo registrado', d.min + ' mm/año'],
+    ['Máximo registrado', d.max + ' mm/año'],
+    ['Último año disponible (2024)', d.u2024 + ' mm/año'],
+    ['Tendencia (2013-2024)', '<span style="font-weight:700;color:' + tendColor + '">' + tendLabel + '</span>'],
+    ['Valor de diseño sugerido', '<strong style="color:var(--teal-d)">' + d.diseno + ' mm/año</strong>']
+  ].map((r, i) =>
+    '<tr style="background:' + (i%2===0?'#f5fbfa':'#fff') + ';border-bottom:1px solid #deeeed">'
+    + '<td style="padding:7px 10px;color:#444">' + r[0] + '</td>'
+    + '<td style="padding:7px 10px;text-align:right">' + r[1] + '</td></tr>'
+  ).join('');
+
+  const climaMsj = d.tendencia === 'baja'
+    ? ' La precipitación en <strong>' + estado + '</strong> muestra <span style="color:#b94c00;font-weight:700">tendencia a la baja</span> (2013-2024); <strong>considere un diseño conservador con margen ampliado por cambio climático.</strong>'
+    : d.tendencia === 'alza'
+    ? ' La precipitación en <strong>' + estado + '</strong> muestra <span style="color:#1a7a3a;font-weight:700">tendencia al alza</span> (2013-2024); ajuste su diseño a la capacidad máxima proyectada.'
+    : ' La precipitación en <strong>' + estado + '</strong> muestra <span style="color:var(--teal-d);font-weight:700">tendencia estable</span> (2013-2024); el valor de diseño ofrece margen adecuado.';
+
+  const sug = document.getElementById('conagua-sugerencia');
+  sug.style.display = 'block';
+  sug.innerHTML = '\uD83D\uDCA1 <strong>Valor de diseño sugerido: ' + d.diseno + ' mm/año</strong> (media + margen de seguridad).' + climaMsj;
+
+  if (chartConagua) { chartConagua.destroy(); chartConagua = null; }
+  const ctx = document.getElementById('chart-conagua').getContext('2d');
+  const barColors = d.serie.map(v => v >= d.media ? 'rgba(1,105,111,0.75)' : 'rgba(185,76,0,0.65)');
+  chartConagua = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ANIOS_SERIE,
+      datasets: [{
+        label: 'mm/año',
+        data: d.serie,
+        backgroundColor: barColors,
+        borderRadius: 3
+      }, {
+        label: 'Media ' + d.media + ' mm/año',
+        data: Array(12).fill(d.media),
+        type: 'line',
+        borderColor: 'rgba(10,45,55,0.7)',
+        borderWidth: 1.5,
+        borderDash: [4,3],
+        pointRadius: 0,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { font: { size: 11 } } },
+        y: { ticks: { font: { size: 11 } }, title: { display: true, text: 'mm/año', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// Escuchar cambio de estado para actualizar panel estadístico
+(function hookConagua() {
+  var selEstado = document.getElementById('c-estado');
+  if (selEstado) {
+    selEstado.addEventListener('change', function() {
+      actualizarPanelConagua(this.value);
+    });
+    // Mostrar datos del estado inicial (Ciudad de México por defecto)
+    if (selEstado.value) actualizarPanelConagua(selEstado.value);
+  }
+})();
+
 </script>
 </body>
 </html>
