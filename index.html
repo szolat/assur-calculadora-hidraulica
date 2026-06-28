@@ -228,6 +228,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <div class="result-metric"><div class="val" id="can-cap">—</div><div class="lbl">Capacidad (l/s/m)</div></div>
       </div>
       <div id="can-cumplimiento"></div>
+      <div id="can-sediment" style="margin-top:8px"></div>
       <div class="table-wrap">
         <table id="can-tabla">
           <thead><tr><th>Serie</th><th>Clase EN 1433</th><th>Carga max</th><th>Uso típico</th><th>Cap. (l/s/m)</th><th>Estado</th></tr></thead>
@@ -544,6 +545,11 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div class="result-metric"><div class="val" id="rep-ap-hf100">—</div><div class="lbl">Pérd. AP (m/100m)</div></div>
       <div class="result-metric"><div class="val" id="rep-ap-padm">—</div><div class="lbl">P. admisible AP (kg/cm²)</div></div>
     </div>
+    <!-- Nota consolidada sedimentación -->
+    <div style="margin-top:14px" id="rep-sediment-wrap">
+      <div style="font-size:.8rem;font-weight:700;color:var(--teal-d);margin-bottom:5px">Riesgo de Sedimentación Global</div>
+      <div id="rep-sediment">—</div>
+    </div>
   </div>
 
   <!-- Gráficas -->
@@ -579,7 +585,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <tr class="compliance-row"><td>EN 1433</td><td id="cn-en1433">—</td><td>Cap. canal ≥ Qm diseño</td><td id="cn-en1433-nota">Sin calcular</td></tr>
           <tr class="compliance-row"><td>NMX-E-215</td><td id="cn-nmx">—</td><td>Velocidad ∈ [0.6, 3.0] m/s</td><td id="cn-nmx-nota">Sin calcular</td></tr>
           <tr class="compliance-row"><td>NOM-086-SEMARNAT</td><td id="cn-nom">—</td><td>Espaciado ≤ máx. normativo</td><td id="cn-nom-nota">Sin calcular</td></tr>
-          <tr class="compliance-row"><td>ISO 16422 / NMX-E-258</td><td id="cn-iso16422">—</td><td>Presión operación ≤ PN admisible · Velocidad 0.5–2.5 m/s</td><td id="cn-iso16422-nota">Sin calcular</td></tr>
+          <tr class="compliance-row"><td>ISO 16422 / NMX-E-258</td><td id="cn-iso16422">—</td><td>Presión operación ≤ PN admisible · Velocidad 0.6–2.5 m/s</td><td id="cn-iso16422-nota">Sin calcular</td></tr>
         </tbody>
       </table>
     </div>
@@ -811,6 +817,17 @@ function calcCanal() {
     `;
     tbody.appendChild(tr);
   });
+
+  // Aviso de sedimentación por caudal por metro
+  let sedHtml = '';
+  if(!isNaN(Qm) && Qm > 0) {
+    if(Qm < 0.3) {
+      sedHtml = `<span class="semaforo sem-warn">⚠️ AMBAR: Caudal muy bajo (${Qm.toFixed(3)} l/s/m) — el canal trabajaría casi vacío, posible acumulación de sedimentos. Verifique pendiente del canal o considere una sección menor.</span>`;
+    } else {
+      sedHtml = `<span class="semaforo sem-ok">✅ Caudal adecuado para arrastre (${Qm.toFixed(3)} l/s/m ≥ 0.3 l/s/m).</span>`;
+    }
+  }
+  document.getElementById('can-sediment').innerHTML = sedHtml;
 
   document.getElementById('res-canal').classList.add('visible');
 }
@@ -1157,15 +1174,15 @@ function calcAgua() {
   const popOk  = !isNaN(P_op) && P_op > 0;
   const presOk = popOk ? (P_op <= P_adm_kgcm2) : null;
 
-  // Semáforo velocidad: verde 0.5-2.5, ámbar 2.5-3.0, rojo >3.0
+  // Semáforo velocidad: verde 0.6-2.5, ámbar 2.5-3.0, rojo >3.0
   let semCls, semMsg;
-  if(v >= 0.5 && v <= 2.5)       { semCls = 'sem-ok';   semMsg = '✅ Velocidad correcta (0.5–2.5 m/s)'; }
+  if(v >= 0.6 && v <= 2.5)       { semCls = 'sem-ok';   semMsg = '✅ Velocidad correcta (0.6–2.5 m/s)'; }
   else if(v > 2.5 && v <= 3.0)   { semCls = 'sem-warn'; semMsg = '⚠️ Velocidad elevada (2.5–3.0 m/s) — revisar'; }
   else if(v > 3.0)                { semCls = 'sem-bad';  semMsg = '🔴 Velocidad excesiva (>3.0 m/s) — riesgo golpe de ariete'; }
-  else                            { semCls = 'sem-warn'; semMsg = '⚠️ Velocidad baja (<0.5 m/s) — riesgo sedimentación'; }
+  else                            { semCls = 'sem-warn'; semMsg = '⚠️ Velocidad baja (<0.6 m/s) — conducción poco eficiente, considere reducir diámetro'; }
 
   // Cumplimiento normativo ISO 16422
-  const velOk  = v >= 0.5 && v <= 2.5;
+  const velOk  = v >= 0.6 && v <= 2.5;
   const isoOk  = velOk && (presOk !== false);  // cumple si velocidad ok y presión ok (o no especificada)
 
   // Guardar estado
@@ -1274,6 +1291,31 @@ function actualizarReporte() {
       scales:{y:{title:{display:true,text:'l/s/m'}}}
     }
   });
+
+  // Nota consolidada de sedimentación
+  (function() {
+    // Recopila velocidades disponibles de módulos calculados (solo drenaje gravitacional)
+    const vels = [];
+    if(STATE.manning) {
+      const v = STATE.manning.v_proy !== undefined ? STATE.manning.v_proy : 0.6;
+      vels.push({ modulo: 'Manning', v });
+    }
+    if(STATE.pozos && STATE.pozos.velocidad !== undefined) {
+      vels.push({ modulo: 'Pozos', v: STATE.pozos.velocidad });
+    }
+    const el = document.getElementById('rep-sediment');
+    if(vels.length === 0) {
+      el.innerHTML = '<span style="color:#888">— No se ha calculado ningún módulo con velocidad.</span>';
+    } else {
+      const bajas = vels.filter(x => x.v < 0.6);
+      if(bajas.length === 0) {
+        el.innerHTML = `<span class="semaforo sem-ok">✅ Sin riesgo de sedimentación — velocidades ≥ 0.6 m/s en los tramos calculados (${vels.map(x=>x.modulo+': '+x.v.toFixed(3)+' m/s').join(' | ')})</span>`;
+      } else {
+        const detalle = bajas.map(x => x.modulo + ': ' + x.v.toFixed(3) + ' m/s').join(' | ');
+        el.innerHTML = `<span class="semaforo sem-warn">⚠️ Riesgo de sedimentación — hay tramos con velocidad < 0.6 m/s (${detalle}). Aumentar pendiente.</span>`;
+      }
+    }
+  })();
 
   // Panel de cumplimiento
   updateCompliance();
