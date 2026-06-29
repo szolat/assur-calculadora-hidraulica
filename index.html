@@ -2511,5 +2511,33 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
 })();
 
 </script>
+<script>
+/* Auto-altura para iframe embebido (comunica la altura real al sitio contenedor, ej. Duda) */
+(function(){
+  function enviarAltura(){
+    try{
+      var h = Math.max(
+        document.body.scrollHeight, document.documentElement.scrollHeight,
+        document.body.offsetHeight, document.documentElement.offsetHeight
+      );
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ assurCalcHeight: h }, '*');
+      }
+    }catch(e){}
+  }
+  // Enviar al cargar y cuando cambie el tamaño
+  window.addEventListener('load', function(){ enviarAltura(); setTimeout(enviarAltura, 600); });
+  window.addEventListener('resize', enviarAltura);
+  // Observar cambios del DOM (al calcular, cambiar pestaña, mostrar diagramas/notas)
+  if (window.MutationObserver) {
+    var mo = new MutationObserver(function(){ setTimeout(enviarAltura, 150); });
+    mo.observe(document.body, { childList:true, subtree:true, attributes:true });
+  }
+  // Respaldo: reenviar periódicamente por si algo cambió sin disparar el observer
+  setInterval(enviarAltura, 1500);
+  // Al hacer clic en cualquier botón/pestaña, reenviar tras el render
+  document.addEventListener('click', function(){ setTimeout(enviarAltura, 250); });
+})();
+</script>
 </body>
 </html>
