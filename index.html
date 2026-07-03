@@ -896,9 +896,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px">
           <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:12px">🔧 Tipo de tubería</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-            <button id="ibt-pead" onclick="inst_selectTubo(this,\'pead\')" style="border:2px solid var(--teal);background:rgba(1,105,111,.08);border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--teal-d);cursor:pointer">PEAD<br><span style="font-weight:400;color:#666">Corrugado</span></button>
-            <button id="ibt-pvc" onclick="inst_selectTubo(this,\'pvc\')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">PVC<br><span style="font-weight:400;color:#666">Liso</span></button>
-            <button id="ibt-concreto" onclick="inst_selectTubo(this,\'concreto\')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">Concreto<br><span style="font-weight:400;color:#666">Rígido</span></button>
+            <button id="ibt-pead" onclick="inst_selectTubo(this,'pead')" style="border:2px solid var(--teal);background:rgba(1,105,111,.08);border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--teal-d);cursor:pointer">PEAD<br><span style="font-weight:400;color:#666">Corrugado</span></button>
+            <button id="ibt-pvc" onclick="inst_selectTubo(this,'pvc')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">PVC<br><span style="font-weight:400;color:#666">Liso</span></button>
+            <button id="ibt-concreto" onclick="inst_selectTubo(this,'concreto')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">Concreto<br><span style="font-weight:400;color:#666">Rígido</span></button>
           </div>
           <div id="inst-tubo-info" style="font-size:.75rem;color:#1e40af;background:#eff6ff;border-radius:6px;padding:8px 12px">⚡ Tubería <strong>flexible</strong> — aplica ecuación de IOWA Modificada para verificar deflexión.</div>
         </div>
@@ -935,8 +935,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div>
             <label>Tipo de drenaje</label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <button id="inst-dren-pluvial" onclick="inst_setDrenaje(this,\'pluvial\')" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:6px;padding:9px;font-size:.78rem;font-weight:600;color:#555;cursor:pointer">🌧️ Pluvial</button>
-              <button id="inst-dren-sanitario" onclick="inst_setDrenaje(this,\'sanitario\')" style="border:2px solid var(--teal);background:rgba(1,105,111,.08);border-radius:6px;padding:9px;font-size:.78rem;font-weight:700;color:var(--teal-d);cursor:pointer">🚽 Sanitario</button>
+              <button id="inst-dren-pluvial" onclick="inst_setDrenaje(this,'pluvial')" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:6px;padding:9px;font-size:.78rem;font-weight:600;color:#555;cursor:pointer">🌧️ Pluvial</button>
+              <button id="inst-dren-sanitario" onclick="inst_setDrenaje(this,'sanitario')" style="border:2px solid var(--teal);background:rgba(1,105,111,.08);border-radius:6px;padding:9px;font-size:.78rem;font-weight:700;color:var(--teal-d);cursor:pointer">🚽 Sanitario</button>
             </div>
           </div>
         </div>
@@ -948,25 +948,25 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <span id="inst-rec-badge" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:4px">✅ Recomendado</span>
           </div>
           <div id="inst-soil-cards" style="display:flex;flex-direction:column;gap:8px">
-            <div onclick="inst_selectSuelo(this,140,\'I\')" data-e="140" data-clase="I" style="border:2px solid var(--teal-d);background:rgba(1,105,111,.06);border-radius:8px;padding:10px 12px;cursor:pointer">
+            <div onclick="inst_selectSuelo(this,140,'I')" data-e="140" data-clase="I" style="border:2px solid var(--teal-d);background:rgba(1,105,111,.06);border-radius:8px;padding:10px 12px;cursor:pointer">
               <div style="display:flex;align-items:center;justify-content:space-between">
                 <div><div style="font-size:.78rem;font-weight:700;color:var(--teal-d)">Clase I — Roca/Grava triturada angular</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 140 kPa · Sin finos · Alta permeabilidad</div></div>
                 <span style="background:#dcfce7;color:#166534;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">★ Óptimo</span>
               </div>
             </div>
-            <div onclick="inst_selectSuelo(this,70,\'II\')" data-e="70" data-clase="II" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
+            <div onclick="inst_selectSuelo(this,70,'II')" data-e="70" data-clase="II" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
               <div style="display:flex;align-items:center;justify-content:space-between">
                 <div><div style="font-size:.78rem;font-weight:700;color:var(--ink)">Clase II — Grava/Arena limpia (GW, GP, SW, SP)</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 70 kPa · Grano grueso · Uso general</div></div>
                 <span style="background:#e0f2fe;color:#075985;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">General</span>
               </div>
             </div>
-            <div onclick="inst_selectSuelo(this,35,\'III\')" data-e="35" data-clase="III" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
+            <div onclick="inst_selectSuelo(this,35,'III')" data-e="35" data-clase="III" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
               <div style="display:flex;align-items:center;justify-content:space-between">
                 <div><div style="font-size:.78rem;font-weight:700;color:var(--ink)">Clase III — Arena fina con finos (GM, GC, SM)</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 35 kPa · Solo condiciones normales</div></div>
                 <span style="background:#fef9c3;color:#854d0e;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">⚠ Revisar</span>
               </div>
             </div>
-            <div onclick="inst_selectSuelo(this,7,\'IV\')" data-e="7" data-clase="IV" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
+            <div onclick="inst_selectSuelo(this,7,'IV')" data-e="7" data-clase="IV" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
               <div style="display:flex;align-items:center;justify-content:space-between">
                 <div><div style="font-size:.78rem;font-weight:700;color:#b91c1c">❌ Arcilla expansiva (material excavado)</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 7 kPa · Inapropiado · NOM-001 no permite</div></div>
                 <span style="background:#fee2e2;color:#991b1b;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">No usar</span>
