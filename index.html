@@ -448,7 +448,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <label>Material / Coef. Manning n</label>
         <select id="m-mat">
           <option value="0.009">PVC liso (n=0.009)</option>
-          <option value="0.010">PVC SN (n=0.010)</option>
+          <option value="0.009">PVC pared estructurada / Novafort (n=0.009)</option>
           <option value="0.012">PEAD estructurado (n=0.012)</option>
           <option value="0.013">Concreto (n=0.013)</option>
         </select>
@@ -782,23 +782,28 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <div>
       <label>Diámetro de diseño (mm)</label>
       <select id="san-dn">
+        <option value="110">110 mm — albañal mín (pend ≥2%) Wavin</option>
         <option value="150">150 mm — albañal estándar</option>
+        <option value="160">160 mm — albañal mín (pend ≥1%) Wavin</option>
         <option value="200" selected>200 mm — atarjea mínima</option>
         <option value="250">250 mm</option>
         <option value="300">300 mm</option>
+        <option value="315">315 mm — Novafort/PVC Métrica</option>
         <option value="375">375 mm</option>
         <option value="400">400 mm</option>
         <option value="450">450 mm</option>
         <option value="500">500 mm</option>
         <option value="600">600 mm</option>
+        <option value="700">700 mm — Novafort</option>
         <option value="750">750 mm</option>
+        <option value="800">800 mm — Novafort</option>
         <option value="900">900 mm</option>
       </select>
     </div>
     <div>
       <label>Material</label>
       <select id="san-mat">
-        <option value="0.009">PVC / PEAD pared sólida (n=0.009)</option>
+        <option value="0.009">PVC sólida / Novafort pared lisa (n=0.009)</option>
         <option value="0.012" selected>PEAD pared estructurada (n=0.012)</option>
         <option value="0.013">Concreto simple/reforzado (n=0.013)</option>
         <option value="0.011">PRFV fibra de vidrio (n=0.011)</option>
@@ -2941,13 +2946,13 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
 
   // Rigidez de pared (PS, kPa) para tuberías FLEXIBLES — Spangler/IOWA
   // PEAD: PS típico 34 kPa (SDR 17, ASTM F714) | PVC: PS 48 kPa (SDR 35, ASTM D3034)
-  var PS_FLEX = { pead: 34, pvc: 48 };
+  var PS_FLEX = { pead: 34, pvc: 186 }; // SN4 NMX-E-215 Wavin Serie 20 = 186 kPa
   var FLEX    = ['pead','pvc'];
 
   // Diámetros disponibles por tipo (mm)
   // Flexibles: fabricantes MX (PEAD/PVC hidráulico) según NMX-E-215 y NOM-001-CONAGUA
   // Concreto reforzado: NMX-C-402-ONNCCE-2020, Dn 300-3050 mm
-  var DIAM_FLEX = [100,150,200,250,300,375,400,450,500,600,700,750,800,900,1000,1200];
+  var DIAM_FLEX = [100,110,150,160,200,250,300,315,375,400,450,500,600,700,750,800,900,1000,1200];
   var DIAM_CONCR = [300,380,450,610,760,910,1070,1220,1370,1520,
                    1830,2130,2440,2750,3050];
 
