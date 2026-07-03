@@ -75,6 +75,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
 /* SEMAFORO */
 .semaforo{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.78rem;font-weight:700}
+.sem-alert{background:#ffd0d0;color:#7b0000}
 .sem-ok{background:#d4f0df;color:var(--ok)}
 .sem-warn{background:#fff3cc;color:#8a6300}
 .sem-bad{background:#fde9e9;color:var(--bad)}
@@ -227,6 +228,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   <button class="tab-btn" onclick="showTab('pozos')">🕳️ 4 · Pozos</button>
   <button class="tab-btn" onclick="showTab('perfil')">📈 5 · Perfil</button>
   <button class="tab-btn" onclick="showTab('agua')">💦 6 · Agua a Presión</button>
+  <button class="tab-btn" onclick="showTab('sanitario')">🏙️ 7 · Sanitario</button>
   <button class="tab-btn" onclick="showTab('reporte')">📋 Reporte</button>
 </div>
 
@@ -250,6 +252,23 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <option value="2" selected>Tr 10 años</option>
           <option value="3">Tr 25 años</option>
           <option value="4">Tr 50 años</option>
+        </select>
+      </div>
+      <div>
+        <label>Tipo de superficie (selecciona para auto-llenar C)</label>
+        <select id="c-tipo-sup" onchange="autoFillC()">
+          <option value="">— Selecciona tipo de superficie —</option>
+          <option value="0.95">Concreto / asfalto impermeable (C=0.95)</option>
+          <option value="0.85">Techo / cubierta impermeabilizada (C=0.85)</option>
+          <option value="0.80">Pavimento adoquín / loseta (C=0.80)</option>
+          <option value="0.75">Estacionamiento / cochera (C=0.75)</option>
+          <option value="0.65">Zona comercial densa (C=0.65)</option>
+          <option value="0.55">Zona residencial densa (C=0.55)</option>
+          <option value="0.40">Zona residencial con jardines (C=0.40)</option>
+          <option value="0.35">Césped / parque urbano (C=0.35)</option>
+          <option value="0.30">Jardín / área verde (C=0.30)</option>
+          <option value="0.20">Zona agrícola / bosque (C=0.20)</option>
+          <option value="custom">Ingresar manualmente</option>
         </select>
       </div>
       <div>
@@ -719,6 +738,135 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 <!-- ============================================================
      SECCIÓN 7 · REPORTE GLOBAL
      ============================================================ -->
+<!-- ============================================================
+     MÓDULO 7 — SANITARIO (SGAPDS-29 Harmon)
+============================================================ -->
+<div id="sec-sanitario" class="section">
+  <div class="section-header">
+    <h2>🏙️ Alcantarillado Sanitario — Gastos de Diseño</h2>
+    <div class="card-sub">SGAPDS-29 (CONAGUA 2009) · Sección 3.1.3 · Coeficiente de Harmon</div>
+  </div>
+
+  <div class="form-grid">
+    <div>
+      <label>Dotación de agua potable (L/hab/día)</label>
+      <input type="number" id="san-dot" value="200" min="100" max="400" step="10">
+      <small style="color:#666">Rango típico México: 150–300 L/hab/día</small>
+    </div>
+    <div>
+      <label>Aportación residual (%)</label>
+      <input type="number" id="san-ap" value="75" min="50" max="100" step="5">
+      <small style="color:#666">75% habitacional, ajustar para industrial/comercial</small>
+    </div>
+    <div>
+      <label>Población servida (habitantes)</label>
+      <input type="number" id="san-pob" value="5000" min="100" step="100">
+      <small style="color:#666">Población acumulada aguas abajo del tramo</small>
+    </div>
+    <div>
+      <label>Zona / tipo de uso</label>
+      <select id="san-zona">
+        <option value="hab">Habitacional</option>
+        <option value="com">Comercial (M=1.5 fijo)</option>
+        <option value="ind">Industrial (M=1.5 fijo)</option>
+      </select>
+    </div>
+    <div>
+      <label>Coef. de seguridad Cs</label>
+      <select id="san-cs">
+        <option value="1.0">1.0 — Normal</option>
+        <option value="1.5">1.5 — Máximo (con autorización)</option>
+      </select>
+    </div>
+    <div>
+      <label>Diámetro de diseño (mm)</label>
+      <select id="san-dn">
+        <option value="150">150 mm — albañal estándar</option>
+        <option value="200" selected>200 mm — atarjea mínima</option>
+        <option value="250">250 mm</option>
+        <option value="300">300 mm</option>
+        <option value="375">375 mm</option>
+        <option value="400">400 mm</option>
+        <option value="450">450 mm</option>
+        <option value="500">500 mm</option>
+        <option value="600">600 mm</option>
+        <option value="750">750 mm</option>
+        <option value="900">900 mm</option>
+      </select>
+    </div>
+    <div>
+      <label>Material</label>
+      <select id="san-mat">
+        <option value="0.009">PVC / PEAD pared sólida (n=0.009)</option>
+        <option value="0.012" selected>PEAD pared estructurada (n=0.012)</option>
+        <option value="0.013">Concreto simple/reforzado (n=0.013)</option>
+        <option value="0.011">PRFV fibra de vidrio (n=0.011)</option>
+      </select>
+    </div>
+    <div>
+      <label>Pendiente del tramo (%)</label>
+      <input type="number" id="san-s" value="1.0" min="0.01" step="0.01">
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="calcSanitario()">&#x26A1; Calcular Gastos Sanitarios</button>
+
+  <div id="res-sanitario" class="result-box" style="display:none">
+    <div class="result-grid">
+      <div class="result-metric"><div class="val" id="san-qmed">—</div><div class="lbl">Qmed (l/s)</div></div>
+      <div class="result-metric"><div class="val" id="san-qmin">—</div><div class="lbl">Qmín (l/s)</div></div>
+      <div class="result-metric"><div class="val" id="san-harmon">—</div><div class="lbl">Coef. Harmon M</div></div>
+      <div class="result-metric"><div class="val" id="san-qinst">—</div><div class="lbl">Qmáx.inst (l/s)</div></div>
+      <div class="result-metric"><div class="val" id="san-qext">—</div><div class="lbl">Qmáx.ext (l/s)</div></div>
+      <div class="result-metric"><div class="val" id="san-vel">—</div><div class="lbl">Velocidad (m/s)</div></div>
+    </div>
+    <div id="san-semaforo" style="margin-top:10px"></div>
+    <div id="san-cumplimiento" style="margin-top:10px"></div>
+
+    <!-- Tabla de gastos -->
+    <div class="table-wrap" style="margin-top:16px">
+      <table>
+        <thead><tr style="background:var(--teal-d);color:#fff">
+          <th>Gasto</th><th>Fórmula</th><th>Valor (l/s)</th><th>Criterio SGAPDS-29</th>
+        </tr></thead>
+        <tbody id="san-tabla-gastos"></tbody>
+      </table>
+    </div>
+
+    <!-- Tabla Harmon -->
+    <div style="margin-top:18px">
+      <h3 style="color:var(--teal-d);font-size:.97rem;margin-bottom:8px">📊 Coeficiente de Harmon vs Población</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr style="background:var(--teal-d);color:#fff">
+            <th>Población (hab)</th><th>M Harmon</th><th>Clasificación</th>
+          </tr></thead>
+          <tbody id="san-tabla-harmon"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pendientes mínimas -->
+    <div style="margin-top:18px">
+      <h3 style="color:var(--teal-d);font-size:.97rem;margin-bottom:4px">📐 Pendiente mínima para v≥0.6 m/s</h3>
+      <div id="san-pendiente-min" style="font-size:1.1rem;font-weight:700;color:var(--teal-d);margin:8px 0"></div>
+      <p style="font-size:.82rem;color:#555">Fórmula: Smín = (0.6·n/R<sup>2/3</sup>)² — Tabla 3.2 SGAPDS-29</p>
+    </div>
+
+    <div class="aviso-reporte" onclick="irAReporte()">
+      <span class="ar-icon">📋</span>
+      <span class="ar-text"><strong>Cálculo generado</strong> — Ve al Reporte para ver el consolidado completo.</span>
+    </div>
+  </div>
+
+  <!-- Nota educativa -->
+  <div class="nota-edu" style="margin-top:18px">
+    <div class="ne-title">💡 ¿Por qué el Coeficiente de Harmon?</div>
+    <p>El gasto máximo instantáneo en alcantarillado sanitario no ocurre todo el día — la demanda tiene picos matutinos y vespertinos. El factor M de Harmon captura esa variabilidad: para poblaciones pequeñas (1,000 hab) M=3.8 (casi 4 veces el gasto medio), y para ciudades grandes (63,000+ hab) baja a M=2.17. Usar M=1 sería subdimensionar gravemente la red.</p>
+    <p><span class="ne-label">Norma:</span> SGAPDS-29 Sección 3.1.3.3 — Fórmula: <strong>M = 1 + 14 / (4 + √P)</strong> donde P = población en miles de habitantes.</p>
+  </div>
+</div>
+
 <div id="sec-reporte" class="section">
   <div class="report-header">
     <div>
@@ -746,6 +894,19 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div class="result-metric"><div class="val" id="rep-ap-padm">—</div><div class="lbl">P. admisible AP (kg/cm²)</div></div>
     </div>
     <!-- Nota consolidada sedimentación -->
+    <!-- Módulo Sanitario en Reporte -->
+    <div style="margin-top:12px;padding:12px;background:#f0f8ff;border-radius:8px;border:1px solid #b0d8e8" id="rep-san-wrap">
+      <div style="font-size:.82rem;font-weight:700;color:var(--teal-d);margin-bottom:8px">🏙️ Alcantarillado Sanitario (SGAPDS-29 Harmon)</div>
+      <div class="result-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
+        <div class="result-metric"><div class="val" id="rep-san-qmed">—</div><div class="lbl">Qmed (l/s)</div></div>
+        <div class="result-metric"><div class="val" id="rep-san-M">—</div><div class="lbl">Harmon M</div></div>
+        <div class="result-metric"><div class="val" id="rep-san-qext">—</div><div class="lbl">Qmáx.ext (l/s)</div></div>
+        <div class="result-metric"><div class="val" id="rep-san-vel">—</div><div class="lbl">Velocidad (m/s)</div></div>
+        <div class="result-metric"><div class="val" id="rep-san-smin">—</div><div class="lbl">Smín (%)</div></div>
+      </div>
+      <div id="rep-san-sem" style="margin-top:6px"></div>
+    </div>
+
     <div style="margin-top:14px" id="rep-sediment-wrap">
       <div style="font-size:.8rem;font-weight:700;color:var(--teal-d);margin-bottom:5px">Riesgo de Sedimentación Global</div>
       <div id="rep-sediment">—</div>
@@ -931,7 +1092,8 @@ const STATE = {
   manning: null,
   pozos: null,
   perfilData: null,
-  agua: null
+  agua: null,
+  sanitario: null
 };
 
 // =============================================================
@@ -1728,6 +1890,23 @@ function actualizarReporte() {
   document.getElementById('rep-ap-hf100').textContent = STATE.agua ? STATE.agua.hf100.toFixed(3) : '—';
   document.getElementById('rep-ap-padm').textContent  = STATE.agua ? STATE.agua.P_adm_kgcm2.toFixed(2) : '—';
 
+  // Módulo Sanitario en Reporte
+  if (STATE.sanitario) {
+    const san = STATE.sanitario;
+    document.getElementById('rep-san-qmed').textContent = san.Qmed.toFixed(2);
+    document.getElementById('rep-san-M').textContent    = san.M.toFixed(3);
+    document.getElementById('rep-san-qext').textContent = san.Qext.toFixed(2);
+    document.getElementById('rep-san-vel').textContent  = san.v.toFixed(3);
+    document.getElementById('rep-san-smin').textContent = san.Smin.toFixed(4);
+    const sanOk = san.v >= 0.6 && san.v <= 5.0;
+    document.getElementById('rep-san-sem').innerHTML =
+      `<span class="semaforo ${sanOk?'sem-ok':'sem-warn'}">${sanOk?'✅ Velocidad OK':'⚠️ Revisar velocidad'} (${san.v.toFixed(3)} m/s)</span>`;
+  } else {
+    ['rep-san-qmed','rep-san-M','rep-san-qext','rep-san-vel','rep-san-smin'].forEach(id =>{
+      document.getElementById(id).textContent = '— Sin calcular';
+    });
+  }
+
   // Gráfica velocidad
   const velVal = vel || 0;
   if(chartVel) { chartVel.destroy(); chartVel = null; }
@@ -2086,7 +2265,10 @@ function generarPDF() {
      nota: STATE.pozos ? `Esp=${STATE.pozos.esp}m ≤ ${STATE.pozos.pozoInfo.espMax}m` : 'Sin calcular'},
     {norma:'ISO 16422 / NMX-E-258', calculado: !!STATE.agua,
      ok: STATE.agua ? STATE.agua.isoOk : false,
-     nota: STATE.agua ? `v=${STATE.agua.v.toFixed(3)} m/s, P_adm=${STATE.agua.P_adm_kgcm2.toFixed(2)} kg/cm²` : 'Sin calcular'}
+     nota: STATE.agua ? `v=${STATE.agua.v.toFixed(3)} m/s, P_adm=${STATE.agua.P_adm_kgcm2.toFixed(2)} kg/cm²` : 'Sin calcular'},
+    {norma:'SGAPDS-29 Sanitario (Harmon)', calculado: !!STATE.sanitario,
+     ok: STATE.sanitario ? (STATE.sanitario.v>=0.6&&STATE.sanitario.v<=5.0) : false,
+     nota: STATE.sanitario ? `M=${STATE.sanitario.M.toFixed(3)}, Qext=${STATE.sanitario.Qext.toFixed(2)} l/s, v=${STATE.sanitario.v.toFixed(3)} m/s` : 'Sin calcular'}
   ];
 
   // Table header
@@ -2527,6 +2709,137 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
   }
   // Enviar al cargar y cuando cambie el tamaño
   window.addEventListener('load', function(){ enviarAltura(); setTimeout(enviarAltura, 600); });
+// ============================================================
+// NUEVO: autoFillC — rellena el coeficiente C según tipo de superficie
+// ============================================================
+function autoFillC() {
+  const sel = document.getElementById('c-tipo-sup');
+  const inp = document.getElementById('c-coef');
+  if (!sel || !inp) return;
+  const v = sel.value;
+  if (v && v !== 'custom') {
+    inp.value = v;
+    inp.readOnly = false;
+  } else if (v === 'custom') {
+    inp.readOnly = false;
+    inp.focus();
+  }
+}
+
+// ============================================================
+// NUEVO: calcSanitario — módulo SGAPDS-29 Harmon
+// ============================================================
+function calcSanitario() {
+  const dot  = parseFloat(document.getElementById('san-dot').value)  || 200;
+  const apPct= parseFloat(document.getElementById('san-ap').value)   || 75;
+  const pob  = parseFloat(document.getElementById('san-pob').value)  || 5000;
+  const zona =            document.getElementById('san-zona').value;
+  const cs   = parseFloat(document.getElementById('san-cs').value)   || 1.0;
+  const dn   = parseFloat(document.getElementById('san-dn').value)   || 200;
+  const n    = parseFloat(document.getElementById('san-mat').value)  || 0.012;
+  const sRaw = parseFloat(document.getElementById('san-s').value)    || 1.0;
+
+  const Ap   = dot * (apPct / 100);         // aportación residual l/hab/día
+  const Qmed = (Ap * pob) / 86400;          // gasto medio l/s
+  const Qmin = Math.max(0.5 * Qmed, 1.0);  // gasto mínimo (nunca < 1 l/s)
+
+  // Coeficiente de Harmon
+  const Pmiles = pob / 1000;
+  let M;
+  if (zona === 'hab') {
+    M = 1 + 14 / (4 + Math.sqrt(Pmiles));
+    M = Math.max(2.17, Math.min(3.8, M));   // límites SGAPDS-29
+  } else {
+    M = 1.5;  // comercial / industrial fijo
+  }
+
+  const Qinst = M * Qmed;
+  const Qext  = cs * Qinst;
+
+  // Hidráulica del tramo con Qmax.ext
+  const S  = sRaw / 100;
+  const D  = dn / 1000;
+  const R  = D / 4;          // radio hidráulico tubo lleno
+  const v  = (1 / n) * Math.pow(R, 2/3) * Math.sqrt(S);
+  const Qtf = v * Math.PI * (D/2)**2 * 1000;  // caudal tubo lleno l/s
+
+  // Pendiente mínima para v=0.6 m/s
+  const Smin = Math.pow((0.6 * n) / Math.pow(R, 2/3), 2) * 100;
+
+  // Mostrar resultados
+  document.getElementById('san-qmed').textContent   = Qmed.toFixed(2);
+  document.getElementById('san-qmin').textContent   = Qmin.toFixed(2);
+  document.getElementById('san-harmon').textContent = M.toFixed(3);
+  document.getElementById('san-qinst').textContent  = Qinst.toFixed(2);
+  document.getElementById('san-qext').textContent   = Qext.toFixed(2);
+  document.getElementById('san-vel').textContent    = v.toFixed(3);
+
+  // Semáforo velocidad
+  let semCls, semMsg;
+  if (v < 0.3) {
+    semCls = 'sem-alert'; semMsg = '🔴 ROJO — Velocidad < 0.3 m/s. Riesgo de azolve severo. Aumentar pendiente o reducir diámetro.';
+  } else if (v < 0.6) {
+    semCls = 'sem-warn'; semMsg = '⚠️ AMBAR — Velocidad < 0.6 m/s (Qmax.ext). Revise pendiente para garantizar autolimpieza.';
+  } else if (v > 5.0) {
+    semCls = 'sem-warn'; semMsg = '⚠️ AMBAR — Velocidad > 5.0 m/s. Riesgo de erosión. Usar caídas o cambiar material.';
+  } else {
+    semCls = 'sem-ok'; semMsg = '✅ VERDE — Velocidad en rango SGAPDS-29 [0.6 – 5.0 m/s]. Diseño correcto.';
+  }
+  document.getElementById('san-semaforo').innerHTML =
+    `<span class="semaforo ${semCls}">${semMsg}</span>`;
+
+  // Cumplimiento
+  const cumpleQ  = Qext <= Qtf * 0.80;  // diseñar al 80% del tubo lleno
+  const cumpleV  = v >= 0.6 && v <= 5.0;
+  document.getElementById('san-cumplimiento').innerHTML =
+    `<div style="margin-top:8px;font-size:.85rem">
+      <span class="semaforo ${cumpleQ ?'sem-ok':'sem-warn'}">
+        ${cumpleQ ? '✅' : '⚠️'} Qmáx.ext (${Qext.toFixed(2)} l/s) ${cumpleQ?'≤':'>'}  80% Qtf (${(Qtf*0.80).toFixed(2)} l/s)
+      </span>&nbsp;
+      <span class="semaforo ${cumpleV ?'sem-ok':'sem-warn'}">
+        ${cumpleV ? '✅ SGAPDS-29: Cumple velocidades' : '⚠️ SGAPDS-29: Revisar velocidad'}
+      </span>
+    </div>`;
+
+  // Tabla de gastos
+  const tbody = document.getElementById('san-tabla-gastos');
+  tbody.innerHTML = [
+    ['Qmed — Gasto medio',         `Ap·P / 86400`,                    Qmed.toFixed(3),  'Ap = dot·(ap/100)'],
+    ['Qmín — Gasto mínimo',        `max(0.5·Qmed, 1.0)`,             Qmin.toFixed(3),  'Mín 1.0 l/s (inodoro 6L)'],
+    ['M — Harmon',                   `1 + 14/(4+√P)`,                  M.toFixed(3),     `P=${Pmiles.toFixed(2)} miles hab`],
+    ['Qmáx.inst — Instantáneo',    `M · Qmed`,                       Qinst.toFixed(3), 'Pico diurno'],
+    ['Qmáx.ext — Extraordinario',  `Cs · Qmáx.inst`,                Qext.toFixed(3),  `Cs=${cs} — Gasto de diseño'],
+    ['Qtf — Tubo lleno (verif.)',   `Manning DN${dn} S=${sRaw}%`,     Qtf.toFixed(3),   'Capacidad máxima'],
+  ].map(([g,f,v,c]) =>
+    `<tr><td>${g}</td><td style="font-family:monospace;font-size:.82rem">${f}</td>
+          <td style="font-weight:700;color:var(--teal-d)">${v}</td><td style="font-size:.82rem;color:#555">${c}</td></tr>`
+  ).join('');
+
+  // Tabla Harmon referencia
+  const HARMON_REF = [
+    [500,'3.800','Inicio atarjea'],[1000,'3.800','Inicio atarjea'],
+    [2000,'3.586','Inicio atarjea'],[5000,'3.245','Colector local'],
+    [10000,'2.955','Colector local'],[20000,'2.652','Colector local'],
+    [30000,'2.477','Colector secundario'],[50000,'2.265','Colector secundario'],
+    [63454,'2.170','Colector secundario (límite)'],
+    [100000,'2.170','Colector principal']
+  ];
+  const tbH = document.getElementById('san-tabla-harmon');
+  tbH.innerHTML = HARMON_REF.map(([p,m,cl]) => {
+    const esActual = pob >= p * 0.8 && pob <= p * 1.2;
+    return `<tr style="${esActual?'background:#d5f0df;font-weight:700':''}"><td>${p.toLocaleString()}</td><td>${m}</td><td>${cl}</td></tr>`;
+  }).join('');
+
+  // Pendiente mínima
+  document.getElementById('san-pendiente-min').textContent =
+    `Smín = ${Smin.toFixed(4)}% (${(Smin/100*1000).toFixed(2)} ‰) para DN${dn}mm con n=${n}`;
+
+  // Guardar en STATE
+  STATE.sanitario = { Qmed, Qmin, M, Qinst, Qext, v, Qtf, Smin, dn, n, sRaw, zona, pob };
+
+  document.getElementById('res-sanitario').style.display = 'block';
+}
+
   window.addEventListener('resize', enviarAltura);
   // Observar cambios del DOM (al calcular, cambiar pestaña, mostrar diagramas/notas)
   if (window.MutationObserver) {
