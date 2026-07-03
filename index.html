@@ -229,6 +229,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   <button class="tab-btn" onclick="showTab('perfil')">📈 5 · Perfil</button>
   <button class="tab-btn" onclick="showTab('agua')">💦 6 · Agua a Presión</button>
   <button class="tab-btn" onclick="showTab('sanitario')">🏙️ 7 · Sanitario</button>
+  <button class="tab-btn" onclick="showTab('instalacion')">🏗️ 8 · Instalación</button>
   <button class="tab-btn" onclick="showTab('reporte')">📋 Reporte</button>
 </div>
 
@@ -867,6 +868,228 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   </div>
 </div>
 
+<!-- ================================================================
+     MÓDULO 8 — VERIFICACIÓN DE INSTALACIÓN
+     MITD-CONAGUA 2012 · ASTM-D-2321 · NOM-001-CONAGUA
+     ================================================================ -->
+<div id="sec-instalacion" class="section">
+
+  <div class="card">
+    <h2>🏗️ Módulo 8 — Verificación de Instalación</h2>
+    <div class="card-sub">Ecuación de IOWA Modificada · Checklist NOM-001-CONAGUA · ASTM-D-2321 · MITD-CONAGUA 2012</div>
+
+    <!-- BANNER INFO -->
+    <div style="background:#e0f2fe;color:#075985;border:1px solid #bae6fd;border-radius:8px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px">
+      <span style="font-size:1.2rem;margin-top:2px">📋</span>
+      <div>
+        <div style="font-weight:700;font-size:.85rem">Verificación de instalación de tubería</div>
+        <div style="font-size:.78rem;margin-top:3px;opacity:.85">Aplica para tubería PVC, PEAD corrugado y concreto. Basado en Manual MITD-CONAGUA 2012, norma ASTM-D-2321 y NOM-001-CONAGUA vigente.</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
+
+      <!-- COLUMNA IZQUIERDA: Inputs -->
+      <div>
+
+        <!-- Tipo de tubería -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px">
+          <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:12px">🔧 Tipo de tubería</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+            <button id="ibt-pead" onclick="inst_selectTubo(this,\'pead\')" style="border:2px solid var(--teal);background:rgba(1,105,111,.08);border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--teal-d);cursor:pointer">PEAD<br><span style="font-weight:400;color:#666">Corrugado</span></button>
+            <button id="ibt-pvc" onclick="inst_selectTubo(this,\'pvc\')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">PVC<br><span style="font-weight:400;color:#666">Liso</span></button>
+            <button id="ibt-concreto" onclick="inst_selectTubo(this,\'concreto\')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">Concreto<br><span style="font-weight:400;color:#666">Rígido</span></button>
+          </div>
+          <div id="inst-tubo-info" style="font-size:.75rem;color:#1e40af;background:#eff6ff;border-radius:6px;padding:8px 12px">⚡ Tubería <strong>flexible</strong> — aplica ecuación de IOWA Modificada para verificar deflexión.</div>
+        </div>
+
+        <!-- Parámetros de zanja -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px">
+          <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:12px">📏 Parámetros de zanja</div>
+          <div style="margin-bottom:10px">
+            <label>Diámetro nominal (mm)</label>
+            <select id="inst-diametro" onchange="inst_calcular()">
+              <option value="150">150 mm</option>
+              <option value="200">200 mm</option>
+              <option value="300" selected>300 mm</option>
+              <option value="375">375 mm</option>
+              <option value="450">450 mm</option>
+              <option value="600">600 mm</option>
+              <option value="750">750 mm</option>
+            </select>
+          </div>
+          <div style="margin-bottom:10px">
+            <label>Profundidad de instalación (m) <span title="Desde superficie hasta clave del tubo. Afecta carga muerta Wc y tipo de acostillado." style="color:var(--gold);cursor:help">ⓘ</span></label>
+            <input id="inst-prof" type="number" value="2.5" min="0.3" max="10" step="0.1" oninput="inst_calcular()">
+            <div id="inst-prof-alert" style="display:none;font-size:.73rem;color:#92400e;background:#fffbeb;border-radius:5px;padding:5px 9px;margin-top:4px">⚠️ Profundidad crítica — se recomienda material Clase I (roca triturada)</div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label>Carga viva (tipo de tráfico)</label>
+            <select id="inst-carga" onchange="inst_calcular()">
+              <option value="0">Sin carga viva (peatonal)</option>
+              <option value="500" selected>Tráfico ligero (autos)</option>
+              <option value="1200">Tráfico pesado (camiones)</option>
+              <option value="2000">Industrial / carga máxima</option>
+            </select>
+          </div>
+          <div>
+            <label>Tipo de drenaje</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <button id="inst-dren-pluvial" onclick="inst_setDrenaje(this,\'pluvial\')" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:6px;padding:9px;font-size:.78rem;font-weight:600;color:#555;cursor:pointer">🌧️ Pluvial</button>
+              <button id="inst-dren-sanitario" onclick="inst_setDrenaje(this,\'sanitario\')" style="border:2px solid var(--teal);background:rgba(1,105,111,.08);border-radius:6px;padding:9px;font-size:.78rem;font-weight:700;color:var(--teal-d);cursor:pointer">🚽 Sanitario</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Material de acostillado -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-weight:700;font-size:.85rem;color:var(--teal-d)">🪨 Material de acostillado</div>
+            <span id="inst-rec-badge" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:4px">✅ Recomendado</span>
+          </div>
+          <div id="inst-soil-cards" style="display:flex;flex-direction:column;gap:8px">
+            <div onclick="inst_selectSuelo(this,140,\'I\')" data-e="140" data-clase="I" style="border:2px solid var(--teal-d);background:rgba(1,105,111,.06);border-radius:8px;padding:10px 12px;cursor:pointer">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:.78rem;font-weight:700;color:var(--teal-d)">Clase I — Roca/Grava triturada angular</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 140 kPa · Sin finos · Alta permeabilidad</div></div>
+                <span style="background:#dcfce7;color:#166534;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">★ Óptimo</span>
+              </div>
+            </div>
+            <div onclick="inst_selectSuelo(this,70,\'II\')" data-e="70" data-clase="II" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:.78rem;font-weight:700;color:var(--ink)">Clase II — Grava/Arena limpia (GW, GP, SW, SP)</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 70 kPa · Grano grueso · Uso general</div></div>
+                <span style="background:#e0f2fe;color:#075985;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">General</span>
+              </div>
+            </div>
+            <div onclick="inst_selectSuelo(this,35,\'III\')" data-e="35" data-clase="III" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:.78rem;font-weight:700;color:var(--ink)">Clase III — Arena fina con finos (GM, GC, SM)</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 35 kPa · Solo condiciones normales</div></div>
+                <span style="background:#fef9c3;color:#854d0e;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">⚠ Revisar</span>
+              </div>
+            </div>
+            <div onclick="inst_selectSuelo(this,7,\'IV\')" data-e="7" data-clase="IV" style="border:1.5px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 12px;cursor:pointer">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:.78rem;font-weight:700;color:#b91c1c">❌ Arcilla expansiva (material excavado)</div><div style="font-size:.72rem;color:#666;margin-top:2px">E' = 7 kPa · Inapropiado · NOM-001 no permite</div></div>
+                <span style="background:#fee2e2;color:#991b1b;font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:8px">No usar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: Resultados -->
+      <div>
+
+        <!-- Verificación IOWA -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px">
+          <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:2px">📐 Ecuación de IOWA Modificada</div>
+          <div style="font-size:.73rem;color:#666;margin-bottom:14px">Deflexión diametral — Spangler &amp; Marston, CONAGUA 2012</div>
+
+          <!-- Gauge deflexión -->
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px">
+              <span style="font-size:.75rem;color:#666">Deflexión Δy/D</span>
+              <span id="inst-defl-val" style="font-family:monospace;font-weight:700;font-size:1.15rem;color:var(--teal-d)">2.14%</span>
+            </div>
+            <div style="position:relative;height:14px;background:#f1f5f9;border-radius:20px;overflow:hidden">
+              <div style="position:absolute;top:0;left:0;width:30%;height:100%;background:#4ade80"></div>
+              <div style="position:absolute;top:0;left:30%;width:20%;height:100%;background:#facc15"></div>
+              <div style="position:absolute;top:0;left:50%;width:30%;height:100%;background:#fb923c"></div>
+              <div style="position:absolute;top:0;left:80%;width:20%;height:100%;background:#f87171"></div>
+              <div id="inst-defl-needle" style="position:absolute;top:0;width:3px;height:100%;background:var(--teal-d);border-radius:2px;transition:left .5s;left:26%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.68rem;color:#9ca3af;margin-top:3px;font-family:monospace">
+              <span>0%</span><span>3% San.</span><span>5% Pluv.</span><span>8% máx</span>
+            </div>
+          </div>
+
+          <!-- Resultado IOWA -->
+          <div id="inst-iowa-result" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.4rem">✅</span>
+            <div><div style="font-weight:700;font-size:.83rem">Deflexión dentro del límite normativo</div><div style="font-size:.74rem;margin-top:2px">Δy/D = <span id="inst-res-defl" style="font-family:monospace;font-weight:700">2.14%</span> ≤ 3.0% (sanitario, NOM-001-CONAGUA)</div></div>
+          </div>
+
+          <!-- Tabla parámetros IOWA -->
+          <div style="background:#f8fafc;border-radius:7px;padding:12px;font-size:.75rem">
+            <div style="color:#64748b;font-size:.72rem;font-weight:600;margin-bottom:8px">Parámetros de cálculo:</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Diámetro D</span><span id="inst-p-diam" style="font-family:monospace;font-weight:700;color:var(--teal-d)">300 mm</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga muerta Wc</span><span id="inst-p-wc" style="font-family:monospace;font-weight:700;color:var(--teal-d)">4,500 kg/m</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga viva Wl</span><span id="inst-p-wl" style="font-family:monospace;font-weight:700;color:var(--teal-d)">500 kg/m</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Rigidez PS</span><span id="inst-p-ps" style="font-family:monospace;font-weight:700;color:var(--teal-d)">34 kPa</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Módulo suelo E'</span><span id="inst-p-e" style="font-family:monospace;font-weight:700;color:var(--teal-d)">140 kPa</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Factor retraso DL</span><span style="font-family:monospace;font-weight:700;color:var(--teal-d)">1.5 (constante)</span></div>
+            <div style="display:flex;justify-content:space-between;padding-top:7px;border-top:1px solid var(--line)"><span style="color:var(--ink);font-weight:700">Deflexión Δy</span><span id="inst-p-deltay" style="font-family:monospace;font-weight:700;color:var(--teal-d)">6.4 mm</span></div>
+          </div>
+        </div>
+
+        <!-- Dimensiones de zanja -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px">
+          <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:12px">↔️ Dimensiones de zanja recomendadas <span style="font-size:.7rem;font-weight:400;color:#666">(ASTM-D-2321)</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+            <div style="background:rgba(1,105,111,.07);border-radius:7px;padding:10px;text-align:center">
+              <div style="font-size:.7rem;color:#666;margin-bottom:4px">Ancho mínimo</div>
+              <div id="inst-ancho-min" style="font-family:monospace;font-weight:700;color:var(--teal-d);font-size:.95rem">600 mm</div>
+            </div>
+            <div style="background:rgba(1,105,111,.07);border-radius:7px;padding:10px;text-align:center">
+              <div style="font-size:.7rem;color:#666;margin-bottom:4px">Ancho óptimo</div>
+              <div id="inst-ancho-opt" style="font-family:monospace;font-weight:700;color:var(--teal-d);font-size:.95rem">750 mm</div>
+            </div>
+            <div style="background:rgba(1,105,111,.07);border-radius:7px;padding:10px;text-align:center">
+              <div style="font-size:.7rem;color:#666;margin-bottom:4px">Encamado base</div>
+              <div style="font-family:monospace;font-weight:700;color:var(--teal-d);font-size:.95rem">100 mm</div>
+            </div>
+          </div>
+          <!-- Diagrama SVG de zanja -->
+          <svg id="inst-svg-zanja" viewBox="0 0 320 180" style="width:100%;max-height:160px">
+            <rect x="0" y="0" width="320" height="180" fill="#c8a96e" rx="4"/>
+            <rect x="85" y="20" width="150" height="145" fill="#e8dcc8" rx="2"/>
+            <line x1="85" y1="12" x2="235" y2="12" stroke="#0A2D37" stroke-width="1.5"/>
+            <text x="160" y="10" text-anchor="middle" font-size="9" fill="#0A2D37" font-weight="bold" id="inst-svg-ancho">750 mm</text>
+            <rect x="85" y="145" width="150" height="20" fill="#94a3b8" opacity=".6" rx="1"/>
+            <text x="160" y="157" text-anchor="middle" font-size="8" fill="#fff" font-weight="600">Encamado 100 mm</text>
+            <rect x="85" y="75" width="35" height="70" fill="#7c9abf" opacity=".5" rx="1"/>
+            <rect x="200" y="75" width="35" height="70" fill="#7c9abf" opacity=".5" rx="1"/>
+            <circle cx="160" cy="110" r="34" fill="#0A2D37" opacity=".9"/>
+            <circle cx="160" cy="110" r="28" fill="#E8F4F7"/>
+            <text id="inst-svg-diam" x="160" y="114" text-anchor="middle" font-size="9" fill="#0A2D37" font-weight="bold">Ø 300</text>
+            <line x1="250" y1="20" x2="250" y2="165" stroke="#0A2D37" stroke-width="1.2"/>
+            <text id="inst-svg-prof" x="268" y="95" text-anchor="middle" font-size="9" fill="#0A2D37" font-weight="bold" transform="rotate(90,268,95)">2.5 m prof.</text>
+            <text x="160" y="52" text-anchor="middle" font-size="8.5" fill="#475569" font-weight="600">Relleno compactado</text>
+          </svg>
+        </div>
+
+        <!-- Checklist NOM-001 -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
+          <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:12px">📋 Checklist NOM-001-CONAGUA</div>
+          <div id="inst-checklist" style="display:flex;flex-direction:column;gap:7px"></div>
+        </div>
+      </div>
+    </div><!-- fin grid -->
+
+    <!-- FILA INFERIOR: Recomendaciones -->
+    <div style="background:var(--teal-d);border-radius:var(--radius);padding:18px;margin-top:20px;color:#fff">
+      <div style="font-weight:700;font-size:.88rem;margin-bottom:12px">💡 Recomendaciones de instalación <span style="margin-left:auto;display:inline-block;font-size:.7rem;background:rgba(209,153,0,.25);color:var(--gold);padding:2px 8px;border-radius:4px;font-weight:600;float:right">MITD-CONAGUA 2012</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:12px">
+          <div style="font-size:.75rem;font-weight:700;color:var(--gold);margin-bottom:5px">① Acoplamiento</div>
+          <div style="font-size:.72rem;line-height:1.55;opacity:.9">Instalar desde aguas abajo hacia aguas arriba. Espiga siempre hacia campana. Lubricante base agua, nunca grasa automotriz.</div>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:12px">
+          <div style="font-size:.75rem;font-weight:700;color:var(--gold);margin-bottom:5px">② Acostillado y relleno</div>
+          <div style="font-size:.72rem;line-height:1.55;opacity:.9">Material Clase I (roca triturada). Compactar en capas de 20 cm. Verificar deflexión diametral con mandril tras cada tramo.</div>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:12px">
+          <div style="font-size:.75rem;font-weight:700;color:var(--gold);margin-bottom:5px">③ Prueba hermeticidad</div>
+          <div style="font-size:.72rem;line-height:1.55;opacity:.9">Hidrostática 0.05 MPa entre pozos de visita, antes del relleno total. Certificación NOM-001-CONAGUA obligatoria.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;text-align:center;font-size:.72rem;color:#888">
+      Cálculos: MITD-CONAGUA 2012 · ASTM-D-2321 · NOM-001-CONAGUA · Spangler &amp; Marston
+    </div>
+  </div>
+</div>
+
 <div id="sec-reporte" class="section">
   <div class="report-header">
     <div>
@@ -1093,7 +1316,8 @@ const STATE = {
   pozos: null,
   perfilData: null,
   agua: null,
-  sanitario: null
+  sanitario: null,
+  instalacion: null
 };
 
 // =============================================================
@@ -2690,6 +2914,207 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     // Mostrar datos del estado inicial (Ciudad de México por defecto)
     if (selEstado.value) actualizarPanelConagua(selEstado.value);
   }
+})();
+
+// =============================================================
+// MÓDULO 8 — VERIFICACIÓN DE INSTALACIÓN
+// IOWA Modificada · NOM-001-CONAGUA · ASTM-D-2321 · MITD-CONAGUA 2012
+// =============================================================
+(function(){
+  var INST = {
+    tubo: 'pead',
+    diametro: 300,
+    profundidad: 2.5,
+    cargaViva: 500,
+    drenaje: 'sanitario',
+    E: 140,
+    clase: 'I'
+  };
+
+  var PS_MAP = { pead: 34, pvc: 48, concreto: 350 };
+  var FLEX   = ['pead','pvc'];
+
+  window.inst_selectTubo = function(btn, tipo) {
+    INST.tubo = tipo;
+    ['pead','pvc','concreto'].forEach(function(k){
+      var el = document.getElementById('ibt-'+k);
+      if(!el) return;
+      if(k === tipo){
+        el.style.border = '2px solid var(--teal)';
+        el.style.background = 'rgba(1,105,111,.08)';
+        el.style.color = 'var(--teal-d)';
+      } else {
+        el.style.border = '2px solid var(--line)';
+        el.style.background = '#fafaf8';
+        el.style.color = 'var(--ink)';
+      }
+    });
+    var info = document.getElementById('inst-tubo-info');
+    if(info){
+      if(FLEX.includes(tipo)){
+        info.textContent = '⚡ Tubería flexible — aplica ecuación de IOWA Modificada para verificar deflexión.';
+        info.style.color = '#1e40af'; info.style.background = '#eff6ff';
+      } else {
+        info.textContent = '🧱 Tubería rígida — su resistencia propia compensa la carga. No aplica IOWA.';
+        info.style.color = '#555'; info.style.background = '#f8fafc';
+      }
+    }
+    inst_calcular();
+  };
+
+  window.inst_setDrenaje = function(btn, val) {
+    INST.drenaje = val;
+    var pluvial = document.getElementById('inst-dren-pluvial');
+    var san     = document.getElementById('inst-dren-sanitario');
+    if(val === 'sanitario'){
+      if(san)   { san.style.border='2px solid var(--teal)'; san.style.background='rgba(1,105,111,.08)'; san.style.color='var(--teal-d)'; san.style.fontWeight='700'; }
+      if(pluvial){ pluvial.style.border='1.5px solid var(--line)'; pluvial.style.background='#fafaf8'; pluvial.style.color='#555'; pluvial.style.fontWeight='600'; }
+    } else {
+      if(pluvial){ pluvial.style.border='2px solid var(--teal)'; pluvial.style.background='rgba(1,105,111,.08)'; pluvial.style.color='var(--teal-d)'; pluvial.style.fontWeight='700'; }
+      if(san)   { san.style.border='1.5px solid var(--line)'; san.style.background='#fafaf8'; san.style.color='#555'; san.style.fontWeight='600'; }
+    }
+    inst_calcular();
+  };
+
+  window.inst_selectSuelo = function(card, E, clase) {
+    INST.E = E; INST.clase = clase;
+    document.querySelectorAll('#inst-soil-cards > div').forEach(function(c){
+      c.style.border = '1.5px solid var(--line)';
+      c.style.background = '#fafaf8';
+    });
+    card.style.border = '2px solid var(--teal-d)';
+    card.style.background = 'rgba(1,105,111,.06)';
+    var badge = document.getElementById('inst-rec-badge');
+    if(badge){
+      if(['I','II'].includes(clase)){
+        badge.textContent = '✅ Recomendado';
+        badge.style.background='#dcfce7'; badge.style.color='#166534'; badge.style.border='1px solid #bbf7d0';
+      } else if(clase==='III'){
+        badge.textContent = '⚠ Revisar';
+        badge.style.background='#fef9c3'; badge.style.color='#854d0e'; badge.style.border='1px solid #fde68a';
+      } else {
+        badge.textContent = '❌ No usar';
+        badge.style.background='#fee2e2'; badge.style.color='#991b1b'; badge.style.border='1px solid #fecaca';
+      }
+    }
+    inst_calcular();
+  };
+
+  window.inst_calcular = function() {
+    var diamEl  = document.getElementById('inst-diametro');
+    var profEl  = document.getElementById('inst-prof');
+    var cargaEl = document.getElementById('inst-carga');
+    if(!diamEl) return;
+
+    INST.diametro    = parseInt(diamEl.value);
+    INST.profundidad = parseFloat(profEl.value) || 2.5;
+    INST.cargaViva   = parseInt(cargaEl.value);
+
+    var D   = INST.diametro / 1000;
+    var h   = INST.profundidad;
+    var rho = 1800;
+    var B   = D * 2.0;
+    var Cd  = Math.min(0.85 * h / B, 1.2);
+    var WC  = rho * B * B * Cd;
+    var WL  = INST.cargaViva;
+    var DL  = 1.5;
+    var K   = 0.1;
+    var PS  = PS_MAP[INST.tubo];
+    var E_  = INST.E;
+
+    var profAlert = document.getElementById('inst-prof-alert');
+    if(profAlert) profAlert.style.display = (h < 1.0 || h > 6.0) ? 'block' : 'none';
+
+    var num    = (DL * WC + WL) * K;
+    var den    = (0.149 * PS + 0.061 * E_) * 101.97;
+    var dRatio = num / den;
+    var dMm    = dRatio * INST.diametro;
+    var dPct   = dRatio * 100;
+    var limite = INST.drenaje === 'sanitario' ? 3.0 : 5.0;
+    var ok     = dPct <= limite;
+    var critico= dPct > 8.0;
+
+    var needle = document.getElementById('inst-defl-needle');
+    var valEl  = document.getElementById('inst-defl-val');
+    var resDefl= document.getElementById('inst-res-defl');
+    if(needle) needle.style.left = Math.min(dPct / 10 * 100, 99) + '%';
+    if(valEl)  valEl.textContent = dPct.toFixed(2) + '%';
+    if(resDefl)resDefl.textContent = dPct.toFixed(2) + '%';
+
+    var resEl = document.getElementById('inst-iowa-result');
+    if(resEl){
+      if(!FLEX.includes(INST.tubo)){
+        resEl.style.cssText = 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
+        resEl.innerHTML = '<span style="font-size:1.4rem">🧱</span><div><div style="font-weight:700;font-size:.83rem">Tubería rígida — no aplica IOWA</div><div style="font-size:.74rem;margin-top:2px">Su resistencia propia (PS = '+PS+' kPa) compensa la carga vertical.</div></div>';
+      } else if(ok){
+        resEl.style.cssText = 'background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
+        resEl.innerHTML = '<span style="font-size:1.4rem">✅</span><div><div style="font-weight:700;font-size:.83rem">Deflexión dentro del límite normativo</div><div style="font-size:.74rem;margin-top:2px">Δy/D = <span style="font-family:monospace;font-weight:700">'+dPct.toFixed(2)+'%</span> ≤ '+limite+'% ('+INST.drenaje+', NOM-001-CONAGUA)</div></div>';
+      } else if(!critico){
+        resEl.style.cssText = 'background:#fef9c3;color:#854d0e;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
+        resEl.innerHTML = '<span style="font-size:1.4rem">⚠️</span><div><div style="font-weight:700;font-size:.83rem">Deflexión fuera del límite — revisar instalación</div><div style="font-size:.74rem;margin-top:2px">Δy/D = <span style="font-family:monospace;font-weight:700">'+dPct.toFixed(2)+'%</span> &gt; '+limite+'% — Mejorar acostillado o usar material Clase I.</div></div>';
+      } else {
+        resEl.style.cssText = 'background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
+        resEl.innerHTML = '<span style="font-size:1.4rem">🚨</span><div><div style="font-weight:700;font-size:.83rem">Deflexión excede límite absoluto (8%)</div><div style="font-size:.74rem;margin-top:2px">Δy/D = <span style="font-family:monospace;font-weight:700">'+dPct.toFixed(2)+'%</span> — Riesgo de aplastamiento. Rediseñar sección.</div></div>';
+      }
+    }
+
+    var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
+    set('inst-p-diam',   INST.diametro + ' mm');
+    set('inst-p-wc',     Math.round(WC).toLocaleString('es-MX') + ' kg/m');
+    set('inst-p-wl',     WL.toLocaleString('es-MX') + ' kg/m');
+    set('inst-p-ps',     PS + ' kPa');
+    set('inst-p-e',      E_ + ' kPa');
+    set('inst-p-deltay', dMm.toFixed(1) + ' mm');
+
+    var anchoMin = Math.round(INST.diametro * 1.5 / 50) * 50;
+    var anchoOpt = Math.round(INST.diametro * 2.0 / 50) * 50;
+    set('inst-ancho-min', anchoMin + ' mm');
+    set('inst-ancho-opt', anchoOpt + ' mm');
+
+    var svgAncho = document.getElementById('inst-svg-ancho');
+    var svgDiam  = document.getElementById('inst-svg-diam');
+    var svgProf  = document.getElementById('inst-svg-prof');
+    if(svgAncho) svgAncho.textContent = anchoOpt + ' mm';
+    if(svgDiam)  svgDiam.textContent  = 'Ø ' + INST.diametro;
+    if(svgProf)  svgProf.textContent  = h.toFixed(1) + ' m prof.';
+
+    var profOk  = h >= 1.0 && h <= 6.0;
+    var sueloOk = ['I','II'].includes(INST.clase);
+    var deflOk  = ok || !FLEX.includes(INST.tubo);
+    var items = [
+      { ok: profOk,
+        title: profOk ? 'Profundidad en rango aceptable' : '⚠️ Profundidad fuera del rango óptimo',
+        desc: profOk ? h.toFixed(1)+' m — entre 1.0 m y 6.0 m, sin medidas especiales' : h.toFixed(1)+' m — se requiere material Clase I (roca triturada) obligatoriamente' },
+      { ok: sueloOk,
+        title: sueloOk ? 'Material Clase '+INST.clase+' — adecuado' : '❌ Material de acostillado inadecuado',
+        desc: sueloOk ? 'ASTM-D-2488 — soporte lateral suficiente para sistema suelo-tubería' : 'Arcilla expansiva inapropiada — cambiar a Clase I o II. NOM-001 no permite este material.' },
+      { ok: deflOk,
+        title: deflOk ? 'Deflexión inicial ≤ '+limite+'% ('+INST.drenaje+')' : '⚠️ Deflexión '+dPct.toFixed(1)+'% supera límite '+limite+'%',
+        desc: deflOk ? 'Verificar con mandril tras acostillado — ecuación IOWA cumplida' : "Re-acostillar con material de mayor módulo E'. Verificar compactación." },
+      { ok: false, title: 'Prueba de hermeticidad pendiente', desc: 'Hidrostática: 0.05 MPa ó Neumática: 0.03 MPa entre pozos de visita (NOM-001)' },
+      { ok: false, title: 'Verificar empaque campana-espiga', desc: 'Lubricante base agua — nunca grasa automotriz — escantillón de acero para verificar posición' }
+    ];
+    var cl = document.getElementById('inst-checklist');
+    if(cl){
+      cl.innerHTML = items.map(function(i){
+        var clr = i.ok ? '#166534' : '#92400e';
+        var bg  = i.ok ? '#f0fdf4' : '#fffbeb';
+        var brd = i.ok ? '#bbf7d0' : '#fde68a';
+        return '<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border-radius:7px;border:1px solid '+brd+';background:'+bg+'">'+
+               '<span style="font-weight:700;color:'+clr+';flex-shrink:0;margin-top:1px">'+(i.ok?'✓':'!')+'</span>'+
+               '<div><div style="font-size:.77rem;font-weight:700;color:'+clr+'">'+i.title+'</div>'+
+               '<div style="font-size:.72rem;color:#555;margin-top:2px">'+i.desc+'</div></div></div>';
+      }).join('');
+    }
+
+    if(typeof STATE !== 'undefined') STATE.instalacion = {
+      diametro: INST.diametro, prof: h, drenaje: INST.drenaje,
+      clase: INST.clase, E: E_, defl: dPct, deflMm: dMm, limite: limite,
+      ok: ok, anchoMin: anchoMin, anchoOpt: anchoOpt, tubo: INST.tubo
+    };
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){ inst_calcular(); });
 })();
 
 </script>
