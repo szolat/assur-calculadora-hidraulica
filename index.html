@@ -908,15 +908,24 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:12px">📏 Parámetros de zanja</div>
           <div style="margin-bottom:10px">
             <label>Diámetro nominal (mm)</label>
-            <select id="inst-diametro" onchange="inst_calcular()">
-              <option value="150">150 mm</option>
-              <option value="200">200 mm</option>
+            <select id="inst-diametro" onchange="inst_actualizarDiametros()">
+              <!-- Opciones dinámicas según tipo de tubería -->
               <option value="300" selected>300 mm</option>
-              <option value="375">375 mm</option>
-              <option value="450">450 mm</option>
-              <option value="600">600 mm</option>
-              <option value="750">750 mm</option>
             </select>
+          </div>
+          <!-- Grado/Clase (solo visible para concreto) -->
+          <div id="inst-grado-div" style="margin-bottom:10px;display:none">
+            <label>Grado de tubería (NMX-C-402-ONNCCE-2020)</label>
+            <select id="inst-grado" onchange="inst_calcular()">
+              <option value="I" selected>Grado I — mínima carga</option>
+              <option value="II">Grado II — carga media-baja</option>
+              <option value="III">Grado III — carga media</option>
+              <option value="IV">Grado IV — carga alta</option>
+              <option value="V">Grado V — carga muy alta (RCP)</option>
+            </select>
+            <div style="font-size:.7rem;color:#666;margin-top:3px">Equivalencia ASTM C76: I=Cl.II, II=Cl.III, III=Cl.IV, IV=Cl.V, V=Diseño especial</div>
+          </div>
+          <div style="display:none"><!-- placeholder closing tag balance -->
           </div>
           <div style="margin-bottom:10px">
             <label>Profundidad de instalación (m) <span title="Desde superficie hasta clave del tubo. Afecta carga muerta Wc y tipo de acostillado." style="color:var(--gold);cursor:help">ⓘ</span></label>
@@ -2931,8 +2940,46 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     clase: 'I'
   };
 
-  var PS_MAP = { pead: 34, pvc: 48, concreto: 350 };
-  var FLEX   = ['pead','pvc'];
+  // PS (kPa) por tipo tubería flexible — Spangler
+  // Para concreto se calcula dinámicamente según grado NMX-C-402
+  var PS_FLEX = { pead: 34, pvc: 48 };
+  var FLEX    = ['pead','pvc'];
+
+  // Diámetros disponibles por tipo (mm) — NMX-C-402 / NMX-C-401 / fabricantes MX
+  var DIAM_FLEX = [100,150,200,250,300,375,400,450,500,600,700,750,800,900,1000,1200];
+  var DIAM_CONCR = [300,375,400,450,500,600,700,750,800,900,1000,1050,1100,
+                   1200,1350,1500,1650,1800,1950,2100,2250,2400,2700,3000,3050];
+
+  // PS concreto (kPa) por Grado NMX-C-402 — equivalencia ASTM C76
+  // Grado I=Cl.II(~800 D-load), II=Cl.III(~1000), III=Cl.IV(~1350),
+  // IV=Cl.V(~2000), V=Diseño especial(>3000)
+  // Convertidos a kPa usando factor: 1 lb/ft/ft ÷ 101.97 ≈ kPa equivalente
+  // Valores PS representativos de rigidez de pared para IOWA (concreto es tubería rígida
+  // pero se expresa PS para completar tabla de parámetros)
+  var PS_CONCR = { I: 350, II: 500, III: 700, IV: 1000, V: 1500 };
+
+  // Repobla el select de diámetros según tipo de tubería
+  window.inst_actualizarDiametros = function() {
+    inst_calcular();
+  };
+
+  function inst_repoblarDiametros(tipo) {
+    var sel = document.getElementById('inst-diametro');
+    if(!sel) return;
+    var diam  = FLEX.includes(tipo) ? DIAM_FLEX : DIAM_CONCR;
+    var prev  = parseInt(sel.value) || 300;
+    sel.innerHTML = '';
+    diam.forEach(function(d){
+      var o = document.createElement('option');
+      o.value = d;
+      o.textContent = d + ' mm';
+      if(d === prev || (!diam.includes(prev) && d === diam[0])) o.selected = true;
+      sel.appendChild(o);
+    });
+    // Mostrar/ocultar selector de grado
+    var gradDiv = document.getElementById('inst-grado-div');
+    if(gradDiv) gradDiv.style.display = tipo === 'concreto' ? 'block' : 'none';
+  }
 
   window.inst_selectTubo = function(btn, tipo) {
     INST.tubo = tipo;
@@ -2955,10 +3002,11 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
         info.textContent = '⚡ Tubería flexible — aplica ecuación de IOWA Modificada para verificar deflexión.';
         info.style.color = '#1e40af'; info.style.background = '#eff6ff';
       } else {
-        info.textContent = '🧱 Tubería rígida — su resistencia propia compensa la carga. No aplica IOWA.';
+        info.textContent = '🧱 Tubería rígida NMX-C-402 — 300–3050 mm. Su resistencia propia compensa la carga. No aplica IOWA.';
         info.style.color = '#555'; info.style.background = '#f8fafc';
       }
     }
+    inst_repoblarDiametros(tipo);
     inst_calcular();
   };
 
@@ -3019,7 +3067,9 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     var WL  = INST.cargaViva;
     var DL  = 1.5;
     var K   = 0.1;
-    var PS  = PS_MAP[INST.tubo];
+    var gradEl = document.getElementById('inst-grado');
+    var grado  = gradEl ? gradEl.value : 'I';
+    var PS = FLEX.includes(INST.tubo) ? PS_FLEX[INST.tubo] : PS_CONCR[grado];
     var E_  = INST.E;
 
     var profAlert = document.getElementById('inst-prof-alert');
@@ -3114,7 +3164,10 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     };
   };
 
-  document.addEventListener('DOMContentLoaded', function(){ inst_calcular(); });
+  document.addEventListener('DOMContentLoaded', function(){
+    inst_repoblarDiametros('pead');
+    inst_calcular();
+  });
 })();
 
 </script>
