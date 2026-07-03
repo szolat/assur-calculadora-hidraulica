@@ -917,13 +917,12 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div id="inst-grado-div" style="margin-bottom:10px;display:none">
             <label>Grado de tubería (NMX-C-402-ONNCCE-2020)</label>
             <select id="inst-grado" onchange="inst_calcular()">
-              <option value="I" selected>Grado I — mínima carga</option>
-              <option value="II">Grado II — carga media-baja</option>
-              <option value="III">Grado III — carga media</option>
-              <option value="IV">Grado IV — carga alta</option>
-              <option value="V">Grado V — carga muy alta (RCP)</option>
+              <option value="1" selected>Grado 1 — M=50 N/m/mm (grieta), ruptura 75 N/m/mm</option>
+              <option value="2">Grado 2 — M=65 N/m/mm (grieta), ruptura 100 N/m/mm</option>
+              <option value="3">Grado 3 — M=100 N/m/mm (grieta), ruptura 150 N/m/mm</option>
+              <option value="4">Grado 4 — M=140 N/m/mm (grieta), ruptura 175 N/m/mm</option>
             </select>
-            <div style="font-size:.7rem;color:#666;margin-top:3px">Equivalencia ASTM C76: I=Cl.II, II=Cl.III, III=Cl.IV, IV=Cl.V, V=Diseño especial</div>
+            <div style="font-size:.7rem;color:#666;margin-top:3px">NMX-C-402-ONNCCE-2020 · 4 grados · f'c: Grado 1-2 = 27.6 MPa, Grado 3 = 34.5 MPa, Grado 4 = 41.4 MPa</div>
           </div>
           <div style="display:none"><!-- placeholder closing tag balance -->
           </div>
@@ -2940,23 +2939,35 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     clase: 'I'
   };
 
-  // PS (kPa) por tipo tubería flexible — Spangler
-  // Para concreto se calcula dinámicamente según grado NMX-C-402
+  // Rigidez de pared (PS, kPa) para tuberías FLEXIBLES — Spangler/IOWA
+  // PEAD: PS típico 34 kPa (SDR 17, ASTM F714) | PVC: PS 48 kPa (SDR 35, ASTM D3034)
   var PS_FLEX = { pead: 34, pvc: 48 };
   var FLEX    = ['pead','pvc'];
 
-  // Diámetros disponibles por tipo (mm) — NMX-C-402 / NMX-C-401 / fabricantes MX
+  // Diámetros disponibles por tipo (mm)
+  // Flexibles: fabricantes MX (PEAD/PVC hidráulico) según NMX-E-215 y NOM-001-CONAGUA
+  // Concreto reforzado: NMX-C-402-ONNCCE-2020, Dn 300-3050 mm
   var DIAM_FLEX = [100,150,200,250,300,375,400,450,500,600,700,750,800,900,1000,1200];
-  var DIAM_CONCR = [300,375,400,450,500,600,700,750,800,900,1000,1050,1100,
-                   1200,1350,1500,1650,1800,1950,2100,2250,2400,2700,3000,3050];
+  var DIAM_CONCR = [300,380,450,610,760,910,1070,1220,1370,1520,
+                   1830,2130,2440,2750,3050];
 
-  // PS concreto (kPa) por Grado NMX-C-402 — equivalencia ASTM C76
-  // Grado I=Cl.II(~800 D-load), II=Cl.III(~1000), III=Cl.IV(~1350),
-  // IV=Cl.V(~2000), V=Diseño especial(>3000)
-  // Convertidos a kPa usando factor: 1 lb/ft/ft ÷ 101.97 ≈ kPa equivalente
-  // Valores PS representativos de rigidez de pared para IOWA (concreto es tubería rígida
-  // pero se expresa PS para completar tabla de parámetros)
-  var PS_CONCR = { I: 350, II: 500, III: 700, IV: 1000, V: 1500 };
+  // NMX-C-402-ONNCCE-2020: 4 Grados según resistencia de carga externa
+  // M_grieta = carga para producir grieta de 0.30 mm (N/m/mm de diámetro)
+  // M_ruptura = carga para producir ruptura (N/m/mm de diámetro)
+  // f'c requerido: Grado 1 y 2 = 27.6 MPa (280 kg/cm²)
+  //               Grado 3 = 34.5 MPa (350 kg/cm²)
+  //               Grado 4 = 41.4 MPa (420 kg/cm²)
+  // Para la ec. IOWA en concreto (tubo RÍGIDO): se usa E_concreto = 27600 MPa;
+  // PS no aplica directamente — se reporta la carga M a la grieta como referencia de resistencia.
+  var NMX_GRADOS = {
+    '1': { M_grieta: 50,  M_rupt: 75,  fc_MPa: 27.6, label: 'Grado 1' },
+    '2': { M_grieta: 65,  M_rupt: 100, fc_MPa: 27.6, label: 'Grado 2' },
+    '3': { M_grieta: 100, M_rupt: 150, fc_MPa: 34.5, label: 'Grado 3' },
+    '4': { M_grieta: 140, M_rupt: 175, fc_MPa: 41.4, label: 'Grado 4' }
+  };
+  // PS efectivo de referencia para concreto en IOWA: tubería rígida, deflexión prácticamente nula
+  // Se asigna PS alto fijo para que ΔY (deflexión) sea despreciable, conforme a su naturaleza rígida
+  var PS_CONCR_REF = 20000; // kPa — representa rigidez de pared de tubo de concreto reforzado
 
   // Repobla el select de diámetros según tipo de tubería
   window.inst_actualizarDiametros = function() {
@@ -3068,8 +3079,11 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     var DL  = 1.5;
     var K   = 0.1;
     var gradEl = document.getElementById('inst-grado');
-    var grado  = gradEl ? gradEl.value : 'I';
-    var PS = FLEX.includes(INST.tubo) ? PS_FLEX[INST.tubo] : PS_CONCR[grado];
+    var grado  = gradEl ? gradEl.value : '1';
+    var gradoInfo = NMX_GRADOS[grado] || NMX_GRADOS['1'];
+    // Para FLEXIBLES: PS (rigidez de pared Spangler) en kPa
+    // Para RÍGIDO (concreto NMX-C-402): PS_CONCR_REF alto → deflexión ≈ 0 (tubo rígido)
+    var PS = FLEX.includes(INST.tubo) ? PS_FLEX[INST.tubo] : PS_CONCR_REF;
     var E_  = INST.E;
 
     var profAlert = document.getElementById('inst-prof-alert');
@@ -3095,7 +3109,7 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     if(resEl){
       if(!FLEX.includes(INST.tubo)){
         resEl.style.cssText = 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
-        resEl.innerHTML = '<span style="font-size:1.4rem">🧱</span><div><div style="font-weight:700;font-size:.83rem">Tubería rígida — no aplica IOWA</div><div style="font-size:.74rem;margin-top:2px">Su resistencia propia (PS = '+PS+' kPa) compensa la carga vertical.</div></div>';
+        resEl.innerHTML = '<span style="font-size:1.4rem">🧱</span><div><div style="font-weight:700;font-size:.83rem">Tubería rígida NMX-C-402 — '+gradoInfo.label+'</div><div style="font-size:.74rem;margin-top:2px">M<sub>grieta</sub> = '+gradoInfo.M_grieta+' N/m/mm | M<sub>rupt</sub> = '+gradoInfo.M_rupt+' N/m/mm | f\'c = '+gradoInfo.fc_MPa+' MPa. La rigidez propia del concreto compensa la carga. La ecuación IOWA aplica solo a tuberías flexibles (PEAD/PVC).</div></div>';
       } else if(ok){
         resEl.style.cssText = 'background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
         resEl.innerHTML = '<span style="font-size:1.4rem">✅</span><div><div style="font-weight:700;font-size:.83rem">Deflexión dentro del límite normativo</div><div style="font-size:.74rem;margin-top:2px">Δy/D = <span style="font-family:monospace;font-weight:700">'+dPct.toFixed(2)+'%</span> ≤ '+limite+'% ('+INST.drenaje+', NOM-001-CONAGUA)</div></div>';
@@ -3112,7 +3126,10 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     set('inst-p-diam',   INST.diametro + ' mm');
     set('inst-p-wc',     Math.round(WC).toLocaleString('es-MX') + ' kg/m');
     set('inst-p-wl',     WL.toLocaleString('es-MX') + ' kg/m');
-    set('inst-p-ps',     PS + ' kPa');
+    var psLabel = FLEX.includes(INST.tubo)
+      ? (PS + ' kPa')
+      : ('M=' + gradoInfo.M_grieta + ' N/m/mm | f\'c=' + gradoInfo.fc_MPa + ' MPa');
+    set('inst-p-ps', psLabel);
     set('inst-p-e',      E_ + ' kPa');
     set('inst-p-deltay', dMm.toFixed(1) + ' mm');
 
@@ -3172,7 +3189,10 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
 
 </script>
 <script>
-/* Auto-altura para iframe embebido (comunica la altura real al sitio contenedor, ej. Duda) */
+/* =====================================================================
+   Auto-altura para iframe embebido
+   Comunica la altura real al sitio contenedor (ej. Duda / IONOS)
+   ===================================================================== */
 (function(){
   function enviarAltura(){
     try{
@@ -3185,16 +3205,25 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
       }
     }catch(e){}
   }
-  // Enviar al cargar y cuando cambie el tamaño
   window.addEventListener('load', function(){ enviarAltura(); setTimeout(enviarAltura, 600); });
-// ============================================================
-// NUEVO: autoFillC — rellena el coeficiente C según tipo de superficie
-// ============================================================
+  window.addEventListener('resize', enviarAltura);
+  if (window.MutationObserver) {
+    var mo = new MutationObserver(function(){ setTimeout(enviarAltura, 150); });
+    mo.observe(document.body, { childList:true, subtree:true, attributes:true });
+  }
+  setInterval(enviarAltura, 1500);
+  document.addEventListener('click', function(){ setTimeout(enviarAltura, 250); });
+})();
+
+// =====================================================================
+// autoFillC — rellena el coeficiente C según tipo de superficie
+// (función global — llamada desde onchange del selector)
+// =====================================================================
 function autoFillC() {
-  const sel = document.getElementById('c-tipo-sup');
-  const inp = document.getElementById('c-coef');
+  var sel = document.getElementById('c-tipo-sup');
+  var inp = document.getElementById('c-coef');
   if (!sel || !inp) return;
-  const v = sel.value;
+  var v = sel.value;
   if (v && v !== 'custom') {
     inp.value = v;
     inp.readOnly = false;
@@ -3204,47 +3233,46 @@ function autoFillC() {
   }
 }
 
-// ============================================================
-// NUEVO: calcSanitario — módulo SGAPDS-29 Harmon
-// ============================================================
+// =====================================================================
+// calcSanitario — Módulo 7 SGAPDS-29 Harmon
+// (función global — llamada desde onclick del botón del Módulo 7)
+// =====================================================================
 function calcSanitario() {
-  const dot  = parseFloat(document.getElementById('san-dot').value)  || 200;
-  const apPct= parseFloat(document.getElementById('san-ap').value)   || 75;
-  const pob  = parseFloat(document.getElementById('san-pob').value)  || 5000;
-  const zona =            document.getElementById('san-zona').value;
-  const cs   = parseFloat(document.getElementById('san-cs').value)   || 1.0;
-  const dn   = parseFloat(document.getElementById('san-dn').value)   || 200;
-  const n    = parseFloat(document.getElementById('san-mat').value)  || 0.012;
-  const sRaw = parseFloat(document.getElementById('san-s').value)    || 1.0;
+  var dot  = parseFloat(document.getElementById('san-dot').value)  || 200;
+  var apPct= parseFloat(document.getElementById('san-ap').value)   || 75;
+  var pob  = parseFloat(document.getElementById('san-pob').value)  || 5000;
+  var zona =            document.getElementById('san-zona').value;
+  var cs   = parseFloat(document.getElementById('san-cs').value)   || 1.0;
+  var dn   = parseFloat(document.getElementById('san-dn').value)   || 200;
+  var n    = parseFloat(document.getElementById('san-mat').value)  || 0.012;
+  var sRaw = parseFloat(document.getElementById('san-s').value)    || 1.0;
 
-  const Ap   = dot * (apPct / 100);         // aportación residual l/hab/día
-  const Qmed = (Ap * pob) / 86400;          // gasto medio l/s
-  const Qmin = Math.max(0.5 * Qmed, 1.0);  // gasto mínimo (nunca < 1 l/s)
+  var Ap   = dot * (apPct / 100);
+  var Qmed = (Ap * pob) / 86400;
+  var Qmin = Math.max(0.5 * Qmed, 1.0);
 
-  // Coeficiente de Harmon
-  const Pmiles = pob / 1000;
-  let M;
+  // Coeficiente de Harmon — SGAPDS-29 Sección 3.1.3.3
+  var Pmiles = pob / 1000;
+  var M;
   if (zona === 'hab') {
     M = 1 + 14 / (4 + Math.sqrt(Pmiles));
-    M = Math.max(2.17, Math.min(3.8, M));   // límites SGAPDS-29
+    M = Math.max(2.17, Math.min(3.8, M));
   } else {
-    M = 1.5;  // comercial / industrial fijo
+    M = 1.5;
   }
 
-  const Qinst = M * Qmed;
-  const Qext  = cs * Qinst;
+  var Qinst = M * Qmed;
+  var Qext  = cs * Qinst;
 
-  // Hidráulica del tramo con Qmax.ext
-  const S  = sRaw / 100;
-  const D  = dn / 1000;
-  const R  = D / 4;          // radio hidráulico tubo lleno
-  const v  = (1 / n) * Math.pow(R, 2/3) * Math.sqrt(S);
-  const Qtf = v * Math.PI * (D/2)**2 * 1000;  // caudal tubo lleno l/s
+  // Manning tubo lleno
+  var S   = sRaw / 100;
+  var D   = dn / 1000;
+  var R   = D / 4;
+  var v   = (1 / n) * Math.pow(R, 2/3) * Math.sqrt(S);
+  var Qtf = v * Math.PI * (D/2) * (D/2) * 1000;
+  var Smin = Math.pow((0.6 * n) / Math.pow(R, 2/3), 2) * 100;
 
-  // Pendiente mínima para v=0.6 m/s
-  const Smin = Math.pow((0.6 * n) / Math.pow(R, 2/3), 2) * 100;
-
-  // Mostrar resultados
+  // Resultados métricas
   document.getElementById('san-qmed').textContent   = Qmed.toFixed(2);
   document.getElementById('san-qmin').textContent   = Qmin.toFixed(2);
   document.getElementById('san-harmon').textContent = M.toFixed(3);
@@ -3253,82 +3281,86 @@ function calcSanitario() {
   document.getElementById('san-vel').textContent    = v.toFixed(3);
 
   // Semáforo velocidad
-  let semCls, semMsg;
+  var semCls, semMsg;
   if (v < 0.3) {
-    semCls = 'sem-alert'; semMsg = '🔴 ROJO — Velocidad < 0.3 m/s. Riesgo de azolve severo. Aumentar pendiente o reducir diámetro.';
+    semCls = 'sem-alert';
+    semMsg = '🔴 ROJO — Velocidad < 0.3 m/s. Riesgo de azolve severo. Aumentar pendiente o reducir diámetro.';
   } else if (v < 0.6) {
-    semCls = 'sem-warn'; semMsg = '⚠️ AMBAR — Velocidad < 0.6 m/s (Qmax.ext). Revise pendiente para garantizar autolimpieza.';
+    semCls = 'sem-warn';
+    semMsg = '⚠️ AMBAR — Velocidad < 0.6 m/s (Qmax.ext). Revise pendiente para garantizar autolimpieza.';
   } else if (v > 5.0) {
-    semCls = 'sem-warn'; semMsg = '⚠️ AMBAR — Velocidad > 5.0 m/s. Riesgo de erosión. Usar caídas o cambiar material.';
+    semCls = 'sem-warn';
+    semMsg = '⚠️ AMBAR — Velocidad > 5.0 m/s. Riesgo de erosión. Usar caídas o cambiar material.';
   } else {
-    semCls = 'sem-ok'; semMsg = '✅ VERDE — Velocidad en rango SGAPDS-29 [0.6 – 5.0 m/s]. Diseño correcto.';
+    semCls = 'sem-ok';
+    semMsg = '✅ VERDE — Velocidad en rango SGAPDS-29 [0.6 – 5.0 m/s]. Diseño correcto.';
   }
   document.getElementById('san-semaforo').innerHTML =
-    `<span class="semaforo ${semCls}">${semMsg}</span>`;
+    '<span class="semaforo ' + semCls + '">' + semMsg + '</span>';
 
   // Cumplimiento
-  const cumpleQ  = Qext <= Qtf * 0.80;  // diseñar al 80% del tubo lleno
-  const cumpleV  = v >= 0.6 && v <= 5.0;
+  var cumpleQ = Qext <= Qtf * 0.80;
+  var cumpleV = v >= 0.6 && v <= 5.0;
   document.getElementById('san-cumplimiento').innerHTML =
-    `<div style="margin-top:8px;font-size:.85rem">
-      <span class="semaforo ${cumpleQ ?'sem-ok':'sem-warn'}">
-        ${cumpleQ ? '✅' : '⚠️'} Qmáx.ext (${Qext.toFixed(2)} l/s) ${cumpleQ?'≤':'>'}  80% Qtf (${(Qtf*0.80).toFixed(2)} l/s)
-      </span>&nbsp;
-      <span class="semaforo ${cumpleV ?'sem-ok':'sem-warn'}">
-        ${cumpleV ? '✅ SGAPDS-29: Cumple velocidades' : '⚠️ SGAPDS-29: Revisar velocidad'}
-      </span>
-    </div>`;
+    '<div style="margin-top:8px;font-size:.85rem">' +
+      '<span class="semaforo ' + (cumpleQ ? 'sem-ok' : 'sem-warn') + '">' +
+        (cumpleQ ? '✅' : '⚠️') + ' Qmáx.ext (' + Qext.toFixed(2) + ' l/s) ' +
+        (cumpleQ ? '≤' : '>') + ' 80% Qtf (' + (Qtf * 0.80).toFixed(2) + ' l/s)' +
+      '</span>&nbsp;' +
+      '<span class="semaforo ' + (cumpleV ? 'sem-ok' : 'sem-warn') + '">' +
+        (cumpleV ? '✅ SGAPDS-29: Cumple velocidades' : '⚠️ SGAPDS-29: Revisar velocidad') +
+      '</span>' +
+    '</div>';
 
   // Tabla de gastos
-  const tbody = document.getElementById('san-tabla-gastos');
-  tbody.innerHTML = [
-    ['Qmed — Gasto medio',         `Ap·P / 86400`,                    Qmed.toFixed(3),  'Ap = dot·(ap/100)'],
-    ['Qmín — Gasto mínimo',        `max(0.5·Qmed, 1.0)`,             Qmin.toFixed(3),  'Mín 1.0 l/s (inodoro 6L)'],
-    ['M — Harmon',                   `1 + 14/(4+√P)`,                  M.toFixed(3),     `P=${Pmiles.toFixed(2)} miles hab`],
-    ['Qmáx.inst — Instantáneo',    `M · Qmed`,                       Qinst.toFixed(3), 'Pico diurno'],
-    ['Qmáx.ext — Extraordinario',  `Cs · Qmáx.inst`,                Qext.toFixed(3),  `Cs=${cs} — Gasto de diseño'],
-    ['Qtf — Tubo lleno (verif.)',   `Manning DN${dn} S=${sRaw}%`,     Qtf.toFixed(3),   'Capacidad máxima'],
-  ].map(([g,f,v,c]) =>
-    `<tr><td>${g}</td><td style="font-family:monospace;font-size:.82rem">${f}</td>
-          <td style="font-weight:700;color:var(--teal-d)">${v}</td><td style="font-size:.82rem;color:#555">${c}</td></tr>`
-  ).join('');
+  var tbody = document.getElementById('san-tabla-gastos');
+  var filas = [
+    ['Qmed — Gasto medio',        'Ap·P / 86400',           Qmed.toFixed(3),   'Ap = dot·(ap/100)'],
+    ['Qmín — Gasto mínimo',       'max(0.5·Qmed, 1.0)',     Qmin.toFixed(3),   'Mín 1.0 l/s (inodoro 6L)'],
+    ['M — Harmon',                 '1 + 14/(4+√P)',           M.toFixed(3),      'P=' + Pmiles.toFixed(2) + ' miles hab'],
+    ['Qmáx.inst — Instantáneo',   'M · Qmed',               Qinst.toFixed(3),  'Pico diurno'],
+    ['Qmáx.ext — Extraordinario', 'Cs · Qmáx.inst',         Qext.toFixed(3),   'Cs=' + cs + ' — Gasto de diseño'],
+    ['Qtf — Tubo lleno (verif.)', 'Manning DN' + dn + ' S=' + sRaw + '%', Qtf.toFixed(3), 'Capacidad máxima']
+  ];
+  tbody.innerHTML = filas.map(function(r) {
+    return '<tr><td>' + r[0] + '</td>' +
+           '<td style="font-family:monospace;font-size:.82rem">' + r[1] + '</td>' +
+           '<td style="font-weight:700;color:var(--teal-d)">' + r[2] + '</td>' +
+           '<td style="font-size:.82rem;color:#555">' + r[3] + '</td></tr>';
+  }).join('');
 
   // Tabla Harmon referencia
-  const HARMON_REF = [
-    [500,'3.800','Inicio atarjea'],[1000,'3.800','Inicio atarjea'],
-    [2000,'3.586','Inicio atarjea'],[5000,'3.245','Colector local'],
-    [10000,'2.955','Colector local'],[20000,'2.652','Colector local'],
-    [30000,'2.477','Colector secundario'],[50000,'2.265','Colector secundario'],
+  var HARMON_REF = [
+    [500,'3.800','Inicio atarjea'],
+    [1000,'3.800','Inicio atarjea'],
+    [2000,'3.586','Inicio atarjea'],
+    [5000,'3.245','Colector local'],
+    [10000,'2.955','Colector local'],
+    [20000,'2.652','Colector local'],
+    [30000,'2.477','Colector secundario'],
+    [50000,'2.265','Colector secundario'],
     [63454,'2.170','Colector secundario (límite)'],
     [100000,'2.170','Colector principal']
   ];
-  const tbH = document.getElementById('san-tabla-harmon');
-  tbH.innerHTML = HARMON_REF.map(([p,m,cl]) => {
-    const esActual = pob >= p * 0.8 && pob <= p * 1.2;
-    return `<tr style="${esActual?'background:#d5f0df;font-weight:700':''}"><td>${p.toLocaleString()}</td><td>${m}</td><td>${cl}</td></tr>`;
+  var tbH = document.getElementById('san-tabla-harmon');
+  tbH.innerHTML = HARMON_REF.map(function(row) {
+    var esActual = pob >= row[0] * 0.8 && pob <= row[0] * 1.2;
+    return '<tr style="' + (esActual ? 'background:#d5f0df;font-weight:700' : '') + '">' +
+           '<td>' + row[0].toLocaleString('es-MX') + '</td>' +
+           '<td>' + row[1] + '</td>' +
+           '<td>' + row[2] + '</td></tr>';
   }).join('');
 
   // Pendiente mínima
   document.getElementById('san-pendiente-min').textContent =
-    `Smín = ${Smin.toFixed(4)}% (${(Smin/100*1000).toFixed(2)} ‰) para DN${dn}mm con n=${n}`;
+    'Smín = ' + Smin.toFixed(4) + '% (' + (Smin / 100 * 1000).toFixed(2) + ' ‰) para DN' + dn + 'mm con n=' + n;
 
-  // Guardar en STATE
-  STATE.sanitario = { Qmed, Qmin, M, Qinst, Qext, v, Qtf, Smin, dn, n, sRaw, zona, pob };
+  // Guardar en STATE global
+  STATE.sanitario = { Qmed: Qmed, Qmin: Qmin, M: M, Qinst: Qinst, Qext: Qext,
+                      v: v, Qtf: Qtf, Smin: Smin, dn: dn, n: n, sRaw: sRaw, zona: zona, pob: pob };
 
   document.getElementById('res-sanitario').style.display = 'block';
 }
-
-  window.addEventListener('resize', enviarAltura);
-  // Observar cambios del DOM (al calcular, cambiar pestaña, mostrar diagramas/notas)
-  if (window.MutationObserver) {
-    var mo = new MutationObserver(function(){ setTimeout(enviarAltura, 150); });
-    mo.observe(document.body, { childList:true, subtree:true, attributes:true });
-  }
-  // Respaldo: reenviar periódicamente por si algo cambió sin disparar el observer
-  setInterval(enviarAltura, 1500);
-  // Al hacer clic en cualquier botón/pestaña, reenviar tras el render
-  document.addEventListener('click', function(){ setTimeout(enviarAltura, 250); });
-})();
 </script>
 </body>
 </html>
