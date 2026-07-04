@@ -1512,7 +1512,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
           <div style="margin-bottom:10px">
             <label>Diámetro nominal DN (mm) — NMX-C-402</label>
-            <select id="m9-dn" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+            <select id="m9-dn" onchange="m9ParedB();calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
               <option value="300">300 mm</option>
               <option value="380">380 mm</option>
               <option value="450">450 mm</option>
@@ -1533,8 +1533,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div>
-              <label>Espesor de pared e (mm)</label>
-              <input type="number" id="m9-espesor" value="75" min="30" max="400" step="5" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+              <label>Espesor de pared e (mm) — <span style="color:#92400e;font-weight:700">Pared B (NMX-C-402)</span></label>
+              <input type="number" id="m9-espesor" value="76" min="30" max="400" step="1" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+              <div style="font-size:.68rem;color:#64748b;margin-top:2px">Auto-calculado según Pared B · NMX-C-402-ONNCCE-2020 Tablas 1–4</div>
             </div>
             <div>
               <label>Altura de relleno h<sub>r</sub> (m)</label>
@@ -1550,9 +1551,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div style="margin-bottom:10px">
             <label>Condición de colocación</label>
             <select id="m9-tipo" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
-              <option value="zanja">Zanja (tradicional) — ATHA Sección 1</option>
-              <option value="terraplen">Terraplén (relleno sobre tubo) — ATHA Sección 2</option>
-              <option value="zanja-terraplenada">Zanja terraplenada — ATHA Sección 3</option>
+              <option value="zanja">Zanja (tradicional)</option>
+              <option value="terraplen">Terraplén (relleno sobre tubo)</option>
+              <option value="zanja-terraplenada">Zanja terraplenada</option>
             </select>
           </div>
 
@@ -4111,6 +4112,21 @@ function mn_ajustarSerie() {
 // calcM9 — Módulo 9: Diseño Estructural Tubería de Concreto NMX-C-402
 // Método de Marston · Factor de apoyo · Cargas vivas normativas
 // =====================================================================
+
+// m9ParedB — Espesor Pared B según DN (NMX-C-402-ONNCCE-2020 Tablas 1–4)
+var M9_PARED_B = {
+  300:51, 380:57, 450:63, 610:76, 760:89, 910:101,
+  1070:114, 1220:127, 1370:140, 1520:152, 1830:178,
+  2130:203, 2440:229, 2750:228, 3050:279
+};
+function m9ParedB() {
+  var dnEl = document.getElementById('m9-dn');
+  var eEl  = document.getElementById('m9-espesor');
+  if(!dnEl || !eEl) return;
+  var dn = parseInt(dnEl.value);
+  if(M9_PARED_B[dn]) eEl.value = M9_PARED_B[dn];
+}
+
 function m9SyncTrafico() {
   var sel = document.getElementById('m9-trafico');
   var inp = document.getElementById('m9-q-traf');
