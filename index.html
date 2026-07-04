@@ -230,6 +230,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   <button class="tab-btn" onclick="showTab('agua')">💦 6 · Agua a Presión</button>
   <button class="tab-btn" onclick="showTab('sanitario')">🏙️ 7 · Sanitario</button>
   <button class="tab-btn" onclick="showTab('instalacion')">🏗️ 8 · Instalación</button>
+  <button class="tab-btn" onclick="showTab('disenio-concreto')">🧱 9 · Diseño Concreto</button>
   <button class="tab-btn" onclick="showTab('reporte')">📋 Reporte</button>
 </div>
 
@@ -1451,6 +1452,330 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     </div>
   </div>
 </div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════════
+     MÓDULO 9 — DISEÑO ESTRUCTURAL TUBERÍA DE CONCRETO NMX-C-402 / NMX-C-401
+     Método de Marston · Factor de apoyo · Cargas vivas H-10/H-20/H-25/FAA/E-80
+     ══════════════════════════════════════════════════════════════════════════════ -->
+<div id="sec-disenio-concreto" class="section">
+  <div class="card">
+    <h2>🧱 Módulo 9 — Diseño Estructural Tubería de Concreto</h2>
+    <div class="card-sub">NMX-C-402-ONNCCE-2020 · NMX-C-401-ONNCCE-2020 · Marston &amp; Bedding · H-10 / H-20 / H-25 / FAA / Cooper E-80</div>
+
+    <!-- Banner informativo mejorado -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+
+      <!-- Bloque flexible IOWA -->
+      <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start">
+        <span style="font-size:1.5rem;margin-top:2px">💧</span>
+        <div>
+          <div style="font-weight:800;font-size:.84rem;color:#1d4ed8;margin-bottom:4px">Tubería FLEXIBLE (PEAD / PVC) → Módulo 8</div>
+          <div style="font-size:.75rem;color:#1e40af;line-height:1.55">
+            Se verifica <strong>deflexión diametral (Δy/D)</strong> con la ecuación de IOWA Modificada.<br>
+            El tubo cede lateralmente y transfiere carga al suelo adyacente — el material de acostillado es clave.<br>
+            <span style="color:#3b82f6">Límite: ≤5% pluvial · ≤3% sanitario (NOM-001-CONAGUA)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloque rígido M9 -->
+      <div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start">
+        <span style="font-size:1.5rem;margin-top:2px">🧱</span>
+        <div>
+          <div style="font-weight:800;font-size:.84rem;color:#92400e;margin-bottom:4px">Tubería RÍGIDA (Concreto) → Este módulo (M9)</div>
+          <div style="font-size:.75rem;color:#78350f;line-height:1.55">
+            <strong>No aplica IOWA.</strong> El concreto resiste la carga por su propia rigidez estructural.<br>
+            Recibe mayor <strong>carga dinámica y puntual</strong> (vehículos pesados, trenes, aeronaves) sin trasladar esfuerzo al relleno.<br>
+            Se diseña por <strong>aplastamiento</strong>: carga de tres aristas ≥ M<sub>grieta</sub> requerida (NMX-C-402).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-banner: cómo usar -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:18px;font-size:.78rem;color:#475569;line-height:1.6">
+      <strong>Cómo usar:</strong> Selecciona el DN, la condición de instalación y el tipo de carga viva.
+      El módulo aplica el <strong>método de Marston</strong> para calcular la carga total sobre el tubo y determina
+      automáticamente el <strong>Grado NMX-C-402</strong> mínimo (1 a 4) que debe especificarse en el proyecto.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
+
+      <!-- COLUMNA IZQUIERDA — Inputs -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Bloque 1: Geometría y tipo de instalación -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
+          <div style="font-weight:700;font-size:.88rem;color:var(--teal-d);margin-bottom:12px;padding-bottom:6px;border-bottom:1.5px solid var(--line)">📏 Geometría de la tubería</div>
+
+          <div style="margin-bottom:10px">
+            <label>Diámetro nominal DN (mm) — NMX-C-402</label>
+            <select id="m9-dn" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+              <option value="300">300 mm</option>
+              <option value="380">380 mm</option>
+              <option value="450">450 mm</option>
+              <option value="610" selected>610 mm</option>
+              <option value="760">760 mm</option>
+              <option value="910">910 mm</option>
+              <option value="1070">1070 mm</option>
+              <option value="1220">1220 mm</option>
+              <option value="1370">1370 mm</option>
+              <option value="1520">1520 mm</option>
+              <option value="1830">1830 mm</option>
+              <option value="2130">2130 mm</option>
+              <option value="2440">2440 mm</option>
+              <option value="2750">2750 mm</option>
+              <option value="3050">3050 mm</option>
+            </select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <label>Espesor de pared e (mm)</label>
+              <input type="number" id="m9-espesor" value="75" min="30" max="400" step="5" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+            </div>
+            <div>
+              <label>Altura de relleno h<sub>r</sub> (m)</label>
+              <input type="number" id="m9-hr" value="2.5" min="0.3" max="30" step="0.1" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque 2: Tipo de instalación -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
+          <div style="font-weight:700;font-size:.88rem;color:var(--teal-d);margin-bottom:12px;padding-bottom:6px;border-bottom:1.5px solid var(--line)">🔩 Tipo de instalación</div>
+
+          <div style="margin-bottom:10px">
+            <label>Condición de colocación</label>
+            <select id="m9-tipo" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="zanja">Zanja (tradicional) — ATHA Sección 1</option>
+              <option value="terraplen">Terraplén (relleno sobre tubo) — ATHA Sección 2</option>
+              <option value="zanja-terraplenada">Zanja terraplenada — ATHA Sección 3</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:10px">
+            <label>Ancho de zanja b (m) — solo aplica en zanja</label>
+            <input type="number" id="m9-b" value="1.2" min="0.4" max="8" step="0.05" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+          </div>
+
+          <div style="margin-bottom:10px">
+            <label>Factor de apoyo F<sub>a</sub></label>
+            <select id="m9-fa" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="1.5">1.5 — Tipo E: arena suelta sin compactar (mín. normativo)</option>
+              <option value="1.9">1.9 — Tipo E: apoyo en suelo natural ordinario (SNO)</option>
+              <option value="2.3" selected>2.3 — Tipo A: hormigón 120° con relleno sin compactar</option>
+              <option value="3.0">3.0 — Tipo A: hormigón 120° relleno compactado 90% PN</option>
+              <option value="4.0">4.0 — Tipo A: hormigón 180° relleno compactado 95% PN</option>
+              <option value="4.8">4.8 — Tipo A: hormigón 360° (envolvente total)</option>
+            </select>
+            <div style="font-size:.7rem;color:#64748b;margin-top:2px">Tipo A = apoyo hormigón (NMX-C-401) · Tipo E = apoyo granular (ATHA)</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <label>Peso específico γ<sub>r</sub> (kN/m³)</label>
+              <select id="m9-gamma" onchange="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.82rem">
+                <option value="17.0">17.0 — Arena suelta</option>
+                <option value="18.0">18.0 — Suelo común</option>
+                <option value="19.2" selected>19.2 — Arena arcillosa (ATHA ref.)</option>
+                <option value="20.0">20.0 — Arcilla compacta</option>
+                <option value="21.0">21.0 — Suelo saturado</option>
+              </select>
+            </div>
+            <div>
+              <label>λμ' (coef. Marston)</label>
+              <select id="m9-lamu" onchange="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.82rem">
+                <option value="0.13">0.13 — Arena suelta (μ'=0.39)</option>
+                <option value="0.15" selected>0.15 — Arena arcillosa (ATHA ref.)</option>
+                <option value="0.19">0.19 — Suelo común (μ'=0.58)</option>
+                <option value="0.25">0.25 — Arcilla plástica</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque 3: Cargas vivas -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
+          <div style="font-weight:700;font-size:.88rem;color:var(--teal-d);margin-bottom:12px;padding-bottom:6px;border-bottom:1.5px solid var(--line)">🚛 Carga viva de tráfico</div>
+
+          <div style="margin-bottom:10px">
+            <label>Tipo de carga viva</label>
+            <select id="m9-trafico" onchange="m9SyncTrafico()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="0">🚶 Sin carga viva — peatonal / jardín</option>
+              <option value="48">🚗 H-10 — vialidad ligera / autos (AASHTO H-10 · 98 kN/eje)</option>
+              <option value="96" selected>🚛 H-20 — carretera estándar / camiones (AASHTO H-20 · 178 kN/eje)</option>
+              <option value="120">🛣️ H-25 — carretera pesada / tráiler (AASHTO H-25 · 222 kN/eje)</option>
+              <option value="50">✈️ Aeropuerto FAA — DC-9/B737 (900 kN · FAA AC 150)</option>
+              <option value="80">🚂 Ferroviario Cooper E-80 (AREMA · 356 kN/eje)</option>
+              <option value="custom">✏️ Personalizada</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:10px">
+            <label>q<sub>tráfico</sub> distribuida (kN/m) — editable</label>
+            <input type="number" id="m9-q-traf" value="96" min="0" max="500" step="1" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+            <div style="font-size:.7rem;color:#64748b;margin-top:2px">Carga distribuida lineal sobre la tubería (kN/m). Presets AASHTO/FAA/AREMA arriba.</div>
+          </div>
+
+          <div>
+            <label>Coeficiente de seguridad γ<sub>seg</sub></label>
+            <select id="m9-gamseg" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="1.5" selected>1.5 — Criterio de rotura (recomendado NMX)</option>
+              <option value="1.0">1.0 — Criterio de fisuración (0.3 mm)</option>
+            </select>
+          </div>
+        </div>
+
+      </div><!-- /col izquierda -->
+
+      <!-- COLUMNA DERECHA — Resultados -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Resultados principales -->
+        <div style="background:linear-gradient(135deg,#0f4c5c,#01696f);color:#fff;border-radius:var(--radius);padding:20px">
+          <div style="font-weight:800;font-size:.95rem;margin-bottom:14px;letter-spacing:.3px">📊 Resultados del diseño</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:1.4rem;font-weight:800;font-family:monospace" id="m9-res-qr">— kN/m</div>
+              <div style="font-size:.7rem;opacity:.8;margin-top:2px">q<sub>relleno</sub> Marston</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:1.4rem;font-weight:800;font-family:monospace" id="m9-res-qtotal">— kN/m</div>
+              <div style="font-size:.7rem;opacity:.8;margin-top:2px">q<sub>TOTAL</sub> (relleno+tráfico)</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:1.4rem;font-weight:800;font-family:monospace" id="m9-res-qcalc">— kN/m²/m</div>
+              <div style="font-size:.7rem;opacity:.8;margin-top:2px">q<sub>calc</sub> = q·γ / (Fa·D)</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border:2px solid var(--gold);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:1.6rem;font-weight:900;font-family:monospace;color:var(--gold)" id="m9-res-grado">—</div>
+              <div style="font-size:.72rem;opacity:.9;margin-top:2px">Grado NMX-C-402 requerido</div>
+            </div>
+          </div>
+
+          <!-- Indicador de cumplimiento -->
+          <div id="m9-semaforo" style="border-radius:8px;padding:10px 14px;font-size:.82rem;font-weight:700;text-align:center;background:rgba(255,255,255,.15)">
+            ⏳ Ingresa los datos y presiona Calcular
+          </div>
+        </div>
+
+        <!-- Proceso Marston detallado -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
+          <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:10px">📐 Proceso Marston (paso a paso)</div>
+          <div id="m9-proceso" style="font-size:.76rem;line-height:1.8;color:#334155;font-family:monospace;background:#f8fafc;border-radius:6px;padding:12px;min-height:80px">
+            Presiona Calcular para ver el proceso detallado.
+          </div>
+        </div>
+
+        <!-- Tabla de grados NMX-C-402 -->
+        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
+          <div style="font-weight:700;font-size:.85rem;color:#92400e;margin-bottom:8px">📊 Tabla de Grados NMX-C-402-ONNCCE-2020</div>
+          <div class="table-wrap">
+            <table style="width:100%;border-collapse:collapse;font-size:.76rem">
+              <thead>
+                <tr style="background:#92400e;color:#fff">
+                  <th style="padding:5px 8px;text-align:left">Grado</th>
+                  <th style="padding:5px 8px">M<sub>grieta</sub><br>(N/m/mm)</th>
+                  <th style="padding:5px 8px">M<sub>rotura</sub><br>(N/m/mm)</th>
+                  <th style="padding:5px 8px">f'c<br>(MPa)</th>
+                  <th style="padding:5px 8px">Equiv.<br>ASTM</th>
+                </tr>
+              </thead>
+              <tbody id="m9-tabla-grados"></tbody>
+            </table>
+          </div>
+          <div style="font-size:.68rem;color:#64748b;margin-top:6px">
+            M = carga de prueba de tres aristas (N/m por mm de diámetro interior) · NMX-C-402-ONNCCE-2020 Tabla 1–4
+          </div>
+        </div>
+
+        <!-- Nota NMX-C-401: aplicabilidad por uso -->
+        <div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:14px 16px">
+          <div style="font-weight:800;font-size:.83rem;color:#92400e;margin-bottom:8px">⚠️ Alcance NMX-C-401 — Aplicabilidad por tipo de uso</div>
+          <div style="font-size:.74rem;color:#78350f;line-height:1.5;margin-bottom:10px">
+            La <strong>NMX-C-401-ONNCCE-2020</strong> define los requisitos de materiales, dimensiones y pruebas de fabricación
+            para tubería de concreto simple y reforzado. Su aplicación varía según el uso final:
+          </div>
+          <div class="table-wrap">
+            <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+              <thead>
+                <tr style="background:#92400e;color:#fff">
+                  <th style="padding:5px 8px;text-align:left">Uso / Proyecto</th>
+                  <th style="padding:5px 8px;text-align:center">Grado NMX-C-402</th>
+                  <th style="padding:5px 8px;text-align:center">Carga viva ref.</th>
+                  <th style="padding:5px 8px;text-align:left">Nota NMX-C-401</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:#f0fdf4">
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">🏘️ Residencial / jardines</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0;font-weight:700;color:#166534">Grado 1</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">Peatonal · 0 kN/m</td>
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">Concreto simple o reforzado ligero (NMX-C-401 Sec. 5.1). <em>Uso típico: atarjeas domiciliarias ≤ 45 cm</em></td>
+                </tr>
+                <tr style="background:#fefce8">
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">🛣️ Vialidad local / colectora</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0;font-weight:700;color:#854d0e">Grado 2</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">H-10 · H-20</td>
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">Concreto reforzado mín. f'c 27.6 MPa (NMX-C-401 Sec. 6.2). <em>Colectores pluviales DN 300–760 bajo calle</em></td>
+                </tr>
+                <tr style="background:#fff7ed">
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">🚛 Carretera / tráfico pesado</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0;font-weight:700;color:#c2410c">Grado 3</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">H-25 · 120 kN/m</td>
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">f'c ≥ 34.5 MPa obligatorio (NMX-C-401 Sec. 6.3). <em>Drenaje bajo carreteras federales SCT</em></td>
+                </tr>
+                <tr style="background:#fef2f2">
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">✈️ Aeropuerto / industrial pesado</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0;font-weight:700;color:#b91c1c">Grado 4</td>
+                  <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">FAA / E-80</td>
+                  <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">f'c ≥ 41.4 MPa — Diseño especial si q<sub>calc</sub> &gt; 140 N/m/mm (NMX-C-401 Sec. 6.4). <em>Consultar fabricante</em></td>
+                </tr>
+                <tr style="background:#fdf4ff">
+                  <td style="padding:5px 8px">🚂 Ferroviario / minería</td>
+                  <td style="padding:5px 8px;text-align:center;font-weight:700;color:#7e22ce">Diseño Especial</td>
+                  <td style="padding:5px 8px;text-align:center">Cooper E-80</td>
+                  <td style="padding:5px 8px">Fuera de catálogo estándar NMX-C-402. Requiere cálculo estructural específico bajo AREMA + NMX-C-401 Sec. 7.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="font-size:.68rem;color:#78350f;margin-top:8px;font-style:italic">
+            ⚠️ Para uso residencial (Grado 1), la NMX-C-401 permite tubería de concreto simple en diámetros ≤ 300 mm con profundidades ≤ 1.5 m sin tráfico vehicular directo.
+            Cualquier uso con carga viva vehicular requiere concreto reforzado certificado NMX-C-401/402.
+          </div>
+        </div>
+
+        <!-- Referencias técnicas -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px">
+          <div style="font-weight:700;font-size:.8rem;color:#475569;margin-bottom:6px">📎 Referencias normativas</div>
+          <ul style="font-size:.72rem;color:#64748b;line-height:1.7;margin:0;padding-left:16px">
+            <li><strong>NMX-C-402-ONNCCE-2020</strong> — 4 Grados por resistencia carga externa (M grieta y rotura)</li>
+            <li><strong>NMX-C-401-ONNCCE-2020</strong> — Requisitos materiales, dimensiones y pruebas tubería concreto</li>
+            <li><strong>Marston (1930)</strong> — Carga en zanja: q<sub>r</sub> = C<sub>z</sub>·γ·h<sub>r</sub>·b</li>
+            <li><strong>AASHTO H-10/H-20/H-25</strong> — Cargas vehiculares de diseño, ejes 98–222 kN</li>
+            <li><strong>FAA AC 150/5370</strong> — Carga aeroportuaria DC-9 = 900 kN</li>
+            <li><strong>AREMA Cooper E-80</strong> — Carga ferroviaria 356 kN/eje, vía principal</li>
+            <li><strong>ATHA 2013 (UNE-127916)</strong> — Fichas de cálculo mecánico tubos hormigón</li>
+          </ul>
+        </div>
+
+      </div><!-- /col derecha -->
+    </div><!-- /grid -->
+
+    <div style="margin-top:18px;text-align:center">
+      <button class="btn btn-primary" onclick="calcM9()" style="padding:12px 36px;font-size:.95rem">⚙️ Calcular Grado NMX-C-402</button>
+    </div>
+
+    <div style="margin-top:10px;text-align:center;font-size:.72rem;color:#888">
+      Cálculos: Marston 1930 · ATHA 2013 · NMX-C-402-ONNCCE-2020 · AASHTO LRFD 7a ed. · FAA AC 150/5370 · AREMA Cooper E-80
+    </div>
+  </div>
+</div>
+<!-- /MÓDULO 9 -->
 
 <div id="sec-reporte" class="section">
   <div class="report-header">
@@ -3617,7 +3942,24 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     if(resEl){
       if(!FLEX.includes(INST.tubo)){
         resEl.style.cssText = 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
-        resEl.innerHTML = '<span style="font-size:1.4rem">🧱</span><div><div style="font-weight:700;font-size:.83rem">Tubería rígida NMX-C-402 — '+gradoInfo.label+'</div><div style="font-size:.74rem;margin-top:2px">M<sub>grieta</sub> = '+gradoInfo.M_grieta+' N/m/mm | M<sub>rupt</sub> = '+gradoInfo.M_rupt+' N/m/mm | f\'c = '+gradoInfo.fc_MPa+' MPa. La rigidez propia del concreto compensa la carga. La ecuación IOWA aplica solo a tuberías flexibles (PEAD/PVC).</div></div>';
+        resEl.innerHTML =
+          '<span style="font-size:1.5rem;margin-top:2px">🧱</span>'
+          + '<div style="flex:1">'
+          + '<div style="font-weight:800;font-size:.84rem;color:#075985;margin-bottom:3px">'
+          + 'Tubería rígida NMX-C-402 — '+gradoInfo.label+'</div>'
+          + '<div style="font-size:.74rem;line-height:1.6;margin-bottom:6px">'
+          + 'M<sub>grieta</sub>='+gradoInfo.M_grieta+' N/m/mm &nbsp;·&nbsp; '
+          + 'M<sub>rupt</sub>='+gradoInfo.M_rupt+' N/m/mm &nbsp;·&nbsp; '
+          + 'f\'c='+gradoInfo.fc_MPa+' MPa<br>'
+          + '<span style="font-weight:700;color:#0369a1">⚠ La ecuación de IOWA <u>NO aplica</u> a tubería rígida de concreto.</span><br>'
+          + 'El concreto recibe <strong>mayor carga dinámica y puntual</strong> directamente — '
+          + 'su diseño se rige por resistencia al aplastamiento (carga de tres aristas), '
+          + 'no por deflexión. La rigidez es intrínseca al material.</div>'
+          + '<button onclick="showTab(\'disenio-concreto\')" '
+          + 'style="background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;font-weight:700;'
+          + 'font-size:.75rem;padding:5px 14px;border:none;border-radius:6px;cursor:pointer">'
+          + '▶ Ir a Módulo 9 — Diseño Estructural NMX-C-402</button>'
+          + '</div>';
       } else if(ok){
         resEl.style.cssText = 'background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px';
         resEl.innerHTML = '<span style="font-size:1.4rem">✅</span><div><div style="font-weight:700;font-size:.83rem">Deflexión dentro del límite normativo</div><div style="font-size:.74rem;margin-top:2px">Δy/D = <span style="font-family:monospace;font-weight:700">'+dPct.toFixed(2)+'%</span> ≤ '+limite+'% ('+INST.drenaje+', NOM-001-CONAGUA)</div></div>';
@@ -3760,6 +4102,146 @@ function mn_ajustarSerie() {
     for (var j = 0; j < matPF.options.length; j++) {
       if (matPF.options[j].value === targetNPF) { matPF.selectedIndex = j; break; }
     }
+  }
+}
+
+
+// =====================================================================
+// calcM9 — Módulo 9: Diseño Estructural Tubería de Concreto NMX-C-402
+// Método de Marston · Factor de apoyo · Cargas vivas normativas
+// =====================================================================
+function m9SyncTrafico() {
+  var sel = document.getElementById('m9-trafico');
+  var inp = document.getElementById('m9-q-traf');
+  if(!sel || !inp) return;
+  if(sel.value !== 'custom') inp.value = sel.value;
+  calcM9();
+}
+
+function calcM9() {
+  var DN     = parseFloat(document.getElementById('m9-dn').value)   || 610;
+  var e      = parseFloat(document.getElementById('m9-espesor').value) || 75;
+  var hr     = parseFloat(document.getElementById('m9-hr').value)   || 2.5;
+  var tipo   = document.getElementById('m9-tipo').value  || 'zanja';
+  var b      = parseFloat(document.getElementById('m9-b').value)    || 1.2;
+  var Fa     = parseFloat(document.getElementById('m9-fa').value)   || 2.3;
+  var gamma  = parseFloat(document.getElementById('m9-gamma').value)|| 19.2;
+  var lamu   = parseFloat(document.getElementById('m9-lamu').value) || 0.15;
+  var qTraf  = parseFloat(document.getElementById('m9-q-traf').value)|| 0;
+  var gamSeg = parseFloat(document.getElementById('m9-gamseg').value)|| 1.5;
+
+  if(isNaN(hr)||hr<=0||isNaN(DN)||DN<=0) return;
+
+  var D = DN / 1000;   // m (diámetro nominal en metros)
+  var proc = [];
+
+  // ── 1. Coeficiente de Marston Cz (zanja) ──────────────────────────
+  //   C_z = [1 - e^(-2λμ'·hr/b)] / (2λμ'·hr/b)
+  var expo   = -2 * lamu * hr / b;
+  var Cz     = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
+
+  // ── 2. Carga debida al relleno según tipo ─────────────────────────
+  var qr_zanja     = Cz * gamma * hr * b;          // kN/m — Marston zanja
+  var qr_terraplen = gamma * hr * D;               // kN/m — Marston terraplén simple
+  var qr;
+  if(tipo === 'zanja') {
+    qr = qr_zanja;
+    proc.push('Instalación en ZANJA:');
+    proc.push('  C_z = [1-e^(-2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ')] / (2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ') = <b>' + Cz.toFixed(3) + '</b>');
+    proc.push('  q_relleno = C_z · γ · hr · b = ' + Cz.toFixed(3) + ' × ' + gamma + ' × ' + hr + ' × ' + b.toFixed(2) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
+  } else if(tipo === 'terraplen') {
+    qr = qr_terraplen;
+    proc.push('Instalación en TERRAPLÉN:');
+    proc.push('  q_relleno = γ · hr · D = ' + gamma + ' × ' + hr + ' × ' + D.toFixed(3) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
+  } else {
+    // Zanja terraplenada: tomar el menor entre zanja y terraplén (ATHA conservador)
+    qr = Math.min(qr_zanja, qr_terraplen);
+    proc.push('Instalación en ZANJA TERRAPLENADA:');
+    proc.push('  q_zanja     = ' + qr_zanja.toFixed(2) + ' kN/m');
+    proc.push('  q_terraplén = ' + qr_terraplen.toFixed(2) + ' kN/m');
+    proc.push('  q_relleno = min(zanja, terraplén) = <b>' + qr.toFixed(2) + ' kN/m</b> (criterio conservador ATHA)');
+  }
+
+  // ── 3. Carga total ─────────────────────────────────────────────────
+  var qTotal = qr + qTraf;
+  proc.push('');
+  proc.push('q_tráfico = <b>' + qTraf.toFixed(1) + ' kN/m</b>');
+  proc.push('q_TOTAL   = q_relleno + q_tráfico = ' + qr.toFixed(2) + ' + ' + qTraf.toFixed(1) + ' = <b>' + qTotal.toFixed(2) + ' kN/m</b>');
+
+  // ── 4. Carga de cálculo (resistencia mínima requerida) ────────────
+  //   q_calc = q_TOTAL · γ_seg / (Fa · D)   [kN/m² por m de diámetro ≡ N/m/mm]
+  var qCalc = qTotal * gamSeg / (Fa * D);
+  proc.push('');
+  proc.push('q_calc = q_TOTAL · γ_seg / (Fa · D)');
+  proc.push('       = ' + qTotal.toFixed(2) + ' × ' + gamSeg + ' / (' + Fa + ' × ' + D.toFixed(3) + ')');
+  proc.push('       = <b>' + qCalc.toFixed(2) + ' N/m/mm</b>  ← M_grieta mínima requerida');
+
+  // ── 5. Selección de Grado NMX-C-402 ──────────────────────────────
+  var grados = [
+    { g:'1', M_g:50,  M_r:75,  fc:27.6, astm:'Clase I/II'  },
+    { g:'2', M_g:65,  M_r:100, fc:27.6, astm:'Clase III'   },
+    { g:'3', M_g:100, M_r:150, fc:34.5, astm:'Clase IV'    },
+    { g:'4', M_g:140, M_r:175, fc:41.4, astm:'Clase V'     }
+  ];
+
+  var gradoSel = null;
+  for(var i = 0; i < grados.length; i++) {
+    if(grados[i].M_g >= qCalc) { gradoSel = grados[i]; break; }
+  }
+
+  proc.push('');
+  if(gradoSel) {
+    proc.push('▶ Grado seleccionado: <b>Grado ' + gradoSel.g + ' (M_grieta=' + gradoSel.M_g + ' ≥ ' + qCalc.toFixed(2) + ')</b>');
+  } else {
+    proc.push('▶ <b>q_calc > 140 N/m/mm — Requiere DISEÑO ESPECIAL (fuera de catálogo NMX-C-402)</b>');
+  }
+
+  // ── 6. Renderizar resultados ──────────────────────────────────────
+  var setEl = function(id, val) { var el = document.getElementById(id); if(el) el.innerHTML = val; };
+
+  setEl('m9-res-qr',     qr.toFixed(2) + ' kN/m');
+  setEl('m9-res-qtotal', qTotal.toFixed(2) + ' kN/m');
+  setEl('m9-res-qcalc',  qCalc.toFixed(2) + ' N/m/mm');
+
+  var sem = document.getElementById('m9-semaforo');
+  var gradoEl = document.getElementById('m9-res-grado');
+
+  if(gradoSel) {
+    setEl('m9-res-grado', 'Grado ' + gradoSel.g);
+    if(gradoEl) { gradoEl.style.color = 'var(--gold)'; }
+    var semColor = gradoSel.g === '1' ? '#dcfce7' : gradoSel.g === '2' ? '#fef9c3' : gradoSel.g === '3' ? '#fed7aa' : '#fee2e2';
+    var semTxt   = gradoSel.g === '1' ? '✅ Grado 1 — f\'c 27.6 MPa · Clase I/II ASTM' :
+                   gradoSel.g === '2' ? '⚠️ Grado 2 — f\'c 27.6 MPa · Clase III ASTM' :
+                   gradoSel.g === '3' ? '🔶 Grado 3 — f\'c 34.5 MPa · Clase IV ASTM — carga alta' :
+                                        '🔴 Grado 4 — f\'c 41.4 MPa · Clase V ASTM — carga muy alta';
+    if(sem) { sem.style.background = semColor; sem.style.color = '#1e293b'; sem.innerHTML = semTxt; }
+  } else {
+    setEl('m9-res-grado', 'Diseño\nEspecial');
+    if(gradoEl) { gradoEl.style.color = '#ef4444'; }
+    if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = '❌ Carga excede Grado 4 — Se requiere DISEÑO ESPECIAL (consultar fabricante NMX-C-401)'; }
+  }
+
+  // Proceso
+  var proEl = document.getElementById('m9-proceso');
+  if(proEl) proEl.innerHTML = proc.join('<br>');
+
+  // Tabla de grados
+  var tbody = document.getElementById('m9-tabla-grados');
+  if(tbody) {
+    tbody.innerHTML = '';
+    grados.forEach(function(g) {
+      var esReq = gradoSel && g.g === gradoSel.g;
+      var row = document.createElement('tr');
+      row.style.background = esReq ? 'rgba(217,119,6,.15)' : (g.g === '1' ? '#f0fdf4' : g.g === '2' ? '#fefce8' : g.g === '3' ? '#fff7ed' : '#fef2f2');
+      row.style.fontWeight = esReq ? '700' : '400';
+      row.innerHTML =
+        '<td style="padding:5px 8px;border-bottom:1px solid #e2e8f0">' + (esReq ? '→ ' : '') + 'Grado ' + g.g + (esReq ? ' ✓' : '') + '</td>' +
+        '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">' + g.M_g + '</td>' +
+        '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">' + g.M_r + '</td>' +
+        '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">' + g.fc + '</td>' +
+        '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">' + g.astm + '</td>';
+      tbody.appendChild(row);
+    });
   }
 }
 
