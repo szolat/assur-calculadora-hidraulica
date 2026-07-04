@@ -430,11 +430,54 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <div class="form-grid">
       <div>
         <label>Diámetro nominal DN (mm)</label>
-        <select id="m-dn">
-          <option>110</option><option>160</option><option value="200" selected>200</option>
-          <option>250</option><option>315</option><option>355</option><option>400</option>
-          <option>450</option><option>500</option><option>630</option><option>800</option>
-          <option>1000</option><option>1200</option>
+        <select id="m-dn" onchange="mn_ajustarSerie()">
+          <optgroup label="── PVC / Novafort (SDR Serie 20/25) ──">
+            <option value="110" data-tipo="pvc">110</option>
+            <option value="160" data-tipo="pvc">160</option>
+            <option value="200" data-tipo="pvc" selected>200</option>
+            <option value="250" data-tipo="pvc">250</option>
+            <option value="315" data-tipo="pvc">315</option>
+            <option value="355" data-tipo="pvc">355</option>
+            <option value="400" data-tipo="pvc">400</option>
+            <option value="450" data-tipo="pvc">450</option>
+            <option value="500" data-tipo="pvc">500</option>
+            <option value="630" data-tipo="pvc">630</option>
+            <option value="800" data-tipo="pvc">800</option>
+            <option value="1000" data-tipo="pvc">1000</option>
+            <option value="1200" data-tipo="pvc">1200</option>
+          </optgroup>
+          <optgroup label="── PEAD Corrugado PT Corr® (NMX-E-241) ──">
+            <option value="100" data-tipo="pead" data-di="100">100 — PEAD corr</option>
+            <option value="150" data-tipo="pead" data-di="145">150 — PEAD corr</option>
+            <option value="200" data-tipo="pead" data-di="195">200 — PEAD corr</option>
+            <option value="250" data-tipo="pead" data-di="245">250 — PEAD corr</option>
+            <option value="300" data-tipo="pead" data-di="294">300 — PEAD corr</option>
+            <option value="375" data-tipo="pead" data-di="369">375 — PEAD corr</option>
+            <option value="450" data-tipo="pead" data-di="450">450 — PEAD corr</option>
+            <option value="600" data-tipo="pead" data-di="588">600 — PEAD corr</option>
+            <option value="750" data-tipo="pead" data-di="751">750 — PEAD corr</option>
+            <option value="900" data-tipo="pead" data-di="902">900 — PEAD corr</option>
+            <option value="1050" data-tipo="pead" data-di="1051">1050 — PEAD corr</option>
+            <option value="1200" data-tipo="pead" data-di="1185">1200 — PEAD corr</option>
+            <option value="1500" data-tipo="pead" data-di="1501">1500 — PEAD corr</option>
+          </optgroup>
+          <optgroup label="── Concreto reforzado (NMX-C-402) ──">
+            <option value="300" data-tipo="concr" data-di="300">300 — Concreto</option>
+            <option value="380" data-tipo="concr" data-di="380">380 — Concreto</option>
+            <option value="450" data-tipo="concr" data-di="450">450 — Concreto</option>
+            <option value="610" data-tipo="concr" data-di="610">610 — Concreto</option>
+            <option value="760" data-tipo="concr" data-di="760">760 — Concreto</option>
+            <option value="910" data-tipo="concr" data-di="910">910 — Concreto</option>
+            <option value="1070" data-tipo="concr" data-di="1070">1070 — Concreto</option>
+            <option value="1220" data-tipo="concr" data-di="1220">1220 — Concreto</option>
+            <option value="1370" data-tipo="concr" data-di="1370">1370 — Concreto</option>
+            <option value="1520" data-tipo="concr" data-di="1520">1520 — Concreto</option>
+            <option value="1830" data-tipo="concr" data-di="1830">1830 — Concreto</option>
+            <option value="2130" data-tipo="concr" data-di="2130">2130 — Concreto</option>
+            <option value="2440" data-tipo="concr" data-di="2440">2440 — Concreto</option>
+            <option value="2750" data-tipo="concr" data-di="2750">2750 — Concreto</option>
+            <option value="3050" data-tipo="concr" data-di="3050">3050 — Concreto</option>
+          </optgroup>
         </select>
       </div>
       <div>
@@ -446,11 +489,11 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       </div>
       <div>
         <label>Material / Coef. Manning n</label>
-        <select id="m-mat">
+        <select id="m-mat" onchange="mn_ajustarSerie()">
           <option value="0.009">PVC liso (n=0.009)</option>
-          <option value="0.009">PVC pared estructurada / Novafort (n=0.009)</option>
-          <option value="0.012">PEAD estructurado (n=0.012)</option>
-          <option value="0.013">Concreto (n=0.013)</option>
+          <option value="0.009">PVC sólida / Novafort pared lisa (n=0.009)</option>
+          <option value="0.012">PEAD corrugado PT Corr® (n=0.012)</option>
+          <option value="0.013">Concreto reforzado NMX-C-402 (n=0.013)</option>
         </select>
       </div>
       <div>
@@ -496,11 +539,54 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <div class="form-grid">
       <div>
         <label>Diámetro nominal DN (mm)</label>
-        <select id="pv-dn">
-          <option>110</option><option>160</option><option value="200" selected>200</option>
-          <option>250</option><option>315</option><option>355</option><option>400</option>
-          <option>450</option><option>500</option><option>630</option><option>800</option>
-          <option>1000</option><option>1200</option>
+        <select id="pv-dn" onchange="mn_ajustarSerie()">
+          <optgroup label="── PVC / Novafort (SDR) ──">
+            <option value="110" data-tipo="pvc">110</option>
+            <option value="160" data-tipo="pvc">160</option>
+            <option value="200" data-tipo="pvc" selected>200</option>
+            <option value="250" data-tipo="pvc">250</option>
+            <option value="315" data-tipo="pvc">315</option>
+            <option value="355" data-tipo="pvc">355</option>
+            <option value="400" data-tipo="pvc">400</option>
+            <option value="450" data-tipo="pvc">450</option>
+            <option value="500" data-tipo="pvc">500</option>
+            <option value="630" data-tipo="pvc">630</option>
+            <option value="800" data-tipo="pvc">800</option>
+            <option value="1000" data-tipo="pvc">1000</option>
+            <option value="1200" data-tipo="pvc">1200</option>
+          </optgroup>
+          <optgroup label="── PEAD Corrugado PT Corr® (NMX-E-241) ──">
+            <option value="100" data-tipo="pead" data-di="100">100 — PEAD corr</option>
+            <option value="150" data-tipo="pead" data-di="145">150 — PEAD corr</option>
+            <option value="200" data-tipo="pead" data-di="195">200 — PEAD corr</option>
+            <option value="250" data-tipo="pead" data-di="245">250 — PEAD corr</option>
+            <option value="300" data-tipo="pead" data-di="294">300 — PEAD corr</option>
+            <option value="375" data-tipo="pead" data-di="369">375 — PEAD corr</option>
+            <option value="450" data-tipo="pead" data-di="450">450 — PEAD corr</option>
+            <option value="600" data-tipo="pead" data-di="588">600 — PEAD corr</option>
+            <option value="750" data-tipo="pead" data-di="751">750 — PEAD corr</option>
+            <option value="900" data-tipo="pead" data-di="902">900 — PEAD corr</option>
+            <option value="1050" data-tipo="pead" data-di="1051">1050 — PEAD corr</option>
+            <option value="1200" data-tipo="pead" data-di="1185">1200 — PEAD corr</option>
+            <option value="1500" data-tipo="pead" data-di="1501">1500 — PEAD corr</option>
+          </optgroup>
+          <optgroup label="── Concreto reforzado (NMX-C-402) ──">
+            <option value="300" data-tipo="concr" data-di="300">300 — Concreto</option>
+            <option value="380" data-tipo="concr" data-di="380">380 — Concreto</option>
+            <option value="450" data-tipo="concr" data-di="450">450 — Concreto</option>
+            <option value="610" data-tipo="concr" data-di="610">610 — Concreto</option>
+            <option value="760" data-tipo="concr" data-di="760">760 — Concreto</option>
+            <option value="910" data-tipo="concr" data-di="910">910 — Concreto</option>
+            <option value="1070" data-tipo="concr" data-di="1070">1070 — Concreto</option>
+            <option value="1220" data-tipo="concr" data-di="1220">1220 — Concreto</option>
+            <option value="1370" data-tipo="concr" data-di="1370">1370 — Concreto</option>
+            <option value="1520" data-tipo="concr" data-di="1520">1520 — Concreto</option>
+            <option value="1830" data-tipo="concr" data-di="1830">1830 — Concreto</option>
+            <option value="2130" data-tipo="concr" data-di="2130">2130 — Concreto</option>
+            <option value="2440" data-tipo="concr" data-di="2440">2440 — Concreto</option>
+            <option value="2750" data-tipo="concr" data-di="2750">2750 — Concreto</option>
+            <option value="3050" data-tipo="concr" data-di="3050">3050 — Concreto</option>
+          </optgroup>
         </select>
       </div>
       <div>
@@ -597,14 +683,64 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <div class="form-grid">
       <div>
         <label>DN (mm)</label>
-        <select id="pf-dn">
-          <option>110</option><option>160</option><option value="200" selected>200</option>
-          <option>250</option><option>315</option><option>400</option><option>500</option>
-          <option>630</option><option>800</option><option>1000</option><option>1200</option>
+        <select id="pf-dn" onchange="mn_ajustarSerie()">
+          <optgroup label="── PVC / Novafort (SDR) ──">
+            <option value="110" data-tipo="pvc">110</option>
+            <option value="160" data-tipo="pvc">160</option>
+            <option value="200" data-tipo="pvc" selected>200</option>
+            <option value="250" data-tipo="pvc">250</option>
+            <option value="315" data-tipo="pvc">315</option>
+            <option value="400" data-tipo="pvc">400</option>
+            <option value="500" data-tipo="pvc">500</option>
+            <option value="630" data-tipo="pvc">630</option>
+            <option value="800" data-tipo="pvc">800</option>
+            <option value="1000" data-tipo="pvc">1000</option>
+            <option value="1200" data-tipo="pvc">1200</option>
+          </optgroup>
+          <optgroup label="── PEAD Corrugado PT Corr® (NMX-E-241) ──">
+            <option value="100" data-tipo="pead" data-di="100">100 — PEAD corr</option>
+            <option value="150" data-tipo="pead" data-di="145">150 — PEAD corr</option>
+            <option value="200" data-tipo="pead" data-di="195">200 — PEAD corr</option>
+            <option value="250" data-tipo="pead" data-di="245">250 — PEAD corr</option>
+            <option value="300" data-tipo="pead" data-di="294">300 — PEAD corr</option>
+            <option value="375" data-tipo="pead" data-di="369">375 — PEAD corr</option>
+            <option value="450" data-tipo="pead" data-di="450">450 — PEAD corr</option>
+            <option value="600" data-tipo="pead" data-di="588">600 — PEAD corr</option>
+            <option value="750" data-tipo="pead" data-di="751">750 — PEAD corr</option>
+            <option value="900" data-tipo="pead" data-di="902">900 — PEAD corr</option>
+            <option value="1050" data-tipo="pead" data-di="1051">1050 — PEAD corr</option>
+            <option value="1200" data-tipo="pead" data-di="1185">1200 — PEAD corr</option>
+            <option value="1500" data-tipo="pead" data-di="1501">1500 — PEAD corr</option>
+          </optgroup>
+          <optgroup label="── Concreto reforzado (NMX-C-402) ──">
+            <option value="300" data-tipo="concr" data-di="300">300 — Concreto</option>
+            <option value="380" data-tipo="concr" data-di="380">380 — Concreto</option>
+            <option value="450" data-tipo="concr" data-di="450">450 — Concreto</option>
+            <option value="610" data-tipo="concr" data-di="610">610 — Concreto</option>
+            <option value="760" data-tipo="concr" data-di="760">760 — Concreto</option>
+            <option value="910" data-tipo="concr" data-di="910">910 — Concreto</option>
+            <option value="1070" data-tipo="concr" data-di="1070">1070 — Concreto</option>
+            <option value="1220" data-tipo="concr" data-di="1220">1220 — Concreto</option>
+            <option value="1370" data-tipo="concr" data-di="1370">1370 — Concreto</option>
+            <option value="1520" data-tipo="concr" data-di="1520">1520 — Concreto</option>
+            <option value="1830" data-tipo="concr" data-di="1830">1830 — Concreto</option>
+            <option value="2130" data-tipo="concr" data-di="2130">2130 — Concreto</option>
+            <option value="2440" data-tipo="concr" data-di="2440">2440 — Concreto</option>
+            <option value="2750" data-tipo="concr" data-di="2750">2750 — Concreto</option>
+            <option value="3050" data-tipo="concr" data-di="3050">3050 — Concreto</option>
+          </optgroup>
         </select>
       </div>
       <div>
-        <label>Serie</label>
+        <label>Material / n Manning</label>
+        <select id="pf-mat" onchange="mn_ajustarSerie()">
+          <option value="0.009" data-serie="20">PVC liso / Novafort (n=0.009)</option>
+          <option value="0.012" data-serie="0">PEAD corrugado PT Corr® (n=0.012)</option>
+          <option value="0.013" data-serie="0">Concreto reforzado NMX-C-402 (n=0.013)</option>
+        </select>
+      </div>
+      <div>
+        <label>Serie (SDR) — sólo PVC</label>
         <select id="pf-serie"><option value="20">Serie 20</option><option value="25">Serie 25</option></select>
       </div>
       <div>
@@ -782,22 +918,56 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <div>
       <label>Diámetro de diseño (mm)</label>
       <select id="san-dn">
-        <option value="110">110 mm — albañal mín (pend ≥2%) Wavin</option>
-        <option value="150">150 mm — albañal estándar</option>
-        <option value="160">160 mm — albañal mín (pend ≥1%) Wavin</option>
-        <option value="200" selected>200 mm — atarjea mínima</option>
-        <option value="250">250 mm</option>
-        <option value="300">300 mm</option>
-        <option value="315">315 mm — Novafort/PVC Métrica</option>
-        <option value="375">375 mm</option>
-        <option value="400">400 mm</option>
-        <option value="450">450 mm</option>
-        <option value="500">500 mm</option>
-        <option value="600">600 mm</option>
-        <option value="700">700 mm — Novafort</option>
-        <option value="750">750 mm</option>
-        <option value="800">800 mm — Novafort</option>
-        <option value="900">900 mm</option>
+        <optgroup label="PVC / Novafort (n=0.009)">
+          <option value="110" data-tipo="pvc" data-di="104">110 mm — albañal mín (pend ≥2%) Wavin</option>
+          <option value="150" data-tipo="pvc" data-di="142">150 mm — albañal estándar</option>
+          <option value="160" data-tipo="pvc" data-di="152">160 mm — albañal mín (pend ≥1%) Wavin</option>
+          <option value="200" data-tipo="pvc" data-di="190" selected>200 mm — atarjea mínima</option>
+          <option value="250" data-tipo="pvc" data-di="238">250 mm</option>
+          <option value="300" data-tipo="pvc" data-di="285">300 mm</option>
+          <option value="315" data-tipo="pvc" data-di="299">315 mm — Novafort/PVC Métrica</option>
+          <option value="375" data-tipo="pvc" data-di="356">375 mm</option>
+          <option value="400" data-tipo="pvc" data-di="380">400 mm</option>
+          <option value="450" data-tipo="pvc" data-di="427">450 mm</option>
+          <option value="500" data-tipo="pvc" data-di="475">500 mm</option>
+          <option value="600" data-tipo="pvc" data-di="570">600 mm</option>
+          <option value="700" data-tipo="pvc" data-di="665">700 mm — Novafort</option>
+          <option value="750" data-tipo="pvc" data-di="713">750 mm</option>
+          <option value="800" data-tipo="pvc" data-di="760">800 mm — Novafort</option>
+          <option value="900" data-tipo="pvc" data-di="855">900 mm</option>
+        </optgroup>
+        <optgroup label="PEAD PT Corr® doble pared (n=0.012)">
+          <option value="100" data-tipo="pead" data-di="100">100 mm — PT Corr® SN8</option>
+          <option value="150" data-tipo="pead" data-di="145">150 mm — PT Corr® SN8</option>
+          <option value="200" data-tipo="pead" data-di="195">200 mm — PT Corr® SN8</option>
+          <option value="250" data-tipo="pead" data-di="245">250 mm — PT Corr® SN8</option>
+          <option value="300" data-tipo="pead" data-di="294">300 mm — PT Corr® SN8</option>
+          <option value="375" data-tipo="pead" data-di="369">375 mm — PT Corr® SN6</option>
+          <option value="450" data-tipo="pead" data-di="450">450 mm — PT Corr® SN6</option>
+          <option value="600" data-tipo="pead" data-di="588">600 mm — PT Corr® SN5</option>
+          <option value="750" data-tipo="pead" data-di="751">750 mm — PT Corr® SN5</option>
+          <option value="900" data-tipo="pead" data-di="902">900 mm — PT Corr® SN4</option>
+          <option value="1050" data-tipo="pead" data-di="1051">1050 mm — PT Corr® SN3</option>
+          <option value="1200" data-tipo="pead" data-di="1185">1200 mm — PT Corr® SN3</option>
+          <option value="1500" data-tipo="pead" data-di="1501">1500 mm — PT Corr® SN3</option>
+        </optgroup>
+        <optgroup label="Concreto reforzado NMX-C-402 (n=0.013)">
+          <option value="300" data-tipo="concr" data-di="300">300 mm — Concreto</option>
+          <option value="380" data-tipo="concr" data-di="380">380 mm — Concreto</option>
+          <option value="450" data-tipo="concr" data-di="450">450 mm — Concreto</option>
+          <option value="610" data-tipo="concr" data-di="610">610 mm — Concreto</option>
+          <option value="760" data-tipo="concr" data-di="760">760 mm — Concreto</option>
+          <option value="910" data-tipo="concr" data-di="910">910 mm — Concreto</option>
+          <option value="1070" data-tipo="concr" data-di="1070">1070 mm — Concreto</option>
+          <option value="1220" data-tipo="concr" data-di="1220">1220 mm — Concreto</option>
+          <option value="1370" data-tipo="concr" data-di="1370">1370 mm — Concreto</option>
+          <option value="1520" data-tipo="concr" data-di="1520">1520 mm — Concreto</option>
+          <option value="1830" data-tipo="concr" data-di="1830">1830 mm — Concreto</option>
+          <option value="2130" data-tipo="concr" data-di="2130">2130 mm — Concreto</option>
+          <option value="2440" data-tipo="concr" data-di="2440">2440 mm — Concreto</option>
+          <option value="2750" data-tipo="concr" data-di="2750">2750 mm — Concreto</option>
+          <option value="3050" data-tipo="concr" data-di="3050">3050 mm — Concreto</option>
+        </optgroup>
       </select>
     </div>
     <div>
@@ -1875,8 +2045,12 @@ function calcManning() {
   const n      = parseFloat(document.getElementById('m-mat').value);
   const Sinput = document.getElementById('m-s').value;
 
-  const espesor = DN / serie;             // mm
-  const Di_mm   = DN - 2 * espesor;       // mm
+  // Di real: para PEAD/Concreto usar data-di del option; para PVC usar DN - 2*(DN/serie)
+  const optDN  = document.getElementById('m-dn').selectedOptions[0];
+  const tipoDN = (optDN && optDN.dataset.tipo) ? optDN.dataset.tipo : 'pvc';
+  const Di_mm  = (tipoDN !== 'pvc' && optDN && optDN.dataset.di)
+    ? parseFloat(optDN.dataset.di)
+    : DN - 2 * (DN / serie);              // mm
   const Di_m    = Di_mm / 1000;           // m
   const R       = Di_m / 4;               // radio hidráulico tubo lleno
 
@@ -1959,10 +2133,14 @@ function calcPozos() {
     ? parseFloat(pendTerrenoRaw)
     : 0.5;           // default: 0.5%
 
-  const espesor = DN / serie;
-  const Di_mm   = DN - 2 * espesor;
+  // Di real: para PEAD/Concreto usar data-di; para PVC usar DN - 2*(DN/serie)
+  const optPV  = document.getElementById('pv-dn').selectedOptions[0];
+  const tipoPV = (optPV && optPV.dataset.tipo) ? optPV.dataset.tipo : 'pvc';
+  const Di_mm  = (tipoPV !== 'pvc' && optPV && optPV.dataset.di)
+    ? parseFloat(optPV.dataset.di)
+    : DN - 2 * (DN / serie);
   const Di_m    = Di_mm / 1000;
-  const n       = 0.009; // PVC por defecto
+  const n       = (tipoPV === 'pead') ? 0.012 : (tipoPV === 'concr') ? 0.013 : 0.009;
   const R       = Di_m / 4;
   const R23     = Math.pow(R, 2/3);
   const S_min   = Math.pow(0.6 * n / R23, 2); // decimal
@@ -2119,10 +2297,16 @@ function calcPerfil() {
   const cota0 = parseFloat(document.getElementById('pf-cota').value);
   const esp   = parseFloat(document.getElementById('pf-esp').value);
 
-  const espesor = DN / serie;
-  const Di_mm   = DN - 2 * espesor;
+  // Di real: para PEAD/Concreto usar data-di; para PVC usar DN - 2*(DN/serie)
+  const optPF  = document.getElementById('pf-dn').selectedOptions[0];
+  const tipoPF = (optPF && optPF.dataset.tipo) ? optPF.dataset.tipo : 'pvc';
+  const Di_mm  = (tipoPF !== 'pvc' && optPF && optPF.dataset.di)
+    ? parseFloat(optPF.dataset.di)
+    : DN - 2 * (DN / serie);
   const Di_m    = Di_mm / 1000;
-  const n       = 0.009;
+  // n Manning desde selector pf-mat (0.009 PVC / 0.012 PEAD / 0.013 Concreto)
+  const nEl     = document.getElementById('pf-mat');
+  const n       = nEl ? parseFloat(nEl.value) : 0.009;
   const R       = Di_m / 4;
   const R23     = Math.pow(R, 2/3);
   const S_min   = Math.pow(0.6 * n / R23, 2);
@@ -3108,13 +3292,13 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
 
   // Rigidez de pared (PS, kPa) para tuberías FLEXIBLES — Spangler/IOWA
   // PEAD: PS típico 34 kPa (SDR 17, ASTM F714) | PVC: PS 48 kPa (SDR 35, ASTM D3034)
-  var PS_FLEX = { pead: 34, pvc: 186 }; // SN4 NMX-E-215 Wavin Serie 20 = 186 kPa
+  var PS_FLEX = { pead: 372, pvc: 186 }; // PEAD PT Corr® SN8 DN300 = 372 kPa | PVC SN4 NMX-E-215 Wavin Serie 20 = 186 kPa
   var FLEX    = ['pead','pvc'];
 
   // Diámetros disponibles por tipo (mm)
   // Flexibles: fabricantes MX (PEAD/PVC hidráulico) según NMX-E-215 y NOM-001-CONAGUA
   // Concreto reforzado: NMX-C-402-ONNCCE-2020, Dn 300-3050 mm
-  var DIAM_FLEX = [100,110,150,160,200,250,300,315,375,400,450,500,600,700,750,800,900,1000,1200];
+  var DIAM_FLEX = [100,110,150,160,200,250,300,315,375,400,450,500,600,700,750,800,900,1000,1050,1200,1500];
   var DIAM_CONCR = [300,380,450,610,760,910,1070,1220,1370,1520,
                    1830,2130,2440,2750,3050];
 
@@ -3521,6 +3705,46 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
   setInterval(enviarAltura, 1500);
   document.addEventListener('click', function(){ setTimeout(enviarAltura, 250); });
 })();
+
+// =====================================================================
+// mn_ajustarSerie — muestra/oculta selector Serie y ajusta n automáticamente
+// Llama: onchange de #m-dn, #m-mat, #pv-dn, #pf-dn, #pf-mat
+// =====================================================================
+function mn_ajustarSerie() {
+  // M3 Manning
+  var optM   = document.getElementById('m-dn') ? document.getElementById('m-dn').selectedOptions[0] : null;
+  var tipoM  = (optM && optM.dataset.tipo) ? optM.dataset.tipo : 'pvc';
+  var serieM = document.getElementById('m-serie') ? document.getElementById('m-serie').parentElement : null;
+  if (serieM) serieM.style.display = (tipoM === 'pvc') ? '' : 'none';
+  // Sincronizar m-mat con el tipo de DN seleccionado
+  var matM = document.getElementById('m-mat');
+  if (matM && tipoM !== 'pvc') {
+    var targetN = (tipoM === 'pead') ? '0.012' : '0.013';
+    for (var i = 0; i < matM.options.length; i++) {
+      if (matM.options[i].value === targetN) { matM.selectedIndex = i; break; }
+    }
+  }
+
+  // M4 Pozos
+  var optPV  = document.getElementById('pv-dn') ? document.getElementById('pv-dn').selectedOptions[0] : null;
+  var tipoPV = (optPV && optPV.dataset.tipo) ? optPV.dataset.tipo : 'pvc';
+  var seriePV = document.getElementById('pv-serie') ? document.getElementById('pv-serie').parentElement : null;
+  if (seriePV) seriePV.style.display = (tipoPV === 'pvc') ? '' : 'none';
+
+  // M5 Perfil
+  var optPF  = document.getElementById('pf-dn') ? document.getElementById('pf-dn').selectedOptions[0] : null;
+  var tipoPF = (optPF && optPF.dataset.tipo) ? optPF.dataset.tipo : 'pvc';
+  var seriePF = document.getElementById('pf-serie') ? document.getElementById('pf-serie').parentElement : null;
+  if (seriePF) seriePF.style.display = (tipoPF === 'pvc') ? '' : 'none';
+  // Sincronizar pf-mat con el tipo de DN seleccionado
+  var matPF = document.getElementById('pf-mat');
+  if (matPF && tipoPF !== 'pvc') {
+    var targetNPF = (tipoPF === 'pead') ? '0.012' : '0.013';
+    for (var j = 0; j < matPF.options.length; j++) {
+      if (matPF.options[j].value === targetNPF) { matPF.selectedIndex = j; break; }
+    }
+  }
+}
 
 // =====================================================================
 // autoFillC — rellena el coeficiente C según tipo de superficie
