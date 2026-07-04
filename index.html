@@ -1462,7 +1462,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 <div id="sec-disenio-concreto" class="section">
   <div class="card">
     <h2>🧱 Módulo 9 — Diseño Estructural Tubería de Concreto</h2>
-    <div class="card-sub">NMX-C-402-ONNCCE-2020 · NMX-C-401-ONNCCE-2020 · Marston &amp; Bedding · H-10 / H-20 / H-25 / FAA / Cooper E-80</div>
+    <div class="card-sub">NMX-C-402-ONNCCE-2020 · NMX-C-401-ONNCCE-2020 · N·CMT·3·02/04 SICT/IMT · Marston &amp; Bedding · H-10 / H-20 / H-25 / FAA / Cooper E-80</div>
 
     <!-- Banner informativo mejorado -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
@@ -1497,8 +1497,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <!-- Sub-banner: cómo usar -->
     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:18px;font-size:.78rem;color:#475569;line-height:1.6">
       <strong>Cómo usar:</strong> Selecciona el DN, la condición de instalación y el tipo de carga viva.
-      El módulo aplica el <strong>método de Marston</strong> para calcular la carga total sobre el tubo y determina
-      automáticamente el <strong>Grado NMX-C-402</strong> mínimo (1 a 4) que debe especificarse en el proyecto.
+      El módulo aplica el <strong>método de Marston</strong> (N·CMT·3·02/04 SICT/IMT · M-PRY-CAR-4-01-003-16) para calcular la carga total sobre el tubo y determina
+      automáticamente el <strong>Grado NMX-C-402</strong> mínimo (1 a 4) junto con la <strong>Clase SCT equivalente</strong> (Clase 1-4) según la normativa mexicana vigente.
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
@@ -1563,16 +1563,18 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           </div>
 
           <div style="margin-bottom:10px">
-            <label>Factor de apoyo F<sub>a</sub></label>
-            <select id="m9-fa" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
-              <option value="1.5">1.5 — Tipo E: arena suelta sin compactar (mín. normativo)</option>
-              <option value="1.9">1.9 — Tipo E: apoyo en suelo natural ordinario (SNO)</option>
-              <option value="2.3" selected>2.3 — Tipo A: hormigón 120° con relleno sin compactar</option>
-              <option value="3.0">3.0 — Tipo A: hormigón 120° relleno compactado 90% PN</option>
-              <option value="4.0">4.0 — Tipo A: hormigón 180° relleno compactado 95% PN</option>
-              <option value="4.8">4.8 — Tipo A: hormigón 360° (envolvente total)</option>
+            <label>Factor de encamado B<sub>f</sub> / Clase SCT <span style="font-size:.68rem;color:#64748b;font-weight:400">(M-PRY-CAR-4-01-003-16 SICT/IMT)</span></label>
+            <select id="m9-fa" onchange="m9SyncClaseSCT();calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="1.1" data-clase="D">Bₓ=1.1 — Clase D SCT: sin preparación de apoyo (mín. absoluto)</option>
+              <option value="1.5" data-clase="C">Bₓ=1.5 — Clase C SCT: apoyo natural ordinario (SNO)</option>
+              <option value="1.9" data-clase="B">Bₓ=1.9 — Clase B SCT: granular compactado (recomendado)</option>
+              <option value="2.3" data-clase="A-min" selected>Bₓ=2.3 — Clase A SCT: hormigón 120° + relleno sin compactar</option>
+              <option value="3.0" data-clase="A">Bₓ=3.0 — Clase A SCT: hormigón 120° + relleno compactado 90% PN</option>
+              <option value="4.0" data-clase="A-plus">Bₓ=4.0 — Clase A SCT: hormigón 180° + relleno compactado 95% PN</option>
+              <option value="4.8" data-clase="A-total">Bₓ=4.8 — Clase A SCT: hormigón 360° (envolvente total — máx.)</option>
             </select>
-            <div style="font-size:.7rem;color:#64748b;margin-top:2px">Tipo A = apoyo hormigón (NMX-C-401) · Tipo E = apoyo granular (ATHA)</div>
+            <div id="m9-clase-sct-badge" style="margin-top:4px;display:inline-block;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700;background:#e0f2fe;color:#0369a1">Clase A (SCT) | Bₓ=2.3</div>
+            <div style="font-size:.68rem;color:#64748b;margin-top:3px">SICT/IMT Clase A-D ≡ ATHA Tipo A-E · NMX-C-401 · M-PRY-CAR-4-01-003-16</div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1590,10 +1592,12 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <label>λμ' (coef. Marston)</label>
               <select id="m9-lamu" onchange="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.82rem">
                 <option value="0.13">0.13 — Arena suelta (μ'=0.39)</option>
-                <option value="0.15" selected>0.15 — Arena arcillosa (ATHA ref.)</option>
+                <option value="0.15">0.15 — Arena arcillosa (ATHA ref.)</option>
+                <option value="0.165" selected>0.165 — Arena arcillosa (SCT N·CMT·3·02/04 ★ ref.)</option>
                 <option value="0.19">0.19 — Suelo común (μ'=0.58)</option>
                 <option value="0.25">0.25 — Arcilla plástica</option>
               </select>
+              <div style="font-size:.67rem;color:#0369a1;margin-top:2px">★ Valor SCT usado en ejemplo oficial DN 1520mm (M-PRY-CAR-4-01-003-16)</div>
             </div>
           </div>
         </div>
@@ -1639,7 +1643,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <div style="background:linear-gradient(135deg,#0f4c5c,#01696f);color:#fff;border-radius:var(--radius);padding:20px">
           <div style="font-weight:800;font-size:.95rem;margin-bottom:14px;letter-spacing:.3px">📊 Resultados del diseño</div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
             <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center">
               <div style="font-size:1.4rem;font-weight:800;font-family:monospace" id="m9-res-qr">— kN/m</div>
               <div style="font-size:.7rem;opacity:.8;margin-top:2px">q<sub>relleno</sub> Marston</div>
@@ -1649,12 +1653,23 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <div style="font-size:.7rem;opacity:.8;margin-top:2px">q<sub>TOTAL</sub> (relleno+tráfico)</div>
             </div>
             <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center">
-              <div style="font-size:1.4rem;font-weight:800;font-family:monospace" id="m9-res-qcalc">— kN/m²/m</div>
-              <div style="font-size:.7rem;opacity:.8;margin-top:2px">q<sub>calc</sub> = q·γ / (Fa·D)</div>
+              <div style="font-size:1.4rem;font-weight:800;font-family:monospace" id="m9-res-qcalc">— N/m/mm</div>
+              <div style="font-size:.7rem;opacity:.8;margin-top:2px">q<sub>calc</sub> = q·γ / (Bₓ·D)</div>
             </div>
             <div style="background:rgba(255,255,255,.15);border:2px solid var(--gold);border-radius:8px;padding:10px;text-align:center">
               <div style="font-size:1.6rem;font-weight:900;font-family:monospace;color:var(--gold)" id="m9-res-grado">—</div>
               <div style="font-size:.72rem;opacity:.9;margin-top:2px">Grado NMX-C-402 requerido</div>
+            </div>
+          </div>
+          <!-- Fila de equivalencia SCT/NMX -->
+          <div id="m9-equiv-sct" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;padding:8px 10px;text-align:center">
+              <div style="font-size:1.3rem;font-weight:900;font-family:monospace;color:#7dd3fc" id="m9-res-clase-sct">—</div>
+              <div style="font-size:.68rem;opacity:.85;margin-top:2px">Clase SCT mínima<br><span style="opacity:.7">N·CMT·3·02/04 SICT/IMT</span></div>
+            </div>
+            <div style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;padding:8px 10px;text-align:center">
+              <div style="font-size:.78rem;font-weight:700;font-family:monospace;color:#86efac" id="m9-res-encamado">—</div>
+              <div style="font-size:.68rem;opacity:.85;margin-top:2px">Bₓ seleccionado<br><span style="opacity:.7">Clase encamado SCT</span></div>
             </div>
           </div>
 
@@ -1693,6 +1708,66 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             M = carga de prueba de tres aristas (N/m por mm de diámetro interior) · NMX-C-402-ONNCCE-2020 Tabla 1–4
           </div>
         </div>
+
+        <!-- Tabla resistencias SCT N-CMT-3-02-04 desplegable -->
+        <details style="background:#fff;border:1.5px solid #93c5fd;border-radius:var(--radius);padding:14px 16px">
+          <summary style="font-weight:700;font-size:.85rem;color:#1d4ed8;cursor:pointer;user-select:none">📋 Tabla de Clases SCT — N·CMT·3·02/04 SICT/IMT <span style="font-weight:400;font-size:.75rem;color:#475569">(click para expandir)</span></summary>
+          <div style="margin-top:10px">
+            <div style="font-size:.72rem;color:#334155;margin-bottom:6px">Equivalencia Clase SCT ↔ Grado NMX-C-402 — Carga tres aristas (F<sub>g</sub>) para Mₘᴿᵉᵉᵃ (kN/m)</div>
+            <div class="table-wrap">
+              <table style="width:100%;border-collapse:collapse;font-size:.74rem">
+                <thead>
+                  <tr style="background:#1d4ed8;color:#fff">
+                    <th style="padding:5px 8px;text-align:left">Clase SCT</th>
+                    <th style="padding:5px 8px">F<sub>g</sub> kN/m<br><span style="font-weight:400;font-size:.68rem">(N/m/mm)</span></th>
+                    <th style="padding:5px 8px">F<sub>m</sub> kN/m<br><span style="font-weight:400;font-size:.68rem">(rotura)</span></th>
+                    <th style="padding:5px 8px">f’c<br>(MPa)</th>
+                    <th style="padding:5px 8px">Equiv.<br>NMX-C-402</th>
+                    <th style="padding:5px 8px">Equiv.<br>ASTM C76M</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background:#f0fdf4">
+                    <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#166534">Clase 1</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">50 (5.1)</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">75 (7.6)</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">27.6</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0;font-weight:700">Grado 1</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">Clase I/II</td>
+                  </tr>
+                  <tr style="background:#fefce8">
+                    <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#854d0e">Clase 2</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">65 (6.6)</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">100 (10.2)</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">27.6</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0;font-weight:700">Grado 2</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">Clase III</td>
+                  </tr>
+                  <tr style="background:#fff7ed">
+                    <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#c2410c">Clase 3</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">100 (10.2)</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">150 (15.3)</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">34.5</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0;font-weight:700">Grado 3</td>
+                    <td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">Clase IV</td>
+                  </tr>
+                  <tr style="background:#fef2f2">
+                    <td style="padding:5px 8px;font-weight:700;color:#b91c1c">Clase 4</td>
+                    <td style="padding:5px 8px;text-align:center">140 (14.3)</td>
+                    <td style="padding:5px 8px;text-align:center">175 (17.8)</td>
+                    <td style="padding:5px 8px;text-align:center">41.4</td>
+                    <td style="padding:5px 8px;text-align:center;font-weight:700">Grado 4</td>
+                    <td style="padding:5px 8px;text-align:center">Clase V</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="font-size:.67rem;color:#64748b;margin-top:6px">
+              F<sub>g</sub> = carga de grieta (0.25 mm) · F<sub>m</sub> = carga de rotura (tres aristas) ·
+              Fuente: <strong>N·CMT·3·02/04 SICT/IMT</strong> (Tubos de Concreto Reforzado, Carreteras Federales)
+            </div>
+          </div>
+        </details>
 
         <!-- Nota NMX-C-401: aplicabilidad por uso -->
         <div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:14px 16px">
@@ -1761,6 +1836,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <li><strong>AASHTO H-10/H-20/H-25</strong> — Cargas vehiculares de diseño, ejes 98–222 kN</li>
             <li><strong>FAA AC 150/5370</strong> — Carga aeroportuaria DC-9 = 900 kN</li>
             <li><strong>AREMA Cooper E-80</strong> — Carga ferroviaria 356 kN/eje, vía principal</li>
+            <li><strong>N·CMT·3·02/04 SICT/IMT</strong> — Norma para tubos de concreto reforzado en carreteras federales (Clases 1–4, Pared A/B)</li>
+            <li><strong>M-PRY-CAR-4-01-003-16 SICT/IMT</strong> — Manual de diseño estructural obras de drenaje (Factor encamado Bₓ, Marston, ejemplo DN 1520mm)</li>
+            <li><strong>M-PRY-CAR-4-01-002-16 SICT/IMT</strong> — Manual de diseño hidráulico obras menores (periodos retorno, Manning)</li>
             <li><strong>ATHA 2013 (UNE-127916)</strong> — Fichas de cálculo mecánico tubos hormigón</li>
           </ul>
         </div>
@@ -1769,11 +1847,11 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     </div><!-- /grid -->
 
     <div style="margin-top:18px;text-align:center">
-      <button class="btn btn-primary" onclick="calcM9()" style="padding:12px 36px;font-size:.95rem">⚙️ Calcular Grado NMX-C-402</button>
+      <button class="btn btn-primary" onclick="calcM9()" style="padding:12px 36px;font-size:.95rem">⚙️ Calcular Grado NMX-C-402 + Clase SCT</button>
     </div>
 
     <div style="margin-top:10px;text-align:center;font-size:.72rem;color:#888">
-      Cálculos: Marston 1930 · ATHA 2013 · NMX-C-402-ONNCCE-2020 · AASHTO LRFD 7a ed. · FAA AC 150/5370 · AREMA Cooper E-80
+      Cálculos: Marston 1930 · ATHA 2013 · NMX-C-402-ONNCCE-2020 · N·CMT·3·02/04 SICT/IMT · M-PRY-CAR-4-01-003-16 · AASHTO LRFD 7a ed. · FAA AC 150/5370 · AREMA Cooper E-80
     </div>
   </div>
 </div>
@@ -4109,8 +4187,8 @@ function mn_ajustarSerie() {
 
 
 // =====================================================================
-// calcM9 — Módulo 9: Diseño Estructural Tubería de Concreto NMX-C-402
-// Método de Marston · Factor de apoyo · Cargas vivas normativas
+// calcM9 — Módulo 9: Diseño Estructural Tubería de Concreto NMX-C-402 / SICT N·CMT·3·02/04
+// Método de Marston · Factor de encamado Bf (Clase A/B/C/D SCT) · Cargas vivas normativas
 // =====================================================================
 
 // m9ParedB — Espesor Pared B según DN (NMX-C-402-ONNCCE-2020 Tablas 1–4)
@@ -4127,6 +4205,29 @@ function m9ParedB() {
   if(M9_PARED_B[dn]) eEl.value = M9_PARED_B[dn];
 }
 
+// m9SyncClaseSCT — actualiza el badge de Clase SCT al cambiar Bf
+function m9SyncClaseSCT() {
+  var sel = document.getElementById('m9-fa');
+  var badge = document.getElementById('m9-clase-sct-badge');
+  if(!sel || !badge) return;
+  var opt = sel.options[sel.selectedIndex];
+  var bf  = parseFloat(sel.value) || 2.3;
+  var claseData = {
+    '1.1':  { label: 'Clase D',     color: '#fee2e2', text: '#b91c1c' },
+    '1.5':  { label: 'Clase C',     color: '#fef3c7', text: '#92400e' },
+    '1.9':  { label: 'Clase B',     color: '#fef9c3', text: '#713f12' },
+    '2.3':  { label: 'Clase A',     color: '#e0f2fe', text: '#0369a1' },
+    '3.0':  { label: 'Clase A',     color: '#dbeafe', text: '#1d4ed8' },
+    '4.0':  { label: 'Clase A+',    color: '#ede9fe', text: '#5b21b6' },
+    '4.8':  { label: 'Clase A★',   color: '#d1fae5', text: '#065f46' }
+  };
+  var key = bf.toString();
+  var cd  = claseData[key] || { label: 'Clase A', color: '#e0f2fe', text: '#0369a1' };
+  badge.textContent = cd.label + ' (SCT) | Bₓ=' + bf;
+  badge.style.background = cd.color;
+  badge.style.color      = cd.text;
+}
+
 function m9SyncTrafico() {
   var sel = document.getElementById('m9-trafico');
   var inp = document.getElementById('m9-q-traf');
@@ -4141,11 +4242,17 @@ function calcM9() {
   var hr     = parseFloat(document.getElementById('m9-hr').value)   || 2.5;
   var tipo   = document.getElementById('m9-tipo').value  || 'zanja';
   var b      = parseFloat(document.getElementById('m9-b').value)    || 1.2;
-  var Fa     = parseFloat(document.getElementById('m9-fa').value)   || 2.3;
+  var Fa     = parseFloat(document.getElementById('m9-fa').value)   || 2.3;  // = Bf (Factor encamado SCT)
   var gamma  = parseFloat(document.getElementById('m9-gamma').value)|| 19.2;
-  var lamu   = parseFloat(document.getElementById('m9-lamu').value) || 0.15;
+  var lamu   = parseFloat(document.getElementById('m9-lamu').value) || 0.165; // SCT default
   var qTraf  = parseFloat(document.getElementById('m9-q-traf').value)|| 0;
   var gamSeg = parseFloat(document.getElementById('m9-gamseg').value)|| 1.5;
+
+  // Clase encamado SCT según Bf
+  var BF_CLASE_MAP = {
+    1.1: 'D', 1.5: 'C', 1.9: 'B', 2.3: 'A', 3.0: 'A', 4.0: 'A+', 4.8: 'A★'
+  };
+  var claseSCT_enc = BF_CLASE_MAP[Fa] || 'A';
 
   if(isNaN(hr)||hr<=0||isNaN(DN)||DN<=0) return;
 
@@ -4189,7 +4296,7 @@ function calcM9() {
   //   q_calc = q_TOTAL · γ_seg / (Fa · D)   [kN/m² por m de diámetro ≡ N/m/mm]
   var qCalc = qTotal * gamSeg / (Fa * D);
   proc.push('');
-  proc.push('q_calc = q_TOTAL · γ_seg / (Fa · D)');
+  proc.push('q_calc = q_TOTAL · γ_seg / (Bₓ · D)  [Bₓ=' + Fa + ' Clase ' + claseSCT_enc + ' SCT]');
   proc.push('       = ' + qTotal.toFixed(2) + ' × ' + gamSeg + ' / (' + Fa + ' × ' + D.toFixed(3) + ')');
   proc.push('       = <b>' + qCalc.toFixed(2) + ' N/m/mm</b>  ← M_grieta mínima requerida');
 
@@ -4220,22 +4327,30 @@ function calcM9() {
   setEl('m9-res-qtotal', qTotal.toFixed(2) + ' kN/m');
   setEl('m9-res-qcalc',  qCalc.toFixed(2) + ' N/m/mm');
 
+  // Equivalencia Clase SCT ↔ Grado NMX
+  var GRADO_CLASE_SCT = { '1':'Clase 1 SCT', '2':'Clase 2 SCT', '3':'Clase 3 SCT', '4':'Clase 4 SCT' };
+
   var sem = document.getElementById('m9-semaforo');
   var gradoEl = document.getElementById('m9-res-grado');
 
   if(gradoSel) {
     setEl('m9-res-grado', 'Grado ' + gradoSel.g);
     if(gradoEl) { gradoEl.style.color = 'var(--gold)'; }
+    // Clase SCT del resultado y encamado seleccionado
+    setEl('m9-res-clase-sct', GRADO_CLASE_SCT[gradoSel.g] || '—');
+    setEl('m9-res-encamado',  'B\u2093=' + Fa + ' | Clase ' + claseSCT_enc + ' SCT');
     var semColor = gradoSel.g === '1' ? '#dcfce7' : gradoSel.g === '2' ? '#fef9c3' : gradoSel.g === '3' ? '#fed7aa' : '#fee2e2';
-    var semTxt   = gradoSel.g === '1' ? '✅ Grado 1 — f\'c 27.6 MPa · Clase I/II ASTM' :
-                   gradoSel.g === '2' ? '⚠️ Grado 2 — f\'c 27.6 MPa · Clase III ASTM' :
-                   gradoSel.g === '3' ? '🔶 Grado 3 — f\'c 34.5 MPa · Clase IV ASTM — carga alta' :
-                                        '🔴 Grado 4 — f\'c 41.4 MPa · Clase V ASTM — carga muy alta';
+    var semTxt   = gradoSel.g === '1' ? '✅ Grado 1 NMX ≡ Clase 1 SCT — f\'c 27.6 MPa · Clase I/II ASTM' :
+                   gradoSel.g === '2' ? '⚠️ Grado 2 NMX ≡ Clase 2 SCT — f\'c 27.6 MPa · Clase III ASTM' :
+                   gradoSel.g === '3' ? '🔶 Grado 3 NMX ≡ Clase 3 SCT — f\'c 34.5 MPa · Clase IV ASTM' :
+                                        '🔴 Grado 4 NMX ≡ Clase 4 SCT — f\'c 41.4 MPa · Clase V ASTM';
     if(sem) { sem.style.background = semColor; sem.style.color = '#1e293b'; sem.innerHTML = semTxt; }
   } else {
     setEl('m9-res-grado', 'Diseño\nEspecial');
     if(gradoEl) { gradoEl.style.color = '#ef4444'; }
-    if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = '❌ Carga excede Grado 4 — Se requiere DISEÑO ESPECIAL (consultar fabricante NMX-C-401)'; }
+    setEl('m9-res-clase-sct', '> Clase 4 SCT');
+    setEl('m9-res-encamado',  'B\u2093=' + Fa + ' | Clase ' + claseSCT_enc);
+    if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = '❌ Carga excede Grado 4 / Clase 4 SCT — Se requiere DISEÑO ESPECIAL (NMX-C-401 Sec. 7)'; }
   }
 
   // Proceso
