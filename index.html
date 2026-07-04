@@ -1277,12 +1277,12 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <div>
                 <label style="font-size:.78rem;font-weight:700;color:#92400e">Tipo de apoyo (Bedding)</label>
                 <select id="cn-apoyo" onchange="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.82rem">
-                  <option value="4">Hormigón a riñones — Fa=4 (zanja)</option>
-                  <option value="2.8">Hormigón a 120° — Fa=2.8 (zanja)</option>
-                  <option value="2.3">Hormigón a 90° — Fa=2.3 (zanja)</option>
-                  <option value="2.1">Granular a riñones — Fa=2.1 (zanja)</option>
-                  <option value="1.7">Granular a 90° — Fa=1.7 (zanja)</option>
-                  <option value="1.1">Directo sobre terreno — Fa=1.1</option>
+                  <option value="4">Hormigón a riñones — Bₓ=4.0 / Clase A SCT (zanja)</option>
+                  <option value="2.8">Hormigón a 120° — Bₓ=2.8 / Clase A SCT (zanja)</option>
+                  <option value="2.3">Hormigón a 90° — Bₓ=2.3 / Clase A SCT (zanja)</option>
+                  <option value="2.1">Granular a riñones — Bₓ=2.1 / Clase B SCT (zanja)</option>
+                  <option value="1.7">Granular a 90° — Bₓ=1.7 / Clase C SCT (zanja)</option>
+                  <option value="1.1">Directo sobre terreno — Bₓ=1.1 / Clase D SCT</option>
                 </select>
               </div>
             </div>
@@ -1845,6 +1845,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
       </div><!-- /col derecha -->
     </div><!-- /grid -->
+
+    <!-- Advertencia automática DN<600mm + carga vehicular -->
+    <div id="m9-warn-dn" style="display:none;margin-top:12px;background:#fef9c3;border:1.5px solid #eab308;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#713f12;line-height:1.5"></div>
 
     <div style="margin-top:18px;text-align:center">
       <button class="btn btn-primary" onclick="calcM9()" style="padding:12px 36px;font-size:.95rem">⚙️ Calcular Grado NMX-C-402 + Clase SCT</button>
@@ -4259,14 +4262,22 @@ function calcM9() {
   var D = DN / 1000;   // m (diámetro nominal en metros)
   var proc = [];
 
+  // ── B_c: Diámetro exterior del tubo (Pared B NMX-C-402) ──────────
+  //   B_c = DN + 2 × espesor_pared_B   [metros]
+  //   Usado en fórmula Marston terraplén: W_e = γ · hr · B_c
+  //   Ref: N·CMT·3·02/04 SICT/IMT; Marston 1930
+  var M9_PARED_B_MAP = {300:51,380:57,450:63,610:76,760:89,910:101,1070:114,1220:127,1370:140,1520:152,1830:178,2130:203,2440:229,2750:228,3050:279};
+  var e_pared = M9_PARED_B_MAP[DN] || Math.round(DN * 0.095);  // fallback ~9.5% DN
+  var Bc = (DN + 2 * e_pared) / 1000;   // diámetro exterior en metros
+
   // ── 1. Coeficiente de Marston Cz (zanja) ──────────────────────────
   //   C_z = [1 - e^(-2λμ'·hr/b)] / (2λμ'·hr/b)
   var expo   = -2 * lamu * hr / b;
   var Cz     = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
 
   // ── 2. Carga debida al relleno según tipo ─────────────────────────
-  var qr_zanja     = Cz * gamma * hr * b;          // kN/m — Marston zanja
-  var qr_terraplen = gamma * hr * D;               // kN/m — Marston terraplén simple
+  var qr_zanja     = Cz * gamma * hr * b;    // kN/m — Marston zanja (usa ancho b)
+  var qr_terraplen = gamma * hr * Bc;         // kN/m — Marston terraplén (usa B_c exterior, no D nominal)
   var qr;
   if(tipo === 'zanja') {
     qr = qr_zanja;
@@ -4275,14 +4286,16 @@ function calcM9() {
     proc.push('  q_relleno = C_z · γ · hr · b = ' + Cz.toFixed(3) + ' × ' + gamma + ' × ' + hr + ' × ' + b.toFixed(2) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
   } else if(tipo === 'terraplen') {
     qr = qr_terraplen;
-    proc.push('Instalación en TERRAPLÉN:');
-    proc.push('  q_relleno = γ · hr · D = ' + gamma + ' × ' + hr + ' × ' + D.toFixed(3) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
+    proc.push('Instalación en TERRAPLÉN (Marston, B_c = diám. exterior):');
+    proc.push('  B_c = DN + 2×e = ' + DN + ' + 2×' + e_pared + ' = ' + (DN+2*e_pared) + ' mm = ' + Bc.toFixed(3) + ' m');
+    proc.push('  q_relleno = γ · hr · B_c = ' + gamma + ' × ' + hr + ' × ' + Bc.toFixed(3) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
   } else {
     // Zanja terraplenada: tomar el menor entre zanja y terraplén (ATHA conservador)
     qr = Math.min(qr_zanja, qr_terraplen);
-    proc.push('Instalación en ZANJA TERRAPLENADA:');
+    proc.push('Instalación en ZANJA TERRAPLENADA (B_c = diám. exterior):');
+    proc.push('  B_c = ' + Bc.toFixed(3) + ' m  |  e_pared = ' + e_pared + ' mm');
     proc.push('  q_zanja     = ' + qr_zanja.toFixed(2) + ' kN/m');
-    proc.push('  q_terraplén = ' + qr_terraplen.toFixed(2) + ' kN/m');
+    proc.push('  q_terraplén = ' + qr_terraplen.toFixed(2) + ' kN/m  (γ·hr·B_c)');
     proc.push('  q_relleno = min(zanja, terraplén) = <b>' + qr.toFixed(2) + ' kN/m</b> (criterio conservador ATHA)');
   }
 
@@ -4350,7 +4363,25 @@ function calcM9() {
     if(gradoEl) { gradoEl.style.color = '#ef4444'; }
     setEl('m9-res-clase-sct', '> Clase 4 SCT');
     setEl('m9-res-encamado',  'B\u2093=' + Fa + ' | Clase ' + claseSCT_enc);
-    if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = '❌ Carga excede Grado 4 / Clase 4 SCT — Se requiere DISEÑO ESPECIAL (NMX-C-401 Sec. 7)'; }
+    var espMsg = '❌ q_calc=' + qCalc.toFixed(1) + ' N/m/mm excede Grado 4 (140) — DISEÑO ESPECIAL requerido (NMX-C-401 Sec. 7). ';
+    if(DN < 600 && qTraf >= 48) {
+      espMsg += '⚠️ Para DN < 600mm con cargas vehiculares se recomienda tubería HDPE o PVC (PT Corr® / Novafort) — ver Módulo 8 Instalación.';
+    } else if(DN >= 600) {
+      espMsg += '→ Considere: aumentar B\u2093 (mejor encamado) o reducir carga de tráfico.';
+    }
+    if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = espMsg; }
+  }
+
+  // ── Advertencia automática DN < 600mm + carga vehicular ──────────
+  var warnEl = document.getElementById('m9-warn-dn');
+  if(warnEl) {
+    if(DN < 600 && qTraf >= 48) {
+      warnEl.style.display = 'block';
+      warnEl.innerHTML = '⚠️ <strong>Nota técnica:</strong> Tubería de concreto DN ' + DN + 'mm con carga vehicular H-10/H-20/H-25 generalmente requiere Diseño Especial o Grado 4 con encamado óptimo. ' +
+        'Para diámetros menores a 600mm bajo carreteras se recomienda evaluar <strong>tubería HDPE corrugada (PT Corr® / NMX-E-241)</strong> que opera bajo norma IOWA / Módulo 8.';
+    } else {
+      warnEl.style.display = 'none';
+    }
   }
 
   // Proceso
