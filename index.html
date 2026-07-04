@@ -24,9 +24,8 @@ body{font-family:Arial,sans-serif;background:var(--bg);color:var(--ink);min-heig
 .badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 11px;font-size:.72rem;font-weight:600}
 
 /* TABS */
-.tabs-nav{display:flex;gap:0;background:var(--teal-d);overflow-x:auto;scrollbar-width:none}
-.tabs-nav::-webkit-scrollbar{display:none}
-.tab-btn{flex:0 0 auto;padding:10px 13px;color:rgba(255,255,255,.7);background:transparent;border:none;cursor:pointer;font-size:.78rem;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s}
+.tabs-nav{display:flex;flex-wrap:wrap;gap:0;background:var(--teal-d);overflow:visible}
+.tab-btn{flex:0 0 auto;padding:9px 14px;color:rgba(255,255,255,.7);background:transparent;border:none;cursor:pointer;font-size:.8rem;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s}
 .tab-btn:hover{color:#fff;background:rgba(255,255,255,.07)}
 .tab-btn.active{color:#fff;border-bottom-color:var(--gold);background:rgba(255,255,255,.1)}
 
@@ -199,7 +198,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   .section{padding:16px}
   .card{padding:16px}
   .hero-text h1{font-size:1.2rem}
-  .tab-btn{padding:8px 10px;font-size:.72rem}
+  .tab-btn{padding:7px 10px;font-size:.72rem}
 }
 </style>
 </head>
@@ -221,8 +220,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 </div>
 
 <!-- TABS -->
-<div style="position:relative">
-  <div class="tabs-nav" id="tabsNav" onscroll="var i=document.getElementById('nav-scroll-hint');if(i)i.style.opacity=this.scrollLeft>20?'0':'1'">
+<div>
+  <div class="tabs-nav" id="tabsNav">
   <button class="tab-btn active" onclick="showTab('caudal')">💧 1 · Caudal</button>
   <button class="tab-btn" onclick="showTab('canal')">📐 2 · Canal</button>
   <button class="tab-btn" onclick="showTab('manning')">🔧 3 · Manning</button>
@@ -234,7 +233,6 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   <button class="tab-btn" onclick="showTab('disenio-concreto')">🧱 9 · Diseño Concreto</button>
   <button class="tab-btn" onclick="showTab('reporte')">📋 Reporte</button>
   </div>
-  <div id="nav-scroll-hint" style="position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to left,var(--teal-d) 40%,transparent);pointer-events:none;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:1rem;color:rgba(255,255,255,.9);transition:opacity .3s;z-index:10">›</div>
 </div><!-- /tabs-nav-wrapper -->
 
 <!-- ============================================================
