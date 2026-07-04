@@ -1109,11 +1109,14 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div style="margin-bottom:10px">
             <label>Carga viva (tipo de tráfico)</label>
             <select id="inst-carga" onchange="inst_calcular()">
-              <option value="0">Sin carga viva (peatonal)</option>
-              <option value="500" selected>Tráfico ligero (autos)</option>
-              <option value="1200">Tráfico pesado (camiones)</option>
-              <option value="2000">Industrial / carga máxima</option>
+              <option value="0">🚶 Sin carga viva — peatonal / jardín (0 kg/m)</option>
+              <option value="490" selected>🚗 H-10 — vialidad ligera / autos (490 kg/m · AASHTO H-10)</option>
+              <option value="980">🚛 H-20 — carretera estándar / camiones (980 kg/m · AASHTO H-20)</option>
+              <option value="1225">🛣️ H-25 — carretera pesada / tráiler (1 225 kg/m · AASHTO H-25 · PT Corr® ref.)</option>
+              <option value="5100">✈️ Aeropuerto FAA — avión comercial DC-9/B737 (5 100 kg/m · FAA AC 150/900 kN)</option>
+              <option value="8200">🚂 Ferroviario — Cooper E-80 / vía principal (8 200 kg/m · AREMA/AASHTO)</option>
             </select>
+            <div style="font-size:.7rem;color:#64748b;margin-top:3px">H-10=98 kN/eje · H-20=178 kN/eje · H-25=222 kN/eje · DC-9=900 kN · E-80=356 kN/eje</div>
           </div>
           <div>
             <label>Tipo de drenaje</label>
@@ -1196,7 +1199,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <div style="color:#64748b;font-size:.72rem;font-weight:600;margin-bottom:8px">Parámetros de cálculo:</div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Diámetro D</span><span id="inst-p-diam" style="font-family:monospace;font-weight:700;color:var(--teal-d)">300 mm</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga muerta Wc</span><span id="inst-p-wc" style="font-family:monospace;font-weight:700;color:var(--teal-d)">4,500 kg/m</span></div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga viva Wl</span><span id="inst-p-wl" style="font-family:monospace;font-weight:700;color:var(--teal-d)">500 kg/m</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga viva Wl</span><span id="inst-p-wl" style="font-family:monospace;font-weight:700;color:var(--teal-d)">490 kg/m</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Rigidez PS</span><span id="inst-p-ps" style="font-family:monospace;font-weight:700;color:var(--teal-d)">34 kPa</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Módulo suelo E'</span><span id="inst-p-e" style="font-family:monospace;font-weight:700;color:var(--teal-d)">140 kPa</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Factor retraso DL</span><span style="font-family:monospace;font-weight:700;color:var(--teal-d)">1.5 (constante)</span></div>
@@ -1328,8 +1331,22 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               </div>
               <div>
                 <label style="font-size:.78rem;font-weight:700;color:#92400e">Sobrecarga tráfico q (kN/m)</label>
-                <input type="number" id="cn-trafico" value="0" min="0" max="300" step="5" oninput="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.85rem">
-                <div style="font-size:.7rem;color:#78350f;margin-top:2px">Eje 7t=35 kN/m | 13t=65 kN/m</div>
+                <!-- Botones preset de carga viva para concreto NMX-C-402 -->
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;margin-bottom:4px">
+                  <button type="button" onclick="document.getElementById('cn-trafico').value=0;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚶 0</button>
+                  <button type="button" onclick="document.getElementById('cn-trafico').value=48;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚗 H-10<br><span style="font-size:.6rem">48 kN/m</span></button>
+                  <button type="button" onclick="document.getElementById('cn-trafico').value=96;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚛 H-20<br><span style="font-size:.6rem">96 kN/m</span></button>
+                  <button type="button" onclick="document.getElementById('cn-trafico').value=120;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🛣️ H-25<br><span style="font-size:.6rem">120 kN/m</span></button>
+                  <button type="button" onclick="document.getElementById('cn-trafico').value=50;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">✈️ DC-9<br><span style="font-size:.6rem">50 kN/m</span></button>
+                  <button type="button" onclick="document.getElementById('cn-trafico').value=80;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚂 E-80<br><span style="font-size:.6rem">80 kN/m</span></button>
+                </div>
+                <input type="number" id="cn-trafico" value="0" min="0" max="500" step="5" oninput="cn_calcular()" style="width:100%;margin-top:0;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.85rem">
+                <div style="font-size:.7rem;color:#78350f;margin-top:2px;line-height:1.5">
+                  <b>Ref. AASHTO/FAA/AREMA (kN/m distribuida sobre tubo):</b><br>
+                  H-10: ~48 kN/m · H-20: ~96 kN/m · H-25: ~120 kN/m<br>
+                  Aeropuerto FAA/DC-9 (900 kN): ~50 kN/m · Boeing 747: ~100 kN/m<br>
+                  Ferroviario Cooper E-80: ~80 kN/m · Eje 7t=35 kN/m · Eje 13t=65 kN/m
+                </div>
               </div>
             </div>
 
@@ -3284,7 +3301,7 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     tubo: 'pead',
     diametro: 300,
     profundidad: 2.5,
-    cargaViva: 500,
+    cargaViva: 490,
     drenaje: 'sanitario',
     E: 140,
     clase: 'I'
