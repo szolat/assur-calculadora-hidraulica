@@ -4239,6 +4239,38 @@ function m9SyncTrafico() {
   calcM9();
 }
 
+// =====================================================================
+// ASSUR M9 Event Log — Tracker de Diseño Especial
+// Envía evento fire-and-forget a Google Apps Script Web App
+// Cambiar la URL cuando se despliegue el Apps Script
+// =====================================================================
+var ASSUR_M9_LOG_URL = 'PENDIENTE_URL_APPS_SCRIPT'; // <-- reemplazar tras deploy
+
+function m9LogDiseno(DN, carga_tipo, qTraf, qCalc, Bf, tipo, hr) {
+  if (!ASSUR_M9_LOG_URL || ASSUR_M9_LOG_URL === 'PENDIENTE_URL_APPS_SCRIPT') return;
+  // Generar session_id simple (aleatorio por sesión de carga de página)
+  if (!window._assurSessId) {
+    window._assurSessId = 'sess_' + Math.random().toString(36).substr(2, 9);
+  }
+  var payload = {
+    ts:         new Date().toISOString(),
+    dn:         DN,
+    carga_tipo: carga_tipo,
+    q_traf:     qTraf,
+    qCalc:      parseFloat(qCalc.toFixed(2)),
+    bf:         Bf,
+    tipo:       tipo,
+    hr:         hr,
+    session_id: window._assurSessId
+  };
+  fetch(ASSUR_M9_LOG_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    mode: 'no-cors'   // Apps Script no envía CORS headers, no-cors ignora la respuesta
+  }).catch(function() {}); // silencioso — nunca bloquea la UI
+}
+
 function calcM9() {
   var DN     = parseFloat(document.getElementById('m9-dn').value)   || 610;
   var e      = parseFloat(document.getElementById('m9-espesor').value) || 75;
@@ -4370,6 +4402,11 @@ function calcM9() {
       espMsg += '→ Considere: aumentar B\u2093 (mejor encamado) o reducir carga de tráfico.';
     }
     if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = espMsg; }
+    // ── Tracker: registrar evento Diseño Especial ──────────────────
+    var cargaTipoLabel = qTraf <= 0 ? 'sin_trafico' :
+                         qTraf <= 20 ? 'H10' :
+                         qTraf <= 35 ? 'H20' : 'H25+';
+    m9LogDiseno(DN, cargaTipoLabel, qTraf, qCalc, Fa, tipo, hr);
   }
 
   // ── Advertencia automática DN < 600mm + carga vehicular ──────────
