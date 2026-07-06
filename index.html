@@ -1638,47 +1638,83 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <input type="number" id="m9-q-traf" value="96" min="0" max="500" step="1" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
             <div style="font-size:.7rem;color:#64748b;margin-top:2px">Carga distribuida lineal sobre la tubería (kN/m). Presets AASHTO/FAA/AREMA arriba.</div>
             <div style="font-size:.68rem;color:#78716c;margin-top:4px;padding:4px 8px;background:#faf5ff;border-left:2px solid #8b5cf6;border-radius:0 4px 4px 0">
-              ℹ️ <strong>Modo conservador (NMX)</strong>: Carga fija sin atenuación por profundidad — per NMX-C-402 Sec.7. Activa el <em>Modo LRFD</em> abajo para rellenos &gt;2.5 m.
+              <strong>Modo conservador NMX-C-402</strong>: carga viva fija sin atenuación. Para H &gt; 2.5 m activa el Modo LRFD abajo para obtener el grado real.
             </div>
           </div>
 
-          <!-- ── MODO LRFD AASHTO 12.10.4.3 ─────────────────────────────────── -->
-          <div id="m9-lrfd-wrap" style="margin-bottom:10px;background:#f0f9ff;border:1.5px solid #0ea5e9;border-radius:8px;padding:10px">
-            <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="m9ToggleLRFD()">
-              <input type="checkbox" id="m9-lrfd-toggle" style="width:15px;height:15px;accent-color:#01696f;cursor:pointer" onchange="calcM9()">
-              <span style="font-size:.83rem;font-weight:700;color:#0369a1">⚡ Modo LRFD (AASHTO 12.10.4.3) — Atenuación carga viva por profundidad</span>
-            </div>
-            <div id="m9-lrfd-hint" style="font-size:.72rem;color:#0369a1;margin-top:5px;margin-left:23px">
-              Atenúa la carga vehicular según la profundidad de relleno H. Recomendado para H &gt; 2.5 m con cargas H-10/H-20/H-25. No aplica a FAA/AREMA.
-            </div>
-            <!-- Panel resultado LRFD (visible solo cuando toggle activo) -->
-            <div id="m9-lrfd-result" style="display:none;margin-top:8px;border-top:1px dashed #bae6fd;padding-top:8px">
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:.75rem">
-                <div style="background:rgba(1,105,111,.08);border-radius:6px;padding:6px;text-align:center">
-                  <div style="font-weight:800;font-size:.95rem;color:#01696f;font-family:monospace" id="m9-res-ql">—</div>
-                  <div style="color:#64748b;margin-top:1px">q<sub>L</sub> atenuada (kN/m)</div>
-                </div>
-                <div style="background:rgba(1,105,111,.08);border-radius:6px;padding:6px;text-align:center">
-                  <div style="font-weight:800;font-size:.95rem;color:#01696f;font-family:monospace" id="m9-res-qcalc-lrfd">—</div>
-                  <div style="color:#64748b;margin-top:1px">q<sub>calc</sub> LRFD (N/m/mm)</div>
-                </div>
-                <div style="background:rgba(1,105,111,.12);border-radius:6px;padding:6px;text-align:center;border:1.5px solid #01696f">
-                  <div style="font-weight:900;font-size:1rem;color:#01696f;font-family:monospace" id="m9-res-grado-lrfd">—</div>
-                  <div style="color:#0369a1;margin-top:1px;font-weight:600">Grado LRFD</div>
+          <!-- ══ MODO LRFD AASHTO 12.10.4.3 ═══════════════════════════════════ -->
+          <div id="m9-lrfd-wrap" style="margin-bottom:10px;border-radius:8px;overflow:hidden;border:1.5px solid #0ea5e9">
+
+            <!-- Cabecera toggle -->
+            <div style="background:#e0f2fe;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="m9ToggleLRFD()">
+              <input type="checkbox" id="m9-lrfd-toggle" style="width:16px;height:16px;accent-color:#01696f;cursor:pointer;flex-shrink:0" onchange="calcM9()">
+              <div style="flex:1">
+                <div style="font-size:.84rem;font-weight:700;color:#0c4a6e">Modo LRFD — Atenuación AASHTO 12.10.4.3</div>
+                <div id="m9-lrfd-hint" style="font-size:.7rem;color:#0369a1;margin-top:1px">
+                  Atenúa la carga vehicular con la profundidad H. Recomendado para H &gt; 2.5 m con H-10/H-20/H-25.
                 </div>
               </div>
-              <div id="m9-lrfd-im-info" style="font-size:.7rem;color:#0369a1;margin-top:5px;text-align:center"></div>
+              <!-- Badge auto-sugerencia cuando H >= 5 m -->
+              <div id="m9-lrfd-badge-auto" style="display:none;font-size:.65rem;font-weight:700;background:#0369a1;color:#fff;padding:2px 8px;border-radius:10px;white-space:nowrap">Recomendado H&gt;5m</div>
+            </div>
+
+            <!-- Panel resultado LRFD expandible -->
+            <div id="m9-lrfd-result" style="display:none;background:#f0f9ff;padding:10px 12px;border-top:1px solid #bae6fd">
+
+              <!-- Fila comparativa: conservador vs LRFD -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                <!-- Columna conservadora -->
+                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px">
+                  <div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Conservador NMX</div>
+                  <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:2px">
+                    <span style="color:#64748b">q tráfico:</span>
+                    <span style="font-weight:700;font-family:monospace" id="m9-lrfd-qtraf-base">—</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:2px">
+                    <span style="color:#64748b">q calc:</span>
+                    <span style="font-weight:700;font-family:monospace" id="m9-lrfd-qcalc-base">—</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-top:4px;padding-top:4px;border-top:1px solid #e2e8f0">
+                    <span style="color:#64748b;font-weight:600">Grado:</span>
+                    <span style="font-weight:800;font-family:monospace" id="m9-lrfd-grado-base">—</span>
+                  </div>
+                </div>
+                <!-- Columna LRFD -->
+                <div style="background:#ecfdf5;border:1.5px solid #01696f;border-radius:6px;padding:8px">
+                  <div style="font-size:.68rem;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">LRFD AASHTO</div>
+                  <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:2px">
+                    <span style="color:#065f46">q_L atenuada:</span>
+                    <span style="font-weight:700;font-family:monospace;color:#01696f" id="m9-res-ql">—</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:2px">
+                    <span style="color:#065f46">q calc LRFD:</span>
+                    <span style="font-weight:700;font-family:monospace;color:#01696f" id="m9-res-qcalc-lrfd">—</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-top:4px;padding-top:4px;border-top:1px solid #a7f3d0">
+                    <span style="color:#065f46;font-weight:600">Grado LRFD:</span>
+                    <span style="font-weight:900;font-family:monospace;color:#01696f" id="m9-res-grado-lrfd">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Parámetros técnicos AASHTO -->
+              <div id="m9-lrfd-im-info" style="font-size:.7rem;color:#0369a1;background:#fff;border-radius:4px;padding:5px 8px;border:1px solid #bae6fd;line-height:1.6"></div>
+
+              <!-- Barra de ahorro visual -->
+              <div id="m9-lrfd-saving-wrap" style="margin-top:8px;display:none">
+                <div style="font-size:.7rem;font-weight:700;color:#065f46;margin-bottom:3px" id="m9-lrfd-saving-label"></div>
+                <div style="background:#d1fae5;border-radius:4px;height:8px;overflow:hidden">
+                  <div id="m9-lrfd-saving-bar" style="background:#01696f;height:100%;transition:width .4s ease;width:0%"></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- ── ASISTENTE INTUITIVO — Sugerencia de encamado óptimo ─────────── -->
-          <div id="m9-asistente-wrap" style="margin-bottom:2px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px;display:none">
-            <div style="font-size:.8rem;font-weight:700;color:#166534;margin-bottom:6px">💡 Asistente de Optimización — Encamado sugerido para Grado 1</div>
+          <!-- ══ ASISTENTE DE OPTIMIZACIÓN ══════════════════════════════════════ -->
+          <div id="m9-asistente-wrap" style="margin-bottom:4px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px;display:none">
+            <div style="font-size:.8rem;font-weight:700;color:#166534;margin-bottom:5px">Asistente de Optimizacion — encamado sugerido</div>
             <div id="m9-asistente-msg" style="font-size:.78rem;color:#166534;line-height:1.5"></div>
             <div id="m9-asistente-btns" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px"></div>
-          </div>
-
-
           </div>
 
           <div>
@@ -4588,21 +4624,65 @@ function m9LogDiseno(DN, carga_tipo, qTraf, qCalc, Bf, tipo, hr) {
     calcM9();
   }
 
-// ── HELPER LRFD AASHTO 12.10.4.3 ────────────────────────────────────────────
+// ══ LRFD AASHTO 12.10.4.3 — Atenuación carga viva por profundidad ═══════════
+//
+//  Fundamento: AASHTO LRFD Bridge Design Spec. 9a Ed.
+//    Sec. 3.6.2.2  — Dynamic Load Allowance (IM)
+//    Sec. 12.10.4.3 — Live Load Distribution
+//
+//  Fórmulas:
+//    H_ft  = H_m × 3.28084
+//    IM(%) = max(0,  33 × (1 – H_ft/8))          [se anula a H ≥ 2.44 m]
+//    D_o   = (DN + 2×e_pared) / 1000              [diámetro exterior, m]
+//    E_w   = 0.06×H + D_o                         [ancho distribución, m]
+//    E_l   = 0.61 + H×tan(40°)                    [largo distribución, m]
+//    p_L   = (1+IM/100)×P_axle / (E_w×E_l)        [presión, kN/m²]
+//    q_L   = p_L × D_o                            [carga lineal, kN/m]
+//
+//  P_axle de diseño (AASHTO HL-93):
+//    H-10 = 71.2 kN  |  H-20 = 142.3 kN  |  H-25 = 178.0 kN
+//
 function calcLRFD_qL(H_m, DN_mm, ePared_mm, Paxle_kN) {
-  var H_ft = H_m * 3.28084;
-  var IM   = H_ft >= 8.0 ? 0.0 : 33.0 * (1.0 - H_ft / 8.0);
-  var D_o  = (DN_mm + 2.0 * ePared_mm) / 1000.0;
-  var E_w  = 0.06 * H_m + D_o;
-  var E_l  = 0.61 + H_m * Math.tan(40.0 * Math.PI / 180.0);
-  var p_L  = (1.0 + IM / 100.0) * Paxle_kN / (E_w * E_l);
-  var q_L  = p_L * D_o;
-  return { qL: q_L, IM: IM, Ew: E_w, El: E_l, pL: p_L, Do: D_o };
+  var H_ft  = H_m * 3.28084;
+  var IM    = H_ft >= 8.0 ? 0.0 : Math.max(0, 33.0 * (1.0 - H_ft / 8.0));
+  var D_o   = (DN_mm + 2.0 * ePared_mm) / 1000.0;
+  var E_w   = 0.06 * H_m + D_o;
+  var E_l   = 0.61 + H_m * Math.tan(40.0 * Math.PI / 180.0);
+  var p_L   = (1.0 + IM / 100.0) * Paxle_kN / (E_w * E_l);
+  var q_L   = p_L * D_o;
+  return { qL: q_L, IM: IM, Ew: E_w, El: E_l, pL: p_L, Do: D_o,
+           H_ft: H_ft, Paxle: Paxle_kN };
 }
 
 function m9ToggleLRFD() {
   var cb = document.getElementById('m9-lrfd-toggle');
   if(cb) { cb.checked = !cb.checked; calcM9(); }
+}
+
+// Actualiza el badge "Recomendado H>5m" y auto-sugiere activar LRFD
+function m9UpdateLRFDBadge(hr, qTraf, traficoTipo) {
+  var badge = document.getElementById('m9-lrfd-badge-auto');
+  var hint  = document.getElementById('m9-lrfd-hint');
+  var cb    = document.getElementById('m9-lrfd-toggle');
+  if(!badge) return;
+  var esHiway = (traficoTipo==='48'||traficoTipo==='96'||traficoTipo==='120');
+  var esProf  = hr >= 5.0;
+  // Mostrar badge recomendado si H>=5m con carga vehicular
+  badge.style.display = (esProf && esHiway && qTraf > 0) ? '' : 'none';
+  // Texto del hint dinámico
+  if(hint) {
+    if(esProf && esHiway) {
+      hint.innerHTML = '<strong>H=' + hr + ' m &ge; 5 m:</strong> la carga viva LRFD ser&aacute; ' +
+        'significativamente menor que el valor fijo. Activa para obtener el grado real.';
+      hint.style.color = '#065f46';
+    } else if(hr >= 2.5 && esHiway) {
+      hint.innerHTML = 'H=' + hr + ' m &gt; 2.5 m: se recomienda activar para comparar con modo conservador.';
+      hint.style.color = '#0369a1';
+    } else {
+      hint.innerHTML = 'Aten&uacute;a la carga vehicular seg&uacute;n la profundidad H. Para H &gt; 2.5 m con H-10/H-20/H-25.';
+      hint.style.color = '#0369a1';
+    }
+  }
 }
 
 // ── ASISTENTE: sugiere encamado mínimo para Grado 1 ─────────────────────────
@@ -4719,18 +4799,25 @@ function calcM9() {
   var gamSeg = parseFloat(document.getElementById('m9-gamseg').value)|| 1.5;
 
   // ── Modo LRFD AASHTO 12.10.4.3 — carga viva atenuada ─────────────
-  var useLRFD   = !!(document.getElementById('m9-lrfd-toggle') &&
-                     document.getElementById('m9-lrfd-toggle').checked);
-  var lrfdData  = null;
-  // Solo aplica a H-10/H-20/H-25 (no FAA ni AREMA)
+  var useLRFD     = !!(document.getElementById('m9-lrfd-toggle') &&
+                       document.getElementById('m9-lrfd-toggle').checked);
+  var lrfdData    = null;
+  var lrfdDataBase= null;  // siempre calculado para comparativa (si aplica)
+
+  // Tipo de tráfico desde el selector
   var traficoTipo = (document.getElementById('m9-trafico') || {}).value || '';
-  var lrfdApply = useLRFD && qTraf > 0 &&
-    (traficoTipo === '48' || traficoTipo === '96' || traficoTipo === '120' ||
-     traficoTipo === '' /* custom si el preset era H*/ );
-  // Map qTraf → P_axle para LRFD
+  // LRFD aplica solo a cargas vehiculares H-xx (no FAA ni AREMA ni 0)
+  var esVehicular = (traficoTipo === '48' || traficoTipo === '96' ||
+                     traficoTipo === '120' || traficoTipo === 'custom');
+  var lrfdApply   = qTraf > 0 && esVehicular;  // siempre calcular si aplica
+
+  // P_axle correspondiente (AASHTO HL-93)
   var PAXLE_MAP = { '48': 71.2, '96': 142.3, '120': 178.0 };
   var Paxle_lrfd = PAXLE_MAP[traficoTipo] ||
-    (qTraf <= 60 ? 71.2 : qTraf <= 108 ? 142.3 : 178.0);
+                   (qTraf <= 60 ? 71.2 : qTraf <= 108 ? 142.3 : 178.0);
+
+  // Actualizar badge/hint del toggle según H
+  m9UpdateLRFDBadge(hr, qTraf, traficoTipo);
 
   // Clase encamado SCT según Bf
   var BF_CLASE_MAP = {
@@ -4754,9 +4841,10 @@ function calcM9() {
   var e_pared = (!isNaN(_eField) && _eField > 0) ? Math.round(_eField) : (M9_PARED_B_MAP[DN] || Math.round(DN * 0.095));
   var Bc = (DN + 2 * e_pared) / 1000;   // diámetro exterior en metros
 
-  // ── Calcular q_L LRFD si toggle activo ───────────────────────────
-  if(lrfdApply || (useLRFD && qTraf > 0)) {
-    lrfdData = calcLRFD_qL(hr, DN, e_pared, Paxle_lrfd);
+  // ── Calcular q_L LRFD (siempre que aplique — para panel comparativo) ────
+  if(lrfdApply) {
+    lrfdDataBase = calcLRFD_qL(hr, DN, e_pared, Paxle_lrfd);
+    if(useLRFD) lrfdData = lrfdDataBase;  // usar en cálculo solo si toggle ON
   }
 
   // ── 1. Coeficiente de Marston Cz (zanja) ──────────────────────────
@@ -4815,7 +4903,8 @@ function calcM9() {
   } else {
     proc.push('q_tráfico = <b>' + qTraf.toFixed(1) + ' kN/m</b>  (modo conservador NMX)');
   }
-  proc.push('q_TOTAL   = q_relleno + q_tráfico = ' + qr.toFixed(2) + ' + ' + qTrafEfectiva.toFixed(1) + ' = <b>' + qTotal.toFixed(2) + ' kN/m</b>');
+  proc.push('q_TOTAL   = q_relleno + q_traf_efectiva = ' + qr.toFixed(2) + ' + ' + qTrafEfectiva.toFixed(1) + ' = <b>' + qTotal.toFixed(2) + ' kN/m</b>' +
+    (useLRFD && lrfdData ? ' <span style="color:#01696f;font-size:.85em">[LRFD atenuado]</span>' : ' <span style="color:#7c3aed;font-size:.85em">[conservador NMX]</span>'));
 
   // ── 4. Carga de cálculo (resistencia mínima requerida) ────────────
   //   q_calc = q_TOTAL · γ_seg / (Fa · D)   [kN/m² por m de diámetro ≡ N/m/mm]
@@ -4890,32 +4979,67 @@ function calcM9() {
     m9LogDiseno(DN, cargaTipoLabel, qTraf, qCalc, Fa, tipo, hr);
   }
 
-  // ── Renderizar panel resultado LRFD ─────────────────────────────
+  // ── Renderizar panel LRFD (comparativa conservador vs LRFD) ─────
   var lrfdPanel = document.getElementById('m9-lrfd-result');
-  if(lrfdPanel) {
-    if(useLRFD && lrfdData) {
-      lrfdPanel.style.display = '';
-      // Calcular grado LRFD
-      var qCalcLRFD = qTotal * gamSeg / (Fa * D);
-      var gradoLRFD = null;
-      for(var i=0;i<grados.length;i++){
-        if(grados[i].M_g >= qCalcLRFD){ gradoLRFD = grados[i]; break; }
-      }
-      setEl('m9-res-ql', lrfdData.qL.toFixed(1) + ' kN/m');
-      setEl('m9-res-qcalc-lrfd', qCalcLRFD.toFixed(1) + ' N/m/mm');
-      setEl('m9-res-grado-lrfd',
-        gradoLRFD
-          ? 'Grado ' + gradoLRFD.g
-          : 'Diseño Esp.');
-      var imEl = document.getElementById('m9-lrfd-im-info');
-      if(imEl) imEl.innerHTML =
-        'IM=' + lrfdData.IM.toFixed(1) + '% &nbsp;·&nbsp; ' +
-        'E_w=' + lrfdData.Ew.toFixed(3) + ' m &nbsp;·&nbsp; ' +
-        'E_l=' + lrfdData.El.toFixed(3) + ' m &nbsp;·&nbsp; ' +
-        'Ahorro=' + (qTraf>0 ? ((1-lrfdData.qL/qTraf)*100).toFixed(0) : 0) + '% carga viva';
-    } else {
-      lrfdPanel.style.display = 'none';
+  if(lrfdPanel && lrfdDataBase) {
+    lrfdPanel.style.display = '';  // siempre visible si hay datos LRFD
+
+    // — Cálculos LRFD correctos (independientes del qTrafEfectiva) —
+    var qTotalLRFD  = qr + lrfdDataBase.qL;          // siempre usa q_L LRFD
+    var qCalcLRFD   = qTotalLRFD * gamSeg / (Fa * D);
+    var qTotalBase  = qr + qTraf;                     // conservador siempre fijo
+    var qCalcBase   = qTotalBase * gamSeg / (Fa * D);
+
+    var gradoLRFD = null;
+    var gradoBase = null;
+    for(var i=0;i<grados.length;i++){
+      if(grados[i].M_g >= qCalcLRFD && !gradoLRFD) gradoLRFD = grados[i];
+      if(grados[i].M_g >= qCalcBase  && !gradoBase) gradoBase = grados[i];
     }
+
+    // Columna conservador
+    setEl('m9-lrfd-qtraf-base', qTraf.toFixed(1) + ' kN/m');
+    setEl('m9-lrfd-qcalc-base', qCalcBase.toFixed(1) + ' N/m/mm');
+    setEl('m9-lrfd-grado-base',  gradoBase ? 'Grado ' + gradoBase.g : 'Dis. Esp.');
+
+    // Columna LRFD
+    setEl('m9-res-ql',        lrfdDataBase.qL.toFixed(1) + ' kN/m');
+    setEl('m9-res-qcalc-lrfd', qCalcLRFD.toFixed(1) + ' N/m/mm');
+    var gradoLRFDtxt = gradoLRFD ? 'Grado ' + gradoLRFD.g : 'Dis. Esp.';
+    var gradoEl2 = document.getElementById('m9-res-grado-lrfd');
+    if(gradoEl2) {
+      gradoEl2.innerHTML = gradoLRFDtxt;
+      gradoEl2.style.color = gradoLRFD ? '#01696f' : '#dc2626';
+    }
+
+    // Parámetros técnicos
+    var imEl = document.getElementById('m9-lrfd-im-info');
+    if(imEl) {
+      var ahorroLRFD = qTraf > 0 ? ((1 - lrfdDataBase.qL/qTraf)*100) : 0;
+      imEl.innerHTML =
+        '<b>IM</b>=' + lrfdDataBase.IM.toFixed(1) + '% ' +
+        '&nbsp;|&nbsp; <b>H</b>=' + hr + 'm (' + lrfdDataBase.H_ft.toFixed(1) + 'ft) ' +
+        '&nbsp;|&nbsp; <b>E_w</b>=' + lrfdDataBase.Ew.toFixed(3) + 'm ' +
+        '&nbsp;|&nbsp; <b>E_l</b>=' + lrfdDataBase.El.toFixed(3) + 'm ' +
+        '&nbsp;|&nbsp; <b>P_axle</b>=' + lrfdDataBase.Paxle + ' kN' +
+        (ahorroLRFD > 0 ? '<br>Reducci&oacute;n carga viva: <b>' + ahorroLRFD.toFixed(0) + '%</b> menos vs modo conservador.' : '');
+    }
+
+    // Barra de ahorro visual
+    var savingWrap = document.getElementById('m9-lrfd-saving-wrap');
+    var savingBar  = document.getElementById('m9-lrfd-saving-bar');
+    var savingLbl  = document.getElementById('m9-lrfd-saving-label');
+    if(savingWrap && qTraf > 0) {
+      var pct = Math.max(0, Math.min(100, (1 - lrfdDataBase.qL/qTraf)*100));
+      savingWrap.style.display = pct > 1 ? '' : 'none';
+      if(savingBar) savingBar.style.width = pct.toFixed(0) + '%';
+      if(savingLbl) savingLbl.textContent =
+        'Ahorro LRFD: q_traf ' + qTraf.toFixed(0) + ' -> ' +
+        lrfdDataBase.qL.toFixed(1) + ' kN/m (' + pct.toFixed(0) + '% menos)';
+    }
+
+  } else if(lrfdPanel) {
+    lrfdPanel.style.display = 'none';
   }
 
   // ── Asistente de optimización: sugerir encamado ──────────────────
