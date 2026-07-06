@@ -4527,8 +4527,11 @@ function calcM9() {
   //   B_c = DN + 2 × espesor_pared_B   [metros]
   //   Usado en fórmula Marston terraplén: W_e = γ · hr · B_c
   //   Ref: N·CMT·3·02/04 SICT/IMT; Marston 1930
+  // Espesor de pared: prioridad campo visual m9-espesor (sincronizado por m9ParedB al cambiar DN)
+  // Fallback al mapa NMX-C-402 si el campo no tiene valor válido
   var M9_PARED_B_MAP = {300:51,380:57,450:63,610:76,760:89,910:101,1070:114,1220:127,1370:140,1520:152,1830:178,2130:203,2440:229,2750:250,3050:279};
-  var e_pared = M9_PARED_B_MAP[DN] || Math.round(DN * 0.095);  // fallback ~9.5% DN
+  var _eField = parseFloat(document.getElementById('m9-espesor').value);
+  var e_pared = (!isNaN(_eField) && _eField > 0) ? Math.round(_eField) : (M9_PARED_B_MAP[DN] || Math.round(DN * 0.095));
   var Bc = (DN + 2 * e_pared) / 1000;   // diámetro exterior en metros
 
   // ── 1. Coeficiente de Marston Cz (zanja) ──────────────────────────
@@ -4914,6 +4917,16 @@ function calcSanitario() {
 
   document.getElementById('res-sanitario').style.display = 'block';
 }
+
+// ── Inicialización M9 al cargar la página ────────────────────────────────────
+// Sincroniza el campo "Espesor pared e" con el DN inicial seleccionado
+// y renderiza el SVG de instalación por defecto.
+document.addEventListener('DOMContentLoaded', function() {
+  if(typeof m9ParedB === 'function')       m9ParedB();
+  if(typeof m9UpdateInstalImg === 'function') m9UpdateInstalImg();
+  if(typeof m9SyncClaseSCT === 'function')    m9SyncClaseSCT();
+  if(typeof calcM9 === 'function')            calcM9();
+});
 </script>
 </body>
 </html>
