@@ -1637,6 +1637,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <label>q<sub>tráfico</sub> distribuida (kN/m) — editable</label>
             <input type="number" id="m9-q-traf" value="96" min="0" max="500" step="1" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
             <div style="font-size:.7rem;color:#64748b;margin-top:2px">Carga distribuida lineal sobre la tubería (kN/m). Presets AASHTO/FAA/AREMA arriba.</div>
+            <div style="font-size:.68rem;color:#78716c;margin-top:4px;padding:4px 8px;background:#faf5ff;border-left:2px solid #8b5cf6;border-radius:0 4px 4px 0">
+              ℹ️ <strong>Simplificación conservadora</strong>: La carga viva se aplica como carga distribuida lineal fija (no atenuada por profundidad), lo que es conservador per <em>NMX-C-402-ONNCCE-2020 Sec.7</em>. Para proyectos con rellenos &gt;3 m, la carga real puede ser menor.
+            </div>
           </div>
 
           <div>
@@ -4695,8 +4698,9 @@ function calcM9() {
     if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = espMsg; }
     // ── Tracker: registrar evento Diseño Especial ──────────────────
     var cargaTipoLabel = qTraf <= 0 ? 'sin_trafico' :
-                         qTraf <= 20 ? 'H10' :
-                         qTraf <= 35 ? 'H20' : 'H25+';
+                         qTraf <= 60  ? 'H10' :   // H-10 ≈ 48 kN/m (umbral hasta H-20)
+                         qTraf <= 108 ? 'H20' :   // H-20 ≈ 96 kN/m (umbral hasta H-25)
+                         'H25+';                   // H-25 = 120 kN/m
     m9LogDiseno(DN, cargaTipoLabel, qTraf, qCalc, Fa, tipo, hr);
   }
 
@@ -4715,9 +4719,10 @@ function calcM9() {
   // ── Tabla b sugerido por grado ───────────────────────────────────
   var bSuggestWrap  = document.getElementById('m9-b-suggest-wrap');
   var bSuggestTable = document.getElementById('m9-b-suggest-table');
-  var esZanja = (tipo !== 'terraplen');
-  if(bSuggestWrap) bSuggestWrap.style.display = esZanja ? '' : 'none';
-  if(esZanja && bSuggestTable) {
+  // esZanja: true para zanja, zanja-terraplenada, zanja-inducida; false para terraplén
+  var esZanjaTabla = (tipo === 'zanja' || tipo === 'zanja-terraplenada' || tipo === 'zanja-inducida');
+  if(bSuggestWrap) bSuggestWrap.style.display = esZanjaTabla ? '' : 'none';
+  if(esZanjaTabla && bSuggestTable) {
     // Calcular b necesario para cada grado: resolver Cd·γ·b² ≤ M_grieta·Fa·D/γ_seg - qTraf
     // Es decir, buscar b tal que qCalc(b) ≤ M_grieta (solo para tipo zanja)
     var grados_tbl = [
@@ -4803,10 +4808,10 @@ function calcM9() {
   var dzTabla = document.getElementById('m9-dz-tabla');
 
   if(dzWrap) {
-    var esZanja = (tipo === 'zanja' || tipo === 'zanja-terraplenada' || tipo === 'zanja-inducida');
-    dzWrap.style.display = esZanja ? '' : 'none';
+    // Reusar esZanjaTabla ya definida arriba (misma lógica de tipos de instalación)
+    dzWrap.style.display = esZanjaTabla ? '' : 'none';
 
-    if(esZanja) {
+    if(esZanjaTabla) {
       var bMinDZ  = Bc + (DN <= 600 ? 0.40 : 0.50);
       var bOptDZ  = Bc + (DN <= 600 ? 0.60 : 0.75);
       var eCama   = 0.10;  // m — espesor cama encamado
