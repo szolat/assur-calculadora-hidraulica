@@ -4608,7 +4608,7 @@ function calcM9() {
     var qr_inducida = Cc_ind * gamma * Bc * Bc;
     qr = qr_inducida;
     proc.push('Instalación en ZANJA INDUCIDA (Marston — Imperfect Ditch):');
-    proc.push('  B_c = ' + Bc.toFixed(3) + ' m  |  expo = 2·λμ'·hr/B_c = ' + expo_ind.toFixed(3));
+    proc.push('  B_c = ' + Bc.toFixed(3) + ' m  |  expo = 2\u00b7\u03bb\u03bc\u0027\u00b7hr/B_c = ' + expo_ind.toFixed(3));
     proc.push('  C_c = [e^('+expo_ind.toFixed(3)+')-1] / '+expo_ind.toFixed(3)+' = <b>' + Cc_ind.toFixed(3) + '</b>');
     proc.push('  q_relleno = Cc · γ · B_c² = ' + Cc_ind.toFixed(3) + ' × ' + gamma + ' × ' + Bc.toFixed(3) + '² = <b>' + qr.toFixed(2) + ' kN/m</b>');
     proc.push('  ⚠️ Zanja inducida genera mayor carga que terraplén (fricción descendente Marston)');
@@ -4752,7 +4752,7 @@ function calcM9() {
       } else { bSug = null; nota = 'N/A'; }
 
       var bStr = bSug ? bSug.toFixed(2)+' m' : '—';
-      var clickAttr = bSug ? ' onclick="document.getElementById('m9-b').value='' + (bSug?bSug.toFixed(2):1.2) + '';calcM9();" title="Aplicar b='+bStr+'" style="cursor:pointer;"' : '';
+      var clickAttr = bSug ? ' onclick="document.getElementById(\'m9-b\').value=\'' + (bSug?bSug.toFixed(2):1.2) + '\';calcM9();" title="Aplicar b='+bStr+'" style="cursor:pointer;"' : '';
       rows += '<div'+clickAttr+' style="display:flex;align-items:center;gap:6px;padding:2px 6px;border-radius:5px;background:'+colores[gr.g]+';margin-bottom:2px">'
             + '<span style="font-weight:700;color:'+textC[gr.g]+';min-width:52px">Grado '+gr.g+'</span>'
             + '<span style="color:'+textC[gr.g]+'">b ≤ <b>'+bStr+'</b>'+nota+'</span>'
