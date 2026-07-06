@@ -1558,7 +1558,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           </div>
 
           <div style="margin-bottom:10px">
-            <label>Ancho de zanja b (m) — solo aplica en zanja</label>
+            <label>Ancho de zanja b (m) — solo aplica en zanja <span style="font-size:.7rem;color:#6b7280;font-weight:400">(NMX-C-402: b<sub>mín</sub> = B<sub>c</sub> + 0.40-0.50 m)</span></label>
             <input type="number" id="m9-b" value="1.2" min="0.4" max="8" step="0.05" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
           </div>
 
@@ -1832,7 +1832,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <ul style="font-size:.72rem;color:#64748b;line-height:1.7;margin:0;padding-left:16px">
             <li><strong>NMX-C-402-ONNCCE-2020</strong> — 4 Grados por resistencia carga externa (M grieta y rotura)</li>
             <li><strong>NMX-C-401-ONNCCE-2020</strong> — Requisitos materiales, dimensiones y pruebas tubería concreto</li>
-            <li><strong>Marston (1930)</strong> — Carga en zanja: q<sub>r</sub> = C<sub>z</sub>·γ·h<sub>r</sub>·b</li>
+            <li><strong>Marston (1930)</strong> — Carga en zanja: W<sub>c</sub> = C<sub>d</sub>·γ·B<sub>d</sub>² <span style="font-size:.75em;color:#6b7280">(donde C<sub>d</sub> ya incluye la relación h<sub>r</sub>/B<sub>d</sub>)</span></li>
             <li><strong>AASHTO H-10/H-20/H-25</strong> — Cargas vehiculares de diseño, ejes 98–222 kN</li>
             <li><strong>FAA AC 150/5370</strong> — Carga aeroportuaria DC-9 = 900 kN</li>
             <li><strong>AREMA Cooper E-80</strong> — Carga ferroviaria 356 kN/eje, vía principal</li>
@@ -1848,6 +1848,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
     <!-- Advertencia automática DN<600mm + carga vehicular -->
     <div id="m9-warn-dn" style="display:none;margin-top:12px;background:#fef9c3;border:1.5px solid #eab308;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#713f12;line-height:1.5"></div>
+    <div id="m9-warn-b" style="display:none;margin-top:8px;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#78350f;line-height:1.5"></div>
+    <div id="m9-bmin-info" style="margin-top:8px;font-size:.76rem;color:#475569;padding:6px 10px;background:#f1f5f9;border-radius:6px;display:none"></div>
 
     <div style="margin-top:18px;text-align:center">
       <button class="btn btn-primary" onclick="calcM9()" style="padding:12px 36px;font-size:.95rem">⚙️ Calcular Grado NMX-C-402 + Clase SCT</button>
@@ -3824,12 +3826,12 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     var D = DN / 1000; // m (diámetro interior en metros)
 
     // — 1. Coeficiente de Marston Cz (instalación en zanja) —
-    //    q_r = Cz · γ · hr · b  (kN/m)
-    //    Cz = [1 - e^(-2λμ'hr/b)] / (2λμ' · hr/b)
+    //    W_c = Cd · γ · Bd²  (kN/m)  — Fórmula Marston NMX-C-402
+    //    Cd = [1 - e^(-2λμ'·hr/b)] / (2λμ'·hr/b)  ← Cd ya contiene hr/b internamente
     var expo  = -2 * lamu * hr / b;
     var Cz    = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
 
-    var qr_zanja    = Cz * gamma * hr * b;          // kN/m (Marston zanja)
+    var qr_zanja    = Cz * gamma * b * b;           // kN/m (Marston zanja: Wc = Cd·γ·Bd²  NMX-C-402)
     var qr_terraplen = gamma * hr * D;               // kN/m (Marston terraplén simplificado)
 
     // Tomar el menor (conservador según ATHA: debe compararse y tomarse el menor)
@@ -3893,7 +3895,7 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     proc.push('▶ DN=' + DN + ' mm | D=' + D.toFixed(3) + ' m | De≈' + De.toFixed(3) + ' m (estimado)');
     proc.push('▶ hr=' + hr + ' m | b=' + b + ' m | γ=' + gamma + ' kN/m³ | λμ\u2019=' + lamu);
     proc.push('▶ Cz Marston = [1-e^(' + (2*lamu*hr/b).toFixed(3) + ')] / (2×' + lamu + '×' + (hr/b).toFixed(3) + ') = <b>' + Cz.toFixed(4) + '</b>');
-    proc.push('▶ q_relleno (Marston zanja) = ' + Cz.toFixed(4) + ' × ' + gamma + ' × ' + hr + ' × ' + b + ' = <b>' + qr_zanja.toFixed(2) + ' kN/m</b>');
+    proc.push('▶ q_relleno (Marston zanja) = Cd·γ·Bd² = ' + Cz.toFixed(4) + ' × ' + gamma + ' × ' + b + '² = <b>' + qr_zanja.toFixed(2) + ' kN/m</b>  [Wc=Cd·γ·Bd², NMX-C-402]');
     if(tipo === 'terraplen') proc.push('▶ q_terraplén = γ·hr·D = ' + gamma + '×' + hr + '×' + D.toFixed(3) + ' = <b>' + qr_terraplen.toFixed(2) + ' kN/m</b> | Adoptado (menor): <b>' + qr.toFixed(2) + ' kN/m</b>');
     proc.push('▶ q_tráfico = ' + qTraf + ' kN/m | q_TOTAL = ' + qr.toFixed(2) + ' + ' + qTraf + ' = <b>' + qTotal.toFixed(2) + ' kN/m</b>');
     proc.push('▶ Fa (factor apoyo) = ' + Fa + ' | γ_seg = ' + gamSeg);
@@ -4308,14 +4310,14 @@ function calcM9() {
   var Cz     = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
 
   // ── 2. Carga debida al relleno según tipo ─────────────────────────
-  var qr_zanja     = Cz * gamma * hr * b;    // kN/m — Marston zanja (usa ancho b)
+  var qr_zanja     = Cz * gamma * b * b;      // kN/m — Marston zanja: Wc = Cd·γ·Bd²  (NMX-C-402)
   var qr_terraplen = gamma * hr * Bc;         // kN/m — Marston terraplén (usa B_c exterior, no D nominal)
   var qr;
   if(tipo === 'zanja') {
     qr = qr_zanja;
     proc.push('Instalación en ZANJA:');
     proc.push('  C_z = [1-e^(-2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ')] / (2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ') = <b>' + Cz.toFixed(3) + '</b>');
-    proc.push('  q_relleno = C_z · γ · hr · b = ' + Cz.toFixed(3) + ' × ' + gamma + ' × ' + hr + ' × ' + b.toFixed(2) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
+    proc.push('  q_relleno = Cd · γ · Bd² = ' + Cz.toFixed(3) + ' × ' + gamma + ' × ' + b.toFixed(2) + '² = <b>' + qr.toFixed(2) + ' kN/m</b>  [Marston 1930, NMX-C-402]');
   } else if(tipo === 'terraplen') {
     qr = qr_terraplen;
     proc.push('Instalación en TERRAPLÉN (Marston, B_c = diám. exterior):');
@@ -4326,7 +4328,7 @@ function calcM9() {
     qr = Math.min(qr_zanja, qr_terraplen);
     proc.push('Instalación en ZANJA TERRAPLENADA (B_c = diám. exterior):');
     proc.push('  B_c = ' + Bc.toFixed(3) + ' m  |  e_pared = ' + e_pared + ' mm');
-    proc.push('  q_zanja     = ' + qr_zanja.toFixed(2) + ' kN/m');
+    proc.push('  q_zanja (Cd·γ·Bd²) = ' + qr_zanja.toFixed(2) + ' kN/m');
     proc.push('  q_terraplén = ' + qr_terraplen.toFixed(2) + ' kN/m  (γ·hr·B_c)');
     proc.push('  q_relleno = min(zanja, terraplén) = <b>' + qr.toFixed(2) + ' kN/m</b> (criterio conservador ATHA)');
   }
@@ -4419,6 +4421,37 @@ function calcM9() {
     } else {
       warnEl.style.display = 'none';
     }
+  }
+
+  // ── Advertencia b_min (ancho mínimo de zanja) ─────────────────
+  var warnBEl = document.getElementById('m9-warn-b');
+  var bminInfoEl = document.getElementById('m9-bmin-info');
+  if(tipo !== 'terraplen') {
+    // B_c real (diámetro exterior) desde tabla NMX Pared B
+    var bMinCalc = Bc + (DN <= 600 ? 0.40 : 0.50);  // m — holgura mínima trabajo ATHA/CEDEX
+    var bOptCalc = Bc + (DN <= 600 ? 0.60 : 0.75);  // m — ancho óptimo recomendado
+    if(bminInfoEl) {
+      bminInfoEl.style.display = 'block';
+      bminInfoEl.innerHTML = 'B<sub>c</sub>=' + (Bc*1000).toFixed(0) + ' mm (Pared B) &nbsp;|&nbsp; '
+        + 'b<sub>mín</sub>=' + (bMinCalc*1000).toFixed(0) + ' mm &nbsp;|&nbsp; '
+        + 'b<sub>óptimo</sub>=' + (bOptCalc*1000).toFixed(0) + ' mm &nbsp;|&nbsp; '
+        + 'b ingresado=' + (b*1000).toFixed(0) + ' mm';
+    }
+    if(warnBEl) {
+      if(b < bMinCalc) {
+        warnBEl.style.display = 'block';
+        warnBEl.innerHTML = '⚠️ <strong>Ancho de zanja insuficiente:</strong> b=' + (b*1000).toFixed(0)
+          + ' mm &lt; b<sub>mín</sub>=' + (bMinCalc*1000).toFixed(0)
+          + ' mm (B<sub>c</sub>+' + (DN<=600?400:500) + ' mm). '
+          + 'Ancho mínimo para trabajar alrededor del tubo según ATHA/CEDEX. '
+          + 'Con zanjas muy estrechas el compactado lateral es deficiente y la carga real puede ser mayor.';
+      } else {
+        warnBEl.style.display = 'none';
+      }
+    }
+  } else {
+    if(warnBEl) warnBEl.style.display = 'none';
+    if(bminInfoEl) bminInfoEl.style.display = 'none';
   }
 
   // Proceso
