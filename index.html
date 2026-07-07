@@ -174,6 +174,41 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 .aviso-reporte .ar-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px}
 .aviso-reporte .ar-text strong{display:block;font-size:.88rem;color:#4a3600;margin-bottom:2px}
 
+/* AVISO VALIDACIÓN TIEMPO REAL — M5 Pendiente terreno */
+.pf-sval{
+  display:none;
+  margin-top:6px;
+  padding:7px 10px;
+  border-radius:6px;
+  font-size:.80rem;
+  line-height:1.45;
+  border-left:3px solid;
+  animation:fadeIn .2s ease;
+}
+.pf-sval.ok{
+  background:#e8f5e9;
+  border-color:#437A22;
+  color:#2e5c14;
+}
+.pf-sval.warn{
+  background:#fff8e1;
+  border-color:#964219;
+  color:#6b3100;
+}
+.pf-sval.error{
+  background:#fde8f0;
+  border-color:#A12C7B;
+  color:#6d0e4e;
+}
+.pf-sval.negativo{
+  background:#fce4ec;
+  border-color:#c62828;
+  color:#7b1111;
+}
+.pf-sval strong{display:block;margin-bottom:2px;font-size:.83rem}
+.pf-sval code{font-family:monospace;font-size:.82rem;background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
 /* DIAGRAMA CAUDAL */
 #caudal-diagrama{
   display:none;
@@ -685,7 +720,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <div class="form-grid">
       <div>
         <label>DN (mm)</label>
-        <select id="pf-dn" onchange="mn_ajustarSerie()">
+        <select id="pf-dn" onchange="mn_ajustarSerie();validarSterRealtime()">
           <optgroup label="── PVC / Novafort (SDR) ──">
             <option value="110" data-tipo="pvc">110</option>
             <option value="160" data-tipo="pvc">160</option>
@@ -735,7 +770,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       </div>
       <div>
         <label>Material / n Manning</label>
-        <select id="pf-mat" onchange="mn_ajustarSerie()">
+        <select id="pf-mat" onchange="mn_ajustarSerie();validarSterRealtime()">
           <option value="0.009" data-serie="20">PVC liso / Novafort (n=0.009)</option>
           <option value="0.012" data-serie="0">PEAD corrugado PT Corr® (n=0.012)</option>
           <option value="0.013" data-serie="0">Concreto reforzado NMX-C-402 (n=0.013)</option>
@@ -756,8 +791,10 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div>
         <label>Pendiente terreno S<sub>ter</sub> (%)</label>
         <input type="number" id="pf-ster" value="0.5" min="-20" max="30" step="0.01"
+               oninput="validarSterRealtime()"
                title="Pendiente real del terreno en porcentaje. Positivo = baja en sentido del flujo. Negativo = terreno sube (contraflujo)">
         <small style="color:var(--text-muted,#7A7974);font-size:.78rem">+ baja · − sube · 0.001% mín NOM</small>
+        <div id="pf-ster-aviso" class="pf-sval"></div>
       </div>
       <div>
         <label>Profundidad mín. plantilla (m)</label>
@@ -2935,6 +2972,121 @@ function calcPozos() {
 // SECCIÓN 5 — PERFIL HIDRÁULICO
 // =============================================================
 let chartPerfil = null;
+
+/* ─────────────────────────────────────────────────────────────────
+   validarSterRealtime()
+   Calcula S_mín en tiempo real según DN y material seleccionados,
+   compara con S_ter ingresada y muestra aviso inmediato bajo el input.
+   Cuatro estados:
+     ok       — S_ter ≥ S_mín y S_ter > 0  (sigue terreno, eco en excavación)
+     warn     — S_ter entre 0 y S_mín       (colector forzado a S_mín, sobrecosto)
+     negativo — S_ter < 0                    (terreno sube = contraflujo garantizado)
+     empty    — input vacío                 (oculta aviso)
+   Referencia normativa: SGAPDS-29 Sec.3.1.2 / NMX-E-215 / Manning
+   ───────────────────────────────────────────────────────────────── */
+function validarSterRealtime() {
+  var aviso = document.getElementById('pf-ster-aviso');
+  if (!aviso) return;
+
+  var sterRaw = document.getElementById('pf-ster').value;
+  if (sterRaw === '' || sterRaw === null) {
+    aviso.style.display = 'none';
+    return;
+  }
+
+  var Ster_pct = parseFloat(sterRaw);
+  if (isNaN(Ster_pct)) { aviso.style.display = 'none'; return; }
+
+  // Leer DN e índice de Manning del formulario (igual que calcPerfil)
+  var DN   = parseFloat(document.getElementById('pf-dn').value)   || 200;
+  var n    = parseFloat(document.getElementById('pf-mat').value)  || 0.009;
+
+  // Di interno: para PEAD/concreto usar data-di si existe; para PVC Di ≈ DN*0.92 (SDR 20)
+  var selDN  = document.getElementById('pf-dn');
+  var optDN  = selDN ? selDN.options[selDN.selectedIndex] : null;
+  var diData = optDN ? parseFloat(optDN.getAttribute('data-di')) : NaN;
+  var serieEl = document.getElementById('pf-serie');
+  var serie   = serieEl ? parseFloat(serieEl.value) : 20;
+  var Di_mm;
+  if (!isNaN(diData) && diData > 0) {
+    Di_mm = diData;                           // PEAD corrugado o Concreto
+  } else {
+    // PVC Novafort SDR: Di = DN*(1 - 2/serie) — aprox. igual que calcPerfil
+    Di_mm = DN * (1 - 2 / (serie || 20));
+  }
+  var Di_m = Di_mm / 1000;
+  var R    = Di_m / 4;                        // radio hidráulico sección llena
+  var R23  = Math.pow(R, 2/3);
+
+  // S_mín Manning: velocidad mínima autolimpieza = 0.60 m/s (SGAPDS-29 Sec.3.1.2)
+  var S_min_dec = Math.pow(0.6 * n / R23, 2);
+  var S_min_pct = S_min_dec * 100;
+
+  // Diferencia entre pendiente ingresada y mínima requerida
+  var delta_pct = Ster_pct - S_min_pct;       // positivo = OK, negativo = insuficiente
+
+  // Limpieza de clases anteriores
+  aviso.className = 'pf-sval';
+  aviso.style.display = 'block';
+
+  var S_min_str  = S_min_pct.toFixed(4);      // ej. "0.2341"
+  var S_ter_str  = Ster_pct.toFixed(4);
+  var delta_str  = Math.abs(delta_pct).toFixed(4);
+  var Di_str     = Di_mm.toFixed(0);
+
+  if (Ster_pct < 0) {
+    // Terreno sube en sentido del flujo — contraflujo inevitable
+    aviso.classList.add('negativo');
+    aviso.innerHTML =
+      '<strong>❌ Pendiente negativa — contraflujo inevitable</strong>' +
+      'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> indica que el terreno <em>sube</em> en dirección del flujo. ' +
+      'La plantilla se diseñará con S<sub>mín</sub> = <code>' + S_min_str + '%</code>, ' +
+      'pero <strong>la excavación crece rapidamente</strong> con cada metro de colector. ' +
+      'Revisa la dirección del tendido o considera un salto de cota.';
+  } else if (Ster_pct === 0) {
+    // Terreno plano — toda la pendiente viene de excavación
+    aviso.classList.add('warn');
+    aviso.innerHTML =
+      '<strong>⚠️ Terreno plano — toda la pendiente por excavación</strong>' +
+      'Con S<sub>ter</sub> = 0% se requiere excavar hasta <code>' + S_min_str + '%</code> de pendiente en plantilla ' +
+      '(DN=' + DN + ', Di=' + Di_str + ' mm, n=' + n + '). ' +
+      'El colector necesitará sobreprofundidad mínima de <code>' + (S_min_dec * 1000).toFixed(2) + ' mm/m</code> de caida extra.';
+  } else if (delta_pct < 0) {
+    // S_ter positiva pero MENOR que S_mín — caso crítico de la validación
+    aviso.classList.add('error');
+    aviso.innerHTML =
+      '<strong>⚠️ Pendiente insuficiente — se forzará S<sub>mín</sub></strong>' +
+      'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> es menor que la pendiente mínima de autolimpieza ' +
+      'S<sub>mín</sub> = <code>' + S_min_str + '%</code> ' +
+      '(DN=' + DN + ' mm, Di=' + Di_str + ' mm, n=' + n + ', v<sub>mín</sub>=0.60 m/s — SGAPDS-29). ' +
+      'Faltan <code>+' + delta_str + '%</code> para alcanzar la mínima. ' +
+      '<strong>El diseño usará S<sub>dis</sub>=S<sub>mín</sub></strong> y la excavación crecerá ' +
+      (S_min_dec - S_ter_pct_dec_safe(Ster_pct) > 0
+        ? (((S_min_dec - Ster_pct/100)*1000).toFixed(2) + ' mm/m extra')
+        : '') +
+      ' respecto al terreno natural.';
+  } else if (delta_pct < S_min_pct * 0.5) {
+    // S_ter OK pero muy justa (margen < 50% del mínimo) — aviso preventivo
+    aviso.classList.add('warn');
+    aviso.innerHTML =
+      '<strong>⚠️ Margen ajustado — pendiente aceptable con precaución</strong>' +
+      'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> supera la mínima <code>' + S_min_str + '%</code> ' +
+      'por solo <code>+' + delta_str + '%</code>. ' +
+      'El diseño seguirá el terreno (✓), pero el margen es menor al 50% de S<sub>mín</sub>. ' +
+      'Verifica nivelación durante construcción — errores de replanteo podrían generar estancamiento.';
+  } else {
+    // S_ter ≥ S_mín con buen margen — óptimo
+    aviso.classList.add('ok');
+    aviso.innerHTML =
+      '<strong>✅ Pendiente suficiente</strong> ' +
+      'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> ≥ S<sub>mín</sub> = <code>' + S_min_str + '%</code> ' +
+      '(margen <code>+' + delta_str + '%</code>). ' +
+      'La plantilla seguirá el terreno natural — excavación mínima garantizada.';
+  }
+}
+
+// Helper interno para evitar referencia a variable no declarada en el template literal
+function S_ter_pct_dec_safe(v){ return isNaN(v) ? 0 : v/100; }
 
 function calcPerfil() {
   const DN    = parseInt(document.getElementById('pf-dn').value);
