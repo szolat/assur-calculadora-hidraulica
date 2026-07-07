@@ -1077,7 +1077,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <button id="ibt-pvc" onclick="inst_selectTubo(this,'pvc')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">PVC<br><span style="font-weight:400;color:#666">Liso</span></button>
             <button id="ibt-concreto" onclick="inst_selectTubo(this,'concreto')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">Concreto<br><span style="font-weight:400;color:#666">Rígido</span></button>
           </div>
-          <div id="inst-tubo-info" style="font-size:.75rem;color:#1e40af;background:#eff6ff;border-radius:6px;padding:8px 12px">⚡ Tubería <strong>flexible</strong> — aplica ecuación de IOWA Modificada para verificar deflexión.</div>
+          <div id="inst-tubo-info" style="font-size:.75rem;color:#1e40af;background:#eff6ff;border-radius:6px;padding:8px 12px">⚡ Tubería <strong>flexible (HDPE/PVC)</strong> — IOWA Modificada. El suelo aporta 70–90% de la resistencia. Cambiar a Concreto si H&gt;5m, DN&gt;600mm o suelo deficiente.</div>
         </div>
 
         <!-- Parámetros de zanja -->
@@ -1467,15 +1467,21 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     <!-- Banner informativo mejorado -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
 
+      <!-- ── Nota Técnica: Selección de Material HDPE vs Concreto ── -->
       <!-- Bloque flexible IOWA -->
       <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start">
         <span style="font-size:1.5rem;margin-top:2px">💧</span>
         <div>
-          <div style="font-weight:800;font-size:.84rem;color:#1d4ed8;margin-bottom:4px">Tubería FLEXIBLE (PEAD / PVC) → Módulo 8</div>
-          <div style="font-size:.75rem;color:#1e40af;line-height:1.55">
-            Se verifica <strong>deflexión diametral (Δy/D)</strong> con la ecuación de IOWA Modificada.<br>
-            El tubo cede lateralmente y transfiere carga al suelo adyacente — el material de acostillado es clave.<br>
-            <span style="color:#3b82f6">Límite: ≤5% pluvial · ≤3% sanitario (NOM-001-CONAGUA)</span>
+          <div style="font-weight:800;font-size:.84rem;color:#1d4ed8;margin-bottom:4px">Tubería FLEXIBLE (PEAD / PVC) → Módulo 8 — Ecuación IOWA Modificada</div>
+          <div style="font-size:.75rem;color:#1e40af;line-height:1.6">
+            Se verifica <strong>deflexión diametral (Δy/D)</strong>. El tubo cede lateralmente y transfiere carga al suelo —
+            el suelo compactado aporta 70–90% de la resistencia total.<br>
+            <span style="color:#3b82f6">Límite deflexión: ≤5% pluvial · ≤3% sanitario (NOM-001-CONAGUA)</span><br>
+            <strong style="color:#1d4ed8">✅ Usar HDPE/PVC cuando:</strong> DN ≤ 600 mm · H ≤ 4 m · suelo compactable (E' ≥ 1 400 kPa) ·
+            tráfico ligero-moderado (H-10/H-20) · red pluvial o sanitaria urbana.<br>
+            <strong style="color:#b45309">⚠️ Cambiar a Concreto (M9) cuando:</strong> H &gt; 5 m · DN &gt; 600 mm ·
+            suelo deficiente o arcilloso (E' &lt; 1 400 kPa) · carga H-25 o ferroviaria ·
+            vida útil &gt; 50 años · aguas residuales con H₂S o abrasión.
           </div>
         </div>
       </div>
@@ -1484,12 +1490,60 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start">
         <span style="font-size:1.5rem;margin-top:2px">🧱</span>
         <div>
-          <div style="font-weight:800;font-size:.84rem;color:#92400e;margin-bottom:4px">Tubería RÍGIDA (Concreto) → Este módulo (M9)</div>
-          <div style="font-size:.75rem;color:#78350f;line-height:1.55">
-            <strong>No aplica IOWA.</strong> El concreto resiste la carga por su propia rigidez estructural.<br>
-            Recibe mayor <strong>carga dinámica y puntual</strong> (vehículos pesados, trenes, aeronaves) sin trasladar esfuerzo al relleno.<br>
-            Se diseña por <strong>aplastamiento</strong>: carga de tres aristas ≥ M<sub>grieta</sub> requerida (NMX-C-402).
+          <div style="font-weight:800;font-size:.84rem;color:#92400e;margin-bottom:4px">Tubería RÍGIDA (Concreto NMX-C-402) → Este módulo (M9) — Método Marston</div>
+          <div style="font-size:.75rem;color:#78350f;line-height:1.6">
+            <strong>No aplica IOWA.</strong> Resiste por su propia sección armada — el suelo NO aporta resistencia, solo transmite carga.<br>
+            Diseñado por <strong>aplastamiento</strong>: carga de tres aristas ≥ M<sub>grieta</sub> (NMX-C-402).
+            Con Modo LRFD activo, la carga viva se atenúa a H &gt; 2.44 m (AASHTO 12.10.4.3).<br>
+            <strong style="color:#166534">✅ Preferir Concreto cuando:</strong> H &gt; 5 m (M9 + LRFD) · DN ≥ 600 mm ·
+            cruce carretero pesado H-25 o ferroviario · suelo malo o inundable ·
+            vida útil &gt; 50 años · proyectos con normativa SCT / SICT N·CMT·3·02/04.<br>
+            <strong style="color:#b45309">⚠️ El concreto en DN &lt; 600 mm bajo H-20/H-25 puede requerir Grado 3–4 o Diseño Especial.
+            Activar LRFD y optimizar encamado antes de descartar el concreto.</strong>
           </div>
+        </div>
+      </div>
+
+      <!-- Tabla comparativa de selección de material -->
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-top:4px">
+        <div style="font-weight:800;font-size:.84rem;color:#374151;margin-bottom:8px">📊 Criterios de selección HDPE vs Concreto (NMX-C-402)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:.74rem">
+          <thead>
+            <tr style="background:#e2e8f0">
+              <th style="padding:5px 8px;text-align:left;border:1px solid #cbd5e1">Criterio</th>
+              <th style="padding:5px 8px;text-align:center;border:1px solid #cbd5e1;color:#1d4ed8">HDPE/PVC<br>(M8 IOWA)</th>
+              <th style="padding:5px 8px;text-align:center;border:1px solid #cbd5e1;color:#92400e">Concreto<br>(M9 Marston)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:4px 8px;border:1px solid #e2e8f0">Diámetro nominal</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">DN 150–600 mm ✅</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#92400e">DN 300–3 050 mm ✅</td></tr>
+            <tr style="background:#f9fafb"><td style="padding:4px 8px;border:1px solid #e2e8f0">Profundidad relleno</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">H ≤ 4 m ✅ / H &gt; 5 m ⚠️</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#166534">H &gt; 5 m con LRFD ✅✅</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #e2e8f0">Carga vehicular</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">H-10 / H-20 ✅</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#166534">H-10 / H-20 / H-25 ✅</td></tr>
+            <tr style="background:#f9fafb"><td style="padding:4px 8px;border:1px solid #e2e8f0">Calidad del suelo</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">E' ≥ 1 400 kPa requerido</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#166534">Independiente del suelo ✅</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #e2e8f0">Resistencia química</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">Alta (H₂S, ácidos) ✅</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#b45309">Requiere recubrimiento</td></tr>
+            <tr style="background:#f9fafb"><td style="padding:4px 8px;border:1px solid #e2e8f0">Vida útil</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">50 años (ASTM D-2321)</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#166534">100+ años ✅</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #e2e8f0">Norma mexicana</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">NMX-E-241 / NOM-001</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#92400e">NMX-C-401 / NMX-C-402</td></tr>
+            <tr style="background:#f9fafb"><td style="padding:4px 8px;border:1px solid #e2e8f0">Módulo de cálculo</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#1d4ed8">M8 — Instalación</td>
+              <td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;color:#92400e">M9 — Diseño Estructural</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:.7rem;color:#6b7280;margin-top:6px">
+          Fuentes: NMX-C-402-ONNCCE-2020 · NMX-E-241 · ASTM D-2321 · AASHTO 12.10.4.3 · MITD-CONAGUA 2012 · SCT N·CMT·3·02/04
         </div>
       </div>
     </div>
@@ -3926,10 +3980,17 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     var info = document.getElementById('inst-tubo-info');
     if(info){
       if(FLEX.includes(tipo)){
-        info.textContent = '⚡ Tubería flexible — aplica ecuación de IOWA Modificada para verificar deflexión.';
+        info.innerHTML = '⚡ <strong>Tubería FLEXIBLE (HDPE/PVC) — Ecuación IOWA Modificada</strong><br>' +
+          '<span style="font-size:.82em">El suelo compactado actúa como estructura auxiliar: resiste ~70–90% de la carga.' +
+          ' Límite de deflexión: ≤5% pluvial · ≤3% sanitario.<br>' +
+          '<strong style="color:#b45309">⚠️ Cambiar a Concreto (M9) cuando:</strong> H>5m bajo carga H-20/H-25, ' +
+          'DN≥600mm, suelo malo (E'<1400 kPa), o cruce ferroviario/aeronave.</span>';
         info.style.color = '#1e40af'; info.style.background = '#eff6ff';
       } else {
-        info.textContent = '🧱 Tubería rígida NMX-C-402 — 300–3050 mm. Su resistencia propia compensa la carga. No aplica IOWA.';
+        info.innerHTML = '🧱 <strong>Tubería RÍGIDA (Concreto NMX-C-402) — Método Marston</strong><br>' +
+          '<span style="font-size:.82em">Resiste por su propia sección armada — el suelo NO aporta resistencia, solo transmite carga.<br>' +
+          '<strong style="color:#166534">✅ Preferir Concreto cuando:</strong> H>5m (M9+LRFD), DN≥600mm, suelo deficiente, ' +
+          'cruce carretero pesado, vida útil >50 años o aguas residuales agresivas.</span>';
         info.style.color = '#555'; info.style.background = '#f8fafc';
       }
     }
@@ -4969,9 +5030,16 @@ function calcM9() {
     setEl('m9-res-encamado',  'B\u2093=' + Fa + ' | Clase ' + claseSCT_enc);
     var espMsg = '❌ q_calc=' + qCalc.toFixed(1) + ' N/m/mm excede Grado 4 (140) — DISEÑO ESPECIAL requerido (NMX-C-401 Sec. 7). ';
     if(DN < 600 && qTraf >= 48) {
-      espMsg += '⚠️ Para DN < 600mm con cargas vehiculares se recomienda tubería HDPE o PVC (PT Corr® / Novafort) — ver Módulo 8 Instalación.';
+      if(hr <= 4.0) {
+        espMsg += '⚠️ DN<600mm, H≤4m: evaluar HDPE/PVC (PT Corr® NMX-E-241, M8) si suelo E'≥1400kPa. ' +
+          'Con concreto: activar LRFD + encamado 120° antes de especificar Diseño Especial.';
+      } else {
+        espMsg += '⚠️ DN<600mm, H>' + hr.toFixed(1) + 'm: HDPE no recomendado a esta profundidad (deflexión excesiva). ' +
+          'Usar Concreto con LRFD activo — carga viva ya atenuada. Revisar encamado o aumentar Fa.';
+      }
     } else if(DN >= 600) {
-      espMsg += '→ Considere: aumentar B\u2093 (mejor encamado) o reducir carga de tráfico.';
+      espMsg += '→ Activar Modo LRFD y optimizar encamado (Bₓ ≥ 2.3) — puede reducir 1–2 grados en H>5m.';
+    }
     }
     if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = espMsg; }
     // ── Tracker: registrar evento Diseño Especial ──────────────────
@@ -5053,8 +5121,14 @@ function calcM9() {
   if(warnEl) {
     if(DN < 600 && qTraf >= 48) {
       warnEl.style.display = 'block';
-      warnEl.innerHTML = '⚠️ <strong>Nota técnica:</strong> Tubería de concreto DN ' + DN + 'mm con carga vehicular H-10/H-20/H-25 generalmente requiere Diseño Especial o Grado 4 con encamado óptimo. ' +
-        'Para diámetros menores a 600mm bajo carreteras se recomienda evaluar <strong>tubería HDPE corrugada (PT Corr® / NMX-E-241)</strong> que opera bajo norma IOWA / Módulo 8.';
+      warnEl.innerHTML =
+        '<strong>📊 Nota técnica — DN ' + DN + 'mm bajo carga vehicular:</strong><br>' +
+        '<span style="font-size:.82em">' +
+        '• Concreto DN&lt;600mm con H-20/H-25 frecuentemente alcanza Grado 3–4 o Diseño Especial por el efecto divisor del diámetro en q<sub>calc</sub>.<br>' +
+        '• <strong>Antes de cambiar de material:</strong> activar Modo LRFD (atenúa carga viva a H&gt;2.44m) y optimizar encamado (B<sub>f</sub>≥2.3 concreto 120°).<br>' +
+        '• <strong>HDPE/PVC (M8) es alternativa válida si:</strong> H≤4m, suelo compactable (E'≥1400kPa), carga H-10/H-20, red pluvial/sanitaria.<br>' +
+        '• <strong>Mantener Concreto cuando:</strong> H&gt;5m, cruce SCT/SICT, suelo arcilloso, vida útil&gt;50 años, o carga H-25/ferroviaria.' +
+        '</span>';
     } else {
       warnEl.style.display = 'none';
     }
