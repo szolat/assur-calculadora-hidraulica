@@ -754,6 +754,18 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <input type="number" id="pf-cota" value="10.0" step="0.01">
       </div>
       <div>
+        <label>Pendiente terreno S<sub>ter</sub> (%)</label>
+        <input type="number" id="pf-ster" value="0.5" min="-20" max="30" step="0.01"
+               title="Pendiente real del terreno en porcentaje. Positivo = baja en sentido del flujo. Negativo = terreno sube (contraflujo)">
+        <small style="color:var(--text-muted,#7A7974);font-size:.78rem">+ baja · − sube · 0.001% mín NOM</small>
+      </div>
+      <div>
+        <label>Profundidad mín. plantilla (m)</label>
+        <input type="number" id="pf-hmin" value="1.20" min="0.50" max="5.00" step="0.05"
+               title="Profundidad mínima de la plantilla del colector bajo el terreno (clave superior). Típico SGAPDS-29: 1.20 m">
+        <small style="color:var(--text-muted,#7A7974);font-size:.78rem">SGAPDS-29: mín 1.20 m</small>
+      </div>
+      <div>
         <label>Espaciado entre pozos (m)</label>
         <input type="number" id="pf-esp" value="50" min="5">
       </div>
@@ -766,6 +778,21 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       </div>
       <div style="margin-top:12px">
         <button class="btn btn-outline" onclick="descargarPNG()">⬇️ Descargar PNG</button>
+      </div>
+      <!-- MÉTRICAS Y TABLA DE POZOS -->
+      <div id="pf-metricas" style="margin-top:12px"></div>
+      <div style="overflow-x:auto;margin-top:12px">
+        <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <thead>
+            <tr style="background:var(--teal-d);color:#fff">
+              <th style="padding:5px 8px;text-align:left">Pozo</th>
+              <th style="padding:5px 8px">Cota terreno (msnm)</th>
+              <th style="padding:5px 8px">Cota plantilla (msnm)</th>
+              <th style="padding:5px 8px">Prof. excavación (m)</th>
+            </tr>
+          </thead>
+          <tbody id="pf-tabla-pozos"></tbody>
+        </table>
       </div>
       <!-- AVISO REPORTE -->
       <div class="aviso-reporte" id="aviso-perfil" onclick="irAReporte()"><span class="ar-icon">📋</span><span class="ar-text"><strong>Cálculo generado</strong>Ve a la pestaña «Reporte» para visualizar toda la información, gráficas y el cumplimiento normativo consolidado.</span></div>
@@ -2915,6 +2942,11 @@ function calcPerfil() {
   const Ltot  = parseFloat(document.getElementById('pf-long').value);
   const cota0 = parseFloat(document.getElementById('pf-cota').value);
   const esp   = parseFloat(document.getElementById('pf-esp').value);
+  const Ster_pct = parseFloat(document.getElementById('pf-ster').value) || 0.5;
+  const Hmin  = parseFloat(document.getElementById('pf-hmin').value) || 1.20;
+
+  // Pendiente terreno en m/m (positivo = baja en sentido flujo)
+  const S_ter = Ster_pct / 100;
 
   // Di real: para PEAD/Concreto usar data-di; para PVC usar DN - 2*(DN/serie)
   const optPF  = document.getElementById('pf-dn').selectedOptions[0];
@@ -2923,23 +2955,91 @@ function calcPerfil() {
     ? parseFloat(optPF.dataset.di)
     : DN - 2 * (DN / serie);
   const Di_m    = Di_mm / 1000;
-  // n Manning desde selector pf-mat (0.009 PVC / 0.012 PEAD / 0.013 Concreto)
+
+  // n Manning desde selector pf-mat
   const nEl     = document.getElementById('pf-mat');
   const n       = nEl ? parseFloat(nEl.value) : 0.009;
   const R       = Di_m / 4;
   const R23     = Math.pow(R, 2/3);
-  const S_min   = Math.pow(0.6 * n / R23, 2);
+  const S_min   = Math.pow(0.6 * n / R23, 2);  // pendiente mínima para v=0.60 m/s
+
+  // Pendiente de diseño: máx(S_min, S_ter) para garantizar autolimpieza
+  // Si S_ter < S_min: usar S_min (pendiente mínima NMX-E-215/SGAPDS-29)
+  // Si S_ter >= S_min: usar S_ter (seguir el terreno, más económico en excavación)
+  const S_dis = Math.max(S_min, S_ter > 0 ? S_ter : S_min);
+  const sigueTer = (S_ter >= S_min && S_ter > 0);
 
   const nPV = Math.ceil(Ltot / esp) + 1;
-  const labels = [], plantilla = [], terreno = [];
+  const labels = [], plantilla = [], terrenoPts = [], profExcav = [];
+  let maxProf = 0, minProf = Infinity;
+  let hayContrapendiente = false;
+
   for(let i = 0; i < nPV; i++) {
     const dist = Math.min(i * esp, Ltot);
-    labels.push('PV-' + (i+1) + '\n(' + dist.toFixed(0) + 'm)');
-    plantilla.push(+(cota0 - dist * S_min).toFixed(4));
-    terreno.push(+(cota0 + 0.5 - dist * 0.001).toFixed(4)); // terreno simulado
+    labels.push('PV-' + (i+1) + ' (' + dist.toFixed(0) + 'm)');
+
+    // Cota terreno real con pendiente ingresada
+    const cotaTer = +(cota0 - dist * S_ter).toFixed(4);
+
+    // Cota plantilla colector:
+    // Si la pendiente del terreno es suficiente, la plantilla sigue el terreno
+    // desplazada Hmin hacia abajo.
+    // Si el terreno no baja lo suficiente, se mantiene S_min desde el inicio.
+    const cotaPlantilla = +(cota0 - Hmin - dist * S_dis).toFixed(4);
+
+    terrenoPts.push(cotaTer);
+    plantilla.push(cotaPlantilla);
+
+    // Profundidad de excavación = cota terreno - cota plantilla
+    const prof = +(cotaTer - cotaPlantilla).toFixed(3);
+    profExcav.push(prof);
+    if(prof > maxProf) maxProf = prof;
+    if(prof < minProf) minProf = prof;
+
+    // Detectar contrapendiente (plantilla sube respecto al tramo anterior)
+    if(i > 0 && cotaPlantilla > plantilla[i-1]) hayContrapendiente = true;
   }
 
-  STATE.perfilData = { labels, plantilla, terreno, DN, Di_m };
+  STATE.perfilData = { labels, plantilla, terreno: terrenoPts, DN, Di_m, S_min, S_ter, S_dis, profExcav, Hmin };
+
+  // ── Tabla de pozos ─────────────────────────────────────────────
+  var tbodyPV = document.getElementById('pf-tabla-pozos');
+  if(tbodyPV) {
+    tbodyPV.innerHTML = '';
+    for(var i=0; i<labels.length; i++) {
+      var tr = document.createElement('tr');
+      tr.style.background = i % 2 === 0 ? '#f8fafc' : '#fff';
+      var profColor = profExcav[i] > 4.0 ? '#b91c1c' : profExcav[i] > 2.5 ? '#d97706' : '#059669';
+      tr.innerHTML = '<td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:.82rem">' + labels[i] + '</td>' +
+        '<td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:.82rem">' + terrenoPts[i].toFixed(3) + '</td>' +
+        '<td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:.82rem">' + plantilla[i].toFixed(3) + '</td>' +
+        '<td style="padding:4px 8px;border:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;color:' + profColor + '">' + profExcav[i].toFixed(2) + ' m</td>';
+      tbodyPV.appendChild(tr);
+    }
+  }
+
+  // ── Semáforo y métricas ─────────────────────────────────────────
+  var resMetricas = document.getElementById('pf-metricas');
+  if(resMetricas) {
+    var velDis = (1/n) * Math.pow(Di_m/4, 2/3) * Math.pow(S_dis, 0.5);
+    var semCls = hayContrapendiente ? 'sem-bad' : (profExcav[profExcav.length-1] > 4.0 ? 'sem-warn' : 'sem-ok');
+    var semMsg = hayContrapendiente
+      ? '❌ CONTRAPENDIENTE DETECTADA — revisar trazo'
+      : (sigueTer ? '✅ Sigue terreno (S_dis=S_ter=' + (S_dis*100).toFixed(3) + '%)'
+                  : '⚠️ S_ter < S_min — usando S_mín=' + (S_min*100).toFixed(3) + '%');
+    resMetricas.innerHTML =
+      '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px">' +
+        '<div class="result-metric"><div class="val">' + (S_min*100).toFixed(4) + '%</div><div class="lbl">S_mín Manning</div></div>' +
+        '<div class="result-metric"><div class="val">' + (S_ter*100).toFixed(3) + '%</div><div class="lbl">S_terreno real</div></div>' +
+        '<div class="result-metric"><div class="val" style="color:' + (sigueTer?'var(--ok)':'var(--warn)') + '">' + (S_dis*100).toFixed(3) + '%</div><div class="lbl">S_diseño</div></div>' +
+        '<div class="result-metric"><div class="val">' + velDis.toFixed(3) + ' m/s</div><div class="lbl">Velocidad a tubo lleno</div></div>' +
+        '<div class="result-metric"><div class="val">' + Hmin.toFixed(2) + ' m</div><div class="lbl">Prof. mín. plantilla</div></div>' +
+        '<div class="result-metric"><div class="val" style="color:#b91c1c">' + maxProf.toFixed(2) + ' m</div><div class="lbl">Prof. máx. excavación</div></div>' +
+      '</div>' +
+      '<div class="semaforo ' + semCls + '" style="display:block;margin-bottom:6px">' + semMsg + '</div>' +
+      (hayContrapendiente ? '<div style="font-size:.83rem;color:#7f1d1d;background:#fee2e2;padding:8px 12px;border-radius:6px;margin-top:4px">⚠️ La pendiente del terreno es negativa (terreno sube) o la pendiente de diseño genera contrapendiente. Verifica la cota de inicio y la pendiente del terreno ingresada. SGAPDS-29 prohíbe contrapendientes en colectores pluviales y sanitarios.</div>' : '') +
+      (minProf < Hmin - 0.01 ? '<div style="font-size:.83rem;color:#92400e;background:#fef3c7;padding:8px 12px;border-radius:6px;margin-top:4px">⚠️ Algún pozo tiene profundidad menor a ' + Hmin.toFixed(2) + ' m — ajusta la cota de inicio o la profundidad mínima.</div>' : '');
+  }
 
   document.getElementById('res-perfil').classList.add('visible');
   mostrarNota('nota-perfil');
@@ -2952,17 +3052,20 @@ function calcPerfil() {
     data:{
       labels,
       datasets:[
-        {label:'Terreno (msnm)',data:terreno,borderColor:'#8B7355',backgroundColor:'rgba(139,115,85,.1)',borderWidth:2,pointRadius:4,tension:.3},
-        {label:'Plantilla colector (msnm)',data:plantilla,borderColor:getComputedStyle(document.documentElement).getPropertyValue('--teal').trim()||'#01696F',backgroundColor:'rgba(1,105,111,.1)',borderWidth:2.5,pointRadius:5,tension:.1}
+        {label:'Terreno (msnm)', data:terrenoPts, borderColor:'#8B7355', backgroundColor:'rgba(139,115,85,.1)', borderWidth:2, pointRadius:4, tension:.3},
+        {label:'Plantilla colector (msnm)', data:plantilla, borderColor:getComputedStyle(document.documentElement).getPropertyValue('--teal').trim()||'#01696F', backgroundColor:'rgba(1,105,111,.1)', borderWidth:2.5, pointRadius:5, tension:.1}
       ]
     },
     options:{
       responsive:true,
       plugins:{
         legend:{position:'top'},
-        title:{display:true,text:`Perfil Hidráulico — DN${DN} (Di=${Di_mm.toFixed(0)} mm) S_mín=${(S_min*100).toFixed(3)}%`}
+        title:{display:true, text:'Perfil Hidráulico — DN' + DN + ' (Di=' + Di_mm.toFixed(0) + ' mm) S_dis=' + (S_dis*100).toFixed(3) + '% | S_ter=' + Ster_pct.toFixed(2) + '%'}
       },
-      scales:{y:{title:{display:true,text:'Cota (msnm)'}},x:{title:{display:true,text:'Pozos de Visita'}}}
+      scales:{
+        y:{title:{display:true, text:'Cota (msnm)'}},
+        x:{title:{display:true, text:'Pozos de Visita'}}
+      }
     }
   });
 }
@@ -3013,7 +3116,7 @@ function calcAgua() {
 
   // 3. Presión admisible
   const P_adm_kgcm2 = PN * fTemp;
-  const P_adm_mca   = P_adm_kgcm2 * 10;               // 1 kg/cm² ≈ 10 mca
+  const P_adm_mca   = P_adm_kgcm2 * 9.807;            // 1 kgf/cm² = 9.807 mca (exacto — ISO 31)
 
   // Verificación presión
   const popOk  = !isNaN(P_op) && P_op > 0;
