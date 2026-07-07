@@ -1293,9 +1293,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
                 <label style="font-size:.78rem;font-weight:700;color:#92400e">Tipo de relleno (Marston)</label>
                 <select id="cn-relleno" onchange="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.82rem">
                   <option value="0.110,21.0">Arcilla plástica — λμ=0.110, γ=21 kN/m³</option>
-                  <option value="0.130,19.2" selected>Arcilla ordinaria — λμ=0.130, γ=19.2 kN/m³</option>
+                  <option value="0.130,19.2">Arcilla ordinaria — λμ=0.130, γ=19.2 kN/m³</option>
                   <option value="0.150,19.2">Arena arcillosa — λμ=0.150, γ=19.2 kN/m³</option>
-                  <option value="0.165,17.6">Arena y grava — λμ=0.165, γ=17.6 kN/m³</option>
+                  <option value="0.165,17.6" selected>Arena y grava — λμ=0.165, γ=17.6 kN/m³</option>
                   <option value="0.192,19.0">Arena sin cohesión — λμ=0.192, γ=19.0 kN/m³</option>
                 </select>
               </div>
@@ -3962,6 +3962,9 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     if(isNaN(hr)||hr<=0||isNaN(b)||b<=0) return;
 
     var D = DN / 1000; // m (diámetro interior en metros)
+    // Bc = diámetro exterior (NMX-C-402: e estimada = 0.1×D + 0.04 m)
+    var e_est = 0.1 * D + 0.04;         // m espesor pared estimado
+    var Bc    = D + 2 * e_est;          // m diámetro exterior (para Marston terraplén)
 
     // — 1. Coeficiente de Marston Cz (instalación en zanja) —
     //    W_c = Cd · γ · Bd²  (kN/m)  — Fórmula Marston NMX-C-402
@@ -3970,7 +3973,7 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     var Cz    = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
 
     var qr_zanja    = Cz * gamma * hr * b;           // kN/m (Marston zanja: Wc = Cd·γ·hr·b  SCT M-PRY-CAR-4-01-003-16 pg5)
-    var qr_terraplen = gamma * hr * D;               // kN/m (Marston terraplén simplificado)
+    var qr_terraplen = gamma * hr * Bc;              // kN/m (Marston terraplén: Wc = γ·H·Bc — Bc=diámetro exterior NMX-C-402)
 
     // Tomar el menor (conservador según ATHA: debe compararse y tomarse el menor)
     var qr = (tipo === 'terraplen') ? qr_terraplen : qr_zanja;
@@ -3995,9 +3998,9 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     ];
     var gradoSel = null;
     for(var i=0;i<grados.length;i++){
-      // Criterio: M_grieta >= q_calc (con γ_seg ya aplicado)
-      // Si γ_seg=1.0 comparamos con M_grieta, si γ_seg=1.5 con M_rupt
-      var umbral = (gamSeg >= 1.4) ? grados[i].M_r : grados[i].M_g;
+      // Criterio NMX-C-402: M_grieta >= q_calc (γ_seg ya está aplicado en q_calc)
+      // SIEMPRE se compara contra M_grieta — γ_seg no cambia el umbral de referencia
+      var umbral = grados[i].M_g;
       if(umbral >= qCalc) { gradoSel = grados[i]; break; }
     }
 
@@ -4005,8 +4008,8 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     //    Según ATHA: b_min = De + 0.40 m (para DN <= 600mm)
     //                 b_min = De + 0.50 m (para DN > 600mm)
     //    De estimado: De ≈ D + 2·e  con e ≈ 0.1·D + 0.04 m (aprox. para concreto reforzado)
-    var e_pared = 0.1 * D + 0.04; // m (espesor pared estimado)
-    var De = D + 2 * e_pared;      // m diámetro exterior estimado
+    var e_pared = e_est;              // m espesor pared (ya calculado)
+    var De = Bc;                    // m diámetro exterior (= Bc ya calculado)
     var bMin = De + (DN <= 600 ? 0.40 : 0.50);
     var bOpt = De + (DN <= 600 ? 0.60 : 0.75);
 
@@ -4034,11 +4037,11 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     proc.push('▶ hr=' + hr + ' m | b=' + b + ' m | γ=' + gamma + ' kN/m³ | λμ\u2019=' + lamu);
     proc.push('▶ Cz Marston = [1-e^(' + (2*lamu*hr/b).toFixed(3) + ')] / (2×' + lamu + '×' + (hr/b).toFixed(3) + ') = <b>' + Cz.toFixed(4) + '</b>');
     proc.push('▶ q_relleno (Marston zanja) = Cz·γ·hr·b = ' + Cz.toFixed(4) + ' × ' + gamma + ' × ' + hr + ' × ' + b + ' = <b>' + qr_zanja.toFixed(2) + ' kN/m</b>  [SCT M-PRY-CAR-4-01-003-16]');
-    if(tipo === 'terraplen') proc.push('▶ q_terraplén = γ·hr·D = ' + gamma + '×' + hr + '×' + D.toFixed(3) + ' = <b>' + qr_terraplen.toFixed(2) + ' kN/m</b> | Adoptado (menor): <b>' + qr.toFixed(2) + ' kN/m</b>');
+    if(tipo === 'terraplen') proc.push('▶ q_terraplén = γ·hr·Bc = ' + gamma + '×' + hr + '×' + Bc.toFixed(3) + ' = <b>' + qr_terraplen.toFixed(2) + ' kN/m</b> (Bc=diám. exterior) | Adoptado (menor): <b>' + qr.toFixed(2) + ' kN/m</b>');
     proc.push('▶ q_tráfico = ' + qTraf + ' kN/m | q_TOTAL = ' + qr.toFixed(2) + ' + ' + qTraf + ' = <b>' + qTotal.toFixed(2) + ' kN/m</b>');
     proc.push('▶ Fa (factor apoyo) = ' + Fa + ' | γ_seg = ' + gamSeg);
     proc.push('▶ <b>Carga cálculo = q_total × γ_seg / (Fa × D)</b> = ' + qTotal.toFixed(2) + ' × ' + gamSeg + ' / (' + Fa + ' × ' + D.toFixed(3) + ') = <b>' + qCalc.toFixed(1) + ' N/m/mm</b>');
-    proc.push('▶ Criterio NMX: M_' + (gamSeg>=1.4?'rupt':'grieta') + ' ≥ ' + qCalc.toFixed(1) + ' N/m/mm → <b>Grado ' + (gradoSel ? gradoSel.g : '> 4') + '</b>');
+    proc.push('▶ Criterio NMX-C-402: M_grieta ≥ ' + qCalc.toFixed(1) + ' N/m/mm (γ_seg ya aplicado en q_calc) → <b>Grado ' + (gradoSel ? gradoSel.g : '> 4') + '</b>');
     document.getElementById('cn-proceso').innerHTML = proc.join('<br>');
 
     // Tabla de grados
@@ -4047,7 +4050,7 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
       tbody.innerHTML = '';
       var astmMap = {'1':'I / II','2':'III','3':'IV','4':'V'};
       grados.forEach(function(g){
-        var umbral = (gamSeg >= 1.4) ? g.M_r : g.M_g;
+        var umbral = g.M_g;  // NMX-C-402: siempre M_grieta
         var ok = (umbral >= qCalc);
         var esSel = (gradoSel && g.g === gradoSel.g);
         var bg = esSel ? '#dbeafe' : (ok ? '#f0fdf4' : '#fef2f2');
