@@ -3984,7 +3984,7 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
           '<span style="font-size:.82em">El suelo compactado actúa como estructura auxiliar: resiste ~70–90% de la carga.' +
           ' Límite de deflexión: ≤5% pluvial · ≤3% sanitario.<br>' +
           '<strong style="color:#b45309">⚠️ Cambiar a Concreto (M9) cuando:</strong> H>5m bajo carga H-20/H-25, ' +
-          'DN≥600mm, suelo malo (E'<1400 kPa), o cruce ferroviario/aeronave.</span>';
+          'DN≥600mm, suelo malo (E&#39;&lt;1400 kPa), o cruce ferroviario/aeronave.</span>';
         info.style.color = '#1e40af'; info.style.background = '#eff6ff';
       } else {
         info.innerHTML = '🧱 <strong>Tubería RÍGIDA (Concreto NMX-C-402) — Método Marston</strong><br>' +
@@ -4191,10 +4191,13 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
 
     var D   = INST.diametro / 1000;
     var h   = INST.profundidad;
-    var rho = 1800;
+    // γ suelo = 17.6 kN/m³ (arena/grava, consistente con PS y E' en kPa=kN/m²)
+    // CORRECCIÓN DIMENSIONAL: Iowa usa W_c en kN/m; denominador (0.149·PS+0.061·E') en kPa
+    // Antes: rho=1800 kg/m³ generaba W_c en kg/m → error factor ~102x → deflexión irreal
+    var gamma_iowa = 17.6;  // kN/m³ (peso específico suelo — NMX/ASTM D-2321)
     var B   = D * 2.0;
     var Cd  = Math.min(0.85 * h / B, 1.2);
-    var WC  = rho * B * B * Cd;
+    var WC  = gamma_iowa * B * B * Cd;  // kN/m — Iowa Modificada (Spangler/ASTM D-2321)
     var WL  = INST.cargaViva;
     var DL  = 1.5;
     var K   = 0.1;
@@ -5031,7 +5034,7 @@ function calcM9() {
     var espMsg = '❌ q_calc=' + qCalc.toFixed(1) + ' N/m/mm excede Grado 4 (140) — DISEÑO ESPECIAL requerido (NMX-C-401 Sec. 7). ';
     if(DN < 600 && qTraf >= 48) {
       if(hr <= 4.0) {
-        espMsg += '⚠️ DN<600mm, H≤4m: evaluar HDPE/PVC (PT Corr® NMX-E-241, M8) si suelo E'≥1400kPa. ' +
+        espMsg += '⚠️ DN<600mm, H≤4m: evaluar HDPE/PVC (PT Corr® NMX-E-241, M8) si suelo E&#39;≥1400kPa. ' +
           'Con concreto: activar LRFD + encamado 120° antes de especificar Diseño Especial.';
       } else {
         espMsg += '⚠️ DN<600mm, H>' + hr.toFixed(1) + 'm: HDPE no recomendado a esta profundidad (deflexión excesiva). ' +
@@ -5039,7 +5042,6 @@ function calcM9() {
       }
     } else if(DN >= 600) {
       espMsg += '→ Activar Modo LRFD y optimizar encamado (Bₓ ≥ 2.3) — puede reducir 1–2 grados en H>5m.';
-    }
     }
     if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = espMsg; }
     // ── Tracker: registrar evento Diseño Especial ──────────────────
@@ -5126,7 +5128,7 @@ function calcM9() {
         '<span style="font-size:.82em">' +
         '• Concreto DN&lt;600mm con H-20/H-25 frecuentemente alcanza Grado 3–4 o Diseño Especial por el efecto divisor del diámetro en q<sub>calc</sub>.<br>' +
         '• <strong>Antes de cambiar de material:</strong> activar Modo LRFD (atenúa carga viva a H&gt;2.44m) y optimizar encamado (B<sub>f</sub>≥2.3 concreto 120°).<br>' +
-        '• <strong>HDPE/PVC (M8) es alternativa válida si:</strong> H≤4m, suelo compactable (E'≥1400kPa), carga H-10/H-20, red pluvial/sanitaria.<br>' +
+        '• <strong>HDPE/PVC (M8) es alternativa válida si:</strong> H≤4m, suelo compactable (E&#39;≥1400kPa), carga H-10/H-20, red pluvial/sanitaria.<br>' +
         '• <strong>Mantener Concreto cuando:</strong> H&gt;5m, cruce SCT/SICT, suelo arcilloso, vida útil&gt;50 años, o carga H-25/ferroviaria.' +
         '</span>';
     } else {
@@ -5389,7 +5391,7 @@ function calcSanitario() {
 
   var Ap   = dot * (apPct / 100);
   var Qmed = (Ap * pob) / 86400;
-  var Qmin = Math.max(0.5 * Qmed, 1.0);
+  var Qmin = Math.max(0.5 * Qmed, 1.5);  // SGAPDS-29 Sec.3.1.3: mínimo 1.5 l/s
 
   // Coeficiente de Harmon — SGAPDS-29 Sección 3.1.3.3
   var Pmiles = pob / 1000;
@@ -5439,13 +5441,13 @@ function calcSanitario() {
     '<span class="semaforo ' + semCls + '">' + semMsg + '</span>';
 
   // Cumplimiento
-  var cumpleQ = Qext <= Qtf * 0.80;
+  var cumpleQ = Qext <= Qtf * 0.75;  // SGAPDS-29 Sec.3.1.5: llenado máx 75% para sanitario
   var cumpleV = v >= 0.6 && v <= 5.0;
   document.getElementById('san-cumplimiento').innerHTML =
     '<div style="margin-top:8px;font-size:.85rem">' +
       '<span class="semaforo ' + (cumpleQ ? 'sem-ok' : 'sem-warn') + '">' +
         (cumpleQ ? '✅' : '⚠️') + ' Qmáx.ext (' + Qext.toFixed(2) + ' l/s) ' +
-        (cumpleQ ? '≤' : '>') + ' 80% Qtf (' + (Qtf * 0.80).toFixed(2) + ' l/s)' +
+        (cumpleQ ? '≤' : '>') + ' 75% Qtf (' + (Qtf * 0.75).toFixed(2) + ' l/s) — SGAPDS-29' +
       '</span>&nbsp;' +
       '<span class="semaforo ' + (cumpleV ? 'sem-ok' : 'sem-warn') + '">' +
         (cumpleV ? '✅ SGAPDS-29: Cumple velocidades' : '⚠️ SGAPDS-29: Revisar velocidad') +
@@ -5456,7 +5458,7 @@ function calcSanitario() {
   var tbody = document.getElementById('san-tabla-gastos');
   var filas = [
     ['Qmed — Gasto medio',        'Ap·P / 86400',           Qmed.toFixed(3),   'Ap = dot·(ap/100)'],
-    ['Qmín — Gasto mínimo',       'max(0.5·Qmed, 1.0)',     Qmin.toFixed(3),   'Mín 1.0 l/s (inodoro 6L)'],
+    ['Qmín — Gasto mínimo',       'max(0.5·Qmed, 1.5)',     Qmin.toFixed(3),   'Mín 1.5 l/s (SGAPDS-29 Sec.3.1.3)'],
     ['M — Harmon',                 '1 + 14/(4+√P)',           M.toFixed(3),      'P=' + Pmiles.toFixed(2) + ' miles hab'],
     ['Qmáx.inst — Instantáneo',   'M · Qmed',               Qinst.toFixed(3),  'Pico diurno'],
     ['Qmáx.ext — Extraordinario', 'Cs · Qmáx.inst',         Qext.toFixed(3),   'Cs=' + cs + ' — Gasto de diseño'],
