@@ -2973,6 +2973,15 @@ function calcPozos() {
 // =============================================================
 let chartPerfil = null;
 
+// Límites de velocidad máxima por material — SGAPDS-29 Sec.3.1.2 / NMX-E-215 / NMX-E-241
+// Clave = valor de n Manning (string) usado como selector en pf-mat
+var V_MAX_TABLE = {
+  '0.009': { vmax: 3.0, label: 'PVC liso / Novafort',          ref: 'NMX-E-215 Sec.8.4'       },
+  '0.012': { vmax: 3.0, label: 'PEAD corrugado PT Corr®',      ref: 'NMX-E-241 Sec.7'          },
+  '0.013': { vmax: 5.0, label: 'Concreto reforzado NMX-C-402', ref: 'SGAPDS-29 Sec.3.1.2'     }
+};
+var V_MAX_DEFAULT = { vmax: 3.0, label: 'Material', ref: 'SGAPDS-29' };
+
 /* ─────────────────────────────────────────────────────────────────
    validarSterRealtime()
    Calcula S_mín en tiempo real según DN y material seleccionados,
@@ -3065,23 +3074,45 @@ function validarSterRealtime() {
         ? (((S_min_dec - Ster_pct/100)*1000).toFixed(2) + ' mm/m extra')
         : '') +
       ' respecto al terreno natural.';
-  } else if (delta_pct < S_min_pct * 0.5) {
-    // S_ter OK pero muy justa (margen < 50% del mínimo) — aviso preventivo
-    aviso.classList.add('warn');
-    aviso.innerHTML =
-      '<strong>⚠️ Margen ajustado — pendiente aceptable con precaución</strong>' +
-      'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> supera la mínima <code>' + S_min_str + '%</code> ' +
-      'por solo <code>+' + delta_str + '%</code>. ' +
-      'El diseño seguirá el terreno (✓), pero el margen es menor al 50% de S<sub>mín</sub>. ' +
-      'Verifica nivelación durante construcción — errores de replanteo podrían generar estancamiento.';
   } else {
-    // S_ter ≥ S_mín con buen margen — óptimo
-    aviso.classList.add('ok');
-    aviso.innerHTML =
-      '<strong>✅ Pendiente suficiente</strong> ' +
-      'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> ≥ S<sub>mín</sub> = <code>' + S_min_str + '%</code> ' +
-      '(margen <code>+' + delta_str + '%</code>). ' +
-      'La plantilla seguirá el terreno natural — excavación mínima garantizada.';
+    // S_ter ≥ S_mín — verificar velocidad máxima antes de declarar OK
+    var nKey_val  = document.getElementById('pf-mat') ? document.getElementById('pf-mat').value : '0.009';
+    var vmaxInfo  = V_MAX_TABLE[nKey_val] || V_MAX_DEFAULT;
+    var S_dis_rt  = Math.max(S_min_dec, Ster_pct > 0 ? Ster_pct / 100 : S_min_dec);
+    var vel_rt    = (1 / n) * R23 * Math.pow(S_dis_rt, 0.5);   // v a sección llena (m/s)
+    var vel_str   = vel_rt.toFixed(3);
+    var vmax_str  = vmaxInfo.vmax.toFixed(1);
+
+    if (vel_rt > vmaxInfo.vmax) {
+      // Velocidad excede límite erosivo del material — máxima prioridad entre estados positivos
+      aviso.classList.add('error');
+      aviso.innerHTML =
+        '<strong>🔴 Velocidad máxima excedida — riesgo de erosión</strong>' +
+        'v = <code>' + vel_str + ' m/s</code> &gt; v<sub>máx</sub> = <code>' + vmax_str + ' m/s</code> ' +
+        'para ' + vmaxInfo.label + ' (' + vmaxInfo.ref + '). ' +
+        'Exceso: <code>' + (vel_rt - vmaxInfo.vmax).toFixed(3) + ' m/s</code>. ' +
+        '<strong>Opciones:</strong> aumentar DN, reducir S<sub>ter</sub> ' +
+        (vmaxInfo.vmax < 5.0 ? 'o cambiar a Concreto NMX-C-402 (v<sub>máx</sub>=5.0 m/s)' : '') +
+        '. Ver SGAPDS-29 Sec.3.1.4 — disipadores en pozos de caída.';
+    } else if (delta_pct < S_min_pct * 0.5) {
+      // S_ter OK pero margen < 50% del mínimo — aviso preventivo
+      aviso.classList.add('warn');
+      aviso.innerHTML =
+        '<strong>⚠️ Margen ajustado — pendiente aceptable con precaución</strong>' +
+        'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> supera la mínima <code>' + S_min_str + '%</code> ' +
+        'por solo <code>+' + delta_str + '%</code>. ' +
+        'v = <code>' + vel_str + ' m/s</code> &lt; v<sub>máx</sub> = <code>' + vmax_str + ' m/s</code> (✓). ' +
+        'Verifica nivelación en obra — errores de replanteo podrían generar estancamiento.';
+    } else {
+      // S_ter ≥ S_mín con buen margen y v ≤ v_máx — óptimo
+      aviso.classList.add('ok');
+      aviso.innerHTML =
+        '<strong>✅ Pendiente suficiente</strong> ' +
+        'S<sub>ter</sub> = <code>' + S_ter_str + '%</code> ≥ S<sub>mín</sub> = <code>' + S_min_str + '%</code> ' +
+        '(margen <code>+' + delta_str + '%</code>). ' +
+        'v = <code>' + vel_str + ' m/s</code> ≤ v<sub>máx</sub> = <code>' + vmax_str + ' m/s</code> — ' +
+        'La plantilla seguirá el terreno natural, excavación mínima garantizada.';
+    }
   }
 }
 
@@ -3174,22 +3205,43 @@ function calcPerfil() {
   var resMetricas = document.getElementById('pf-metricas');
   if(resMetricas) {
     var velDis = (1/n) * Math.pow(Di_m/4, 2/3) * Math.pow(S_dis, 0.5);
-    var semCls = hayContrapendiente ? 'sem-bad' : (profExcav[profExcav.length-1] > 4.0 ? 'sem-warn' : 'sem-ok');
+
+    // ── Check velocidad máxima ──────────────────────────────────────
+    var nKey_cp  = nEl ? nEl.value : '0.009';
+    var vMaxCp   = V_MAX_TABLE[nKey_cp] || V_MAX_DEFAULT;
+    var velOkCp  = velDis <= vMaxCp.vmax;
+    var velColor = velOkCp
+      ? (velDis < vMaxCp.vmax * 0.9 ? 'var(--ok,#437A22)' : 'var(--warn,#964219)')
+      : '#b91c1c';
+    // Guardar en STATE para uso futuro en Reporte
+    STATE.perfilData.vmaxInfo = { vmax: vMaxCp.vmax, label: vMaxCp.label, ref: vMaxCp.ref, velDis, velOk: velOkCp };
+
+    var semCls = hayContrapendiente ? 'sem-bad' : (!velOkCp ? 'sem-bad' : (profExcav[profExcav.length-1] > 4.0 ? 'sem-warn' : 'sem-ok'));
     var semMsg = hayContrapendiente
       ? '❌ CONTRAPENDIENTE DETECTADA — revisar trazo'
-      : (sigueTer ? '✅ Sigue terreno (S_dis=S_ter=' + (S_dis*100).toFixed(3) + '%)'
-                  : '⚠️ S_ter < S_min — usando S_mín=' + (S_min*100).toFixed(3) + '%');
+      : (!velOkCp
+          ? '🔴 VELOCIDAD MÁX. EXCEDIDA — ' + velDis.toFixed(3) + ' m/s > ' + vMaxCp.vmax.toFixed(1) + ' m/s (' + vMaxCp.ref + ')'
+          : (sigueTer ? '✅ Sigue terreno (S_dis=S_ter=' + (S_dis*100).toFixed(3) + '%)'
+                      : '⚠️ S_ter < S_min — usando S_mín=' + (S_min*100).toFixed(3) + '%'));
     resMetricas.innerHTML =
       '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px">' +
         '<div class="result-metric"><div class="val">' + (S_min*100).toFixed(4) + '%</div><div class="lbl">S_mín Manning</div></div>' +
         '<div class="result-metric"><div class="val">' + (S_ter*100).toFixed(3) + '%</div><div class="lbl">S_terreno real</div></div>' +
-        '<div class="result-metric"><div class="val" style="color:' + (sigueTer?'var(--ok)':'var(--warn)') + '">' + (S_dis*100).toFixed(3) + '%</div><div class="lbl">S_diseño</div></div>' +
-        '<div class="result-metric"><div class="val">' + velDis.toFixed(3) + ' m/s</div><div class="lbl">Velocidad a tubo lleno</div></div>' +
+        '<div class="result-metric"><div class="val" style="color:' + (sigueTer?'var(--ok,#437A22)':'var(--warn,#964219)') + '">' + (S_dis*100).toFixed(3) + '%</div><div class="lbl">S_diseño</div></div>' +
+        '<div class="result-metric"><div class="val" style="color:' + velColor + '">' + velDis.toFixed(3) + ' m/s</div><div class="lbl">Velocidad a tubo lleno</div></div>' +
+        '<div class="result-metric"><div class="val">' + vMaxCp.vmax.toFixed(1) + ' m/s</div><div class="lbl">V_máx ' + vMaxCp.label.split('/')[0].trim() + '</div></div>' +
         '<div class="result-metric"><div class="val">' + Hmin.toFixed(2) + ' m</div><div class="lbl">Prof. mín. plantilla</div></div>' +
         '<div class="result-metric"><div class="val" style="color:#b91c1c">' + maxProf.toFixed(2) + ' m</div><div class="lbl">Prof. máx. excavación</div></div>' +
       '</div>' +
       '<div class="semaforo ' + semCls + '" style="display:block;margin-bottom:6px">' + semMsg + '</div>' +
       (hayContrapendiente ? '<div style="font-size:.83rem;color:#7f1d1d;background:#fee2e2;padding:8px 12px;border-radius:6px;margin-top:4px">⚠️ La pendiente del terreno es negativa (terreno sube) o la pendiente de diseño genera contrapendiente. Verifica la cota de inicio y la pendiente del terreno ingresada. SGAPDS-29 prohíbe contrapendientes en colectores pluviales y sanitarios.</div>' : '') +
+      (!velOkCp ? '<div style="font-size:.83rem;color:#7f1d1d;background:#fee2e2;padding:8px 12px;border-radius:6px;margin-top:4px">' +
+        '🔴 <strong>Velocidad máxima excedida:</strong> v = ' + velDis.toFixed(3) + ' m/s &gt; v<sub>máx</sub> = ' + vMaxCp.vmax.toFixed(1) + ' m/s para ' + vMaxCp.label + ' (' + vMaxCp.ref + '). ' +
+        'Exceso: ' + (velDis - vMaxCp.vmax).toFixed(3) + ' m/s. ' +
+        '<strong>Opciones:</strong> (1) aumentar DN, (2) reducir S<sub>ter</sub>, ' +
+        (vMaxCp.vmax < 5.0 ? '(3) cambiar a Concreto NMX-C-402 (v<sub>máx</sub>=5.0 m/s), ' : '') +
+        '(4) disipadores de energía en pozos de caída — SGAPDS-29 Sec.3.1.4.' +
+        '</div>' : '') +
       (minProf < Hmin - 0.01 ? '<div style="font-size:.83rem;color:#92400e;background:#fef3c7;padding:8px 12px;border-radius:6px;margin-top:4px">⚠️ Algún pozo tiene profundidad menor a ' + Hmin.toFixed(2) + ' m — ajusta la cota de inicio o la profundidad mínima.</div>' : '');
   }
 
