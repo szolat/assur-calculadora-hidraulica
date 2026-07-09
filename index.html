@@ -2314,6 +2314,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div class="result-metric"><div class="val" id="rep-prof-max">—</div><div class="lbl">Prof. máx. pozo (m)</div></div>
       <div class="result-metric"><div class="val" id="rep-pv-vel">—</div><div class="lbl">Velocidad en colector (m/s)</div></div>
       <div class="result-metric"><div class="val" style="font-size:.9rem" id="rep-pv-caida">—</div><div class="lbl">Estructuras de caída</div></div>
+      <div class="result-metric"><div class="val" id="rep-pv-fs-fl">—</div><div class="lbl">FS Flotación (DD-41)</div></div>
+      <div class="result-metric"><div class="val" style="font-size:.9rem" id="rep-pv-sigma">—</div><div class="lbl">σ radial / σ_adm (DD-20)</div></div>
       <div class="result-metric"><div class="val" id="rep-ap-vel">—</div><div class="lbl">Velocidad AP (m/s)</div></div>
       <div class="result-metric"><div class="val" id="rep-ap-hf100">—</div><div class="lbl">Pérd. AP (m/100m)</div></div>
       <div class="result-metric"><div class="val" id="rep-ap-padm">—</div><div class="lbl">P. admisible AP (kg/cm²)</div></div>
@@ -3651,6 +3653,31 @@ function actualizarReporte() {
   document.getElementById('rep-pv-vel').textContent = STATE.pozos && STATE.pozos.velocidad !== undefined ? STATE.pozos.velocidad.toFixed(3) + ' m/s' : '—';
   document.getElementById('rep-pv-caida').textContent = STATE.pozos && STATE.pozos.tramosConCaida !== undefined
     ? (STATE.pozos.tramosConCaida.length === 0 ? '\u2705 No requeridas' : '\u26a0\ufe0f ' + STATE.pozos.tramosConCaida.length + ' tramo(s) con caída') : '—';
+  // Flotación DD-41
+  if (STATE.pozos && STATE.pozos.flotacion) {
+    const fl = STATE.pozos.flotacion;
+    const fsEl = document.getElementById('rep-pv-fs-fl');
+    if (fsEl) {
+      fsEl.textContent = fl.FS_fl !== undefined ? fl.FS_fl.toFixed(2) : '—';
+      fsEl.style.color = fl.FS_fl === undefined ? '' : fl.FS_fl >= 2.0 ? '#437A22' : fl.FS_fl >= 1.5 ? '#964219' : '#A12C7B';
+    }
+  } else {
+    const fsEl = document.getElementById('rep-pv-fs-fl');
+    if (fsEl) { fsEl.textContent = '—'; fsEl.style.color = ''; }
+  }
+  // Presión lateral DD-20
+  if (STATE.pozos && STATE.pozos.presionLateral) {
+    const pl = STATE.pozos.presionLateral;
+    const sigmaEl = document.getElementById('rep-pv-sigma');
+    if (sigmaEl) {
+      const ratio = (pl.sigma_MPa !== undefined && pl.s_adm) ? (pl.sigma_MPa / pl.s_adm) : undefined;
+      sigmaEl.textContent = ratio !== undefined ? pl.sigma_MPa.toFixed(2) + ' / ' + pl.s_adm.toFixed(2) + ' MPa' : '—';
+      sigmaEl.style.color = ratio === undefined ? '' : ratio <= 1.0 ? '#437A22' : '#A12C7B';
+    }
+  } else {
+    const sigmaEl = document.getElementById('rep-pv-sigma');
+    if (sigmaEl) { sigmaEl.textContent = '—'; sigmaEl.style.color = ''; }
+  }
 
   const vel = STATE.manning ? (STATE.manning.v_proy !== undefined ? STATE.manning.v_proy : 0.6) : null;
   document.getElementById('rep-vel').textContent = vel ? vel.toFixed(3) : '—';
@@ -3986,6 +4013,84 @@ function generarPDF() {
       ['Estructuras de caída', p.tramosConCaida !== undefined ? (p.tramosConCaida.length===0 ? 'No se requieren (desniveles <= 0.60 m)' : p.tramosConCaida.length+' tramo(s) requieren estructura de caída') : 'N/D']
     ];
     y = pdfTable(doc, rows4, y, W, M, INK);
+    y += 2;
+
+    // --- SUB-SECCION: Flotación (ACPA DD-41) ---
+    if(p.flotacion) {
+      const fl = p.flotacion;
+      if(y > 240) { doc.addPage(); y = 20; }
+      doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.setTextColor(...TEALD);
+      doc.text('Flotación del Pozo (ACPA DD-41)  —  FS ≥ 2.0', M, y+5);
+      y += 9;
+      // Semaforo de FS
+      const fsVal = fl.FS_fl !== undefined ? fl.FS_fl : null;
+      const fsStr = fsVal !== null ? fsVal.toFixed(2) : 'N/D';
+      const fsColor = fsVal === null ? INK : fsVal >= 2.0 ? [67,122,34] : fsVal >= 1.5 ? [150,66,25] : [161,44,123];
+      const fsLabel = fsVal === null ? '' : fsVal >= 2.0 ? ' ✔ CUMPLE' : fsVal >= 1.5 ? ' ⚠ PRECAUCION' : ' ✖ NO CUMPLE';
+      const rowsFL = [
+        ['W_estructura (peso propio)', fl.Wpz !== undefined ? fl.Wpz.toFixed(2)+' kN' : 'N/D'],
+        ['R_deslizamiento (fricción suelo)', fl.R_slide !== undefined ? fl.R_slide.toFixed(2)+' kN' : 'N/D'],
+        ['B_boyante (empuje hidrostático)', fl.B !== undefined ? fl.B.toFixed(2)+' kN' : 'N/D'],
+        ['H_sub (profundidad saturada)', fl.H_sub !== undefined ? fl.H_sub.toFixed(2)+' m' : 'N/D'],
+        ['FS flotación = (W+R) / B', fsStr + fsLabel]
+      ];
+      // Dibujar tabla con color en ultima fila según semaforo
+      rowsFL.forEach((row, ri) => {
+        if(y > 268) { doc.addPage(); y = 20; }
+        const bg = ri % 2 === 0 ? [248,248,248] : [255,255,255];
+        doc.setFillColor(...bg);
+        doc.rect(M, y, W-2*M, 6, 'F');
+        doc.setFontSize(8); doc.setFont('helvetica','normal');
+        if(ri === rowsFL.length-1) {
+          doc.setTextColor(...fsColor); doc.setFont('helvetica','bold');
+        } else {
+          doc.setTextColor(...INK);
+        }
+        doc.text(row[0], M+2, y+4.2);
+        doc.text(String(row[1]), M+80, y+4.2);
+        y += 6;
+      });
+      doc.setTextColor(...INK);
+      y += 3;
+    }
+
+    // --- SUB-SECCION: Presión Lateral de Suelo (ACPA DD-20) ---
+    if(p.presionLateral) {
+      const pl = p.presionLateral;
+      if(y > 240) { doc.addPage(); y = 20; }
+      doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.setTextColor(...TEALD);
+      doc.text('Presión Lateral de Suelo (ACPA DD-20)', M, y+5);
+      y += 9;
+      const ratio = (pl.sigma_MPa !== undefined && pl.s_adm) ? pl.sigma_MPa / pl.s_adm : null;
+      const sigColor = ratio === null ? INK : ratio <= 1.0 ? [67,122,34] : [161,44,123];
+      const sigLabel = ratio === null ? '' : ratio <= 1.0 ? ' ✔ CUMPLE' : ' ✖ NO CUMPLE';
+      const rowsPL = [
+        ['p lateral (kPa)', pl.p_kPa !== undefined ? pl.p_kPa.toFixed(2)+' kPa' : 'N/D'],
+        ['σ radial calculada', pl.sigma_MPa !== undefined ? pl.sigma_MPa.toFixed(3)+' MPa' : 'N/D'],
+        ['σ_adm = 0.45 f\'c (ASTM C478)', pl.s_adm !== undefined ? pl.s_adm.toFixed(2)+' MPa' : 'N/D'],
+        ['H_max estructural', pl.H_max_str !== undefined ? pl.H_max_str.toFixed(2)+' m' : 'N/D'],
+        ['σ / σ_adm', ratio !== null ? ratio.toFixed(3) + sigLabel : 'N/D']
+      ];
+      rowsPL.forEach((row, ri) => {
+        if(y > 268) { doc.addPage(); y = 20; }
+        const bg = ri % 2 === 0 ? [248,248,248] : [255,255,255];
+        doc.setFillColor(...bg);
+        doc.rect(M, y, W-2*M, 6, 'F');
+        doc.setFontSize(8); doc.setFont('helvetica','normal');
+        if(ri === rowsPL.length-1) {
+          doc.setTextColor(...sigColor); doc.setFont('helvetica','bold');
+        } else {
+          doc.setTextColor(...INK);
+        }
+        doc.text(row[0], M+2, y+4.2);
+        doc.text(String(row[1]), M+80, y+4.2);
+        y += 6;
+      });
+      doc.setTextColor(...INK);
+      y += 3;
+    }
 
     // Tabla de profundidades por PV
     if(p.pvRows && p.pvRows.length > 0) {
