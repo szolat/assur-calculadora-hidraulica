@@ -2469,6 +2469,19 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div id="rep-san-sem" style="margin-top:6px"></div>
     </div>
 
+
+    <!-- M10 Jacking en Reporte -->
+    <div style="margin-top:12px;padding:12px;background:#eff6ff;border-radius:8px;border:1.5px solid #93c5fd" id="rep-m10-wrap">
+      <div style="font-size:.82rem;font-weight:700;color:#1d4ed8;margin-bottom:8px">🔩 Jacking — Instalación sin Zanja (ACPA DD4 / ASCE 27-00)</div>
+      <div class="result-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
+        <div class="result-metric"><div class="val" id="rep-m10-wt">—</div><div class="lbl">Carga Wt (kN/m)</div></div>
+        <div class="result-metric"><div class="val" id="rep-m10-dload">—</div><div class="lbl">D-load (lb/ft/ft)</div></div>
+        <div class="result-metric"><div class="val" id="rep-m10-pmax">—</div><div class="lbl">P_máx axial (kN)</div></div>
+        <div class="result-metric"><div class="val" id="rep-m10-fj">—</div><div class="lbl">fJ allowable (MPa)</div></div>
+      </div>
+      <div id="rep-m10-badges" style="margin-top:8px"></div>
+    </div>
+
     <div style="margin-top:14px" id="rep-sediment-wrap">
       <div style="font-size:.8rem;font-weight:700;color:var(--teal-d);margin-bottom:5px">Riesgo de Sedimentación Global</div>
       <div id="rep-sediment">—</div>
@@ -2508,6 +2521,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <tr class="compliance-row"><td>EN 1433</td><td id="cn-en1433">—</td><td>Cap. canal ≥ Qm diseño</td><td id="cn-en1433-nota">Sin calcular</td></tr>
           <tr class="compliance-row"><td>NMX-E-215</td><td id="cn-nmx">—</td><td>Velocidad ∈ [0.6, 3.0] m/s</td><td id="cn-nmx-nota">Sin calcular</td></tr>
           <tr class="compliance-row"><td>NOM-086-SEMARNAT</td><td id="cn-nom">—</td><td>Espaciado ≤ máx. normativo</td><td id="cn-nom-nota">Sin calcular</td></tr>
+          <tr class="compliance-row"><td>NMX-C-402 / ASTM C76M-22A</td><td id="cn-m10">—</td><td>D-load → Clase ASTM C76M-22A (I a V)</td><td id="cn-m10-nota">Sin calcular</td></tr>
           <tr class="compliance-row"><td>ISO 16422 / NMX-E-258</td><td id="cn-iso16422">—</td><td>Presión operación ≤ PN admisible · Velocidad 0.6–2.5 m/s</td><td id="cn-iso16422-nota">Sin calcular</td></tr>
         </tbody>
       </table>
@@ -2656,7 +2670,8 @@ const STATE = {
   perfilData: null,
   agua: null,
   sanitario: null,
-  instalacion: null
+  instalacion: null,
+  m10: null
 };
 
 // =============================================================
@@ -3723,6 +3738,27 @@ function actualizarReporte() {
     }
   });
 
+
+  // Módulo M10 Jacking en Reporte
+  if(STATE.m10) {
+    var m = STATE.m10;
+    document.getElementById('rep-m10-wt').textContent    = m.Wt_kNm.toFixed(2);
+    document.getElementById('rep-m10-dload').textContent = m.Dload.toFixed(0);
+    document.getElementById('rep-m10-pmax').textContent  = m.Pmax_kN.toFixed(1);
+    document.getElementById('rep-m10-fj').textContent    = m.fJ_MPa.toFixed(2);
+    var colores = {I:'#059669',II:'#0891b2',III:'#7c3aed',IV:'#d97706',V:'#dc2626'};
+    var col = m.claseASTM ? (colores[m.claseASTM] || '#374151') : '#374151';
+    var badgeHtml2 = m.claseASTM
+      ? '<span style="display:inline-block;padding:3px 12px;border-radius:12px;font-weight:800;font-size:.78rem;color:#fff;background:'+col+';margin-right:6px">ASTM C76M-22A Clase '+m.claseASTM+'</span>'
+      : '<span style="display:inline-block;padding:3px 12px;border-radius:12px;font-weight:800;font-size:.78rem;color:#fff;background:#991b1b">D-load > 3000 — Diseño Especial</span>';
+    if(m.gradoNMX) badgeHtml2 += '<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-weight:700;font-size:.76rem;background:#f0fdf4;color:#166534;border:1.5px solid #86efac">Grado NMX '+m.gradoNMX+'</span>';
+    document.getElementById('rep-m10-badges').innerHTML = badgeHtml2;
+  } else {
+    ['rep-m10-wt','rep-m10-dload','rep-m10-pmax','rep-m10-fj'].forEach(function(id){
+      document.getElementById(id).textContent = '— Sin calcular';
+    });
+  }
+
   // Nota consolidada de sedimentación
   (function() {
     // Recopila velocidades disponibles de módulos calculados (solo drenaje gravitacional)
@@ -3784,6 +3820,17 @@ function updateCompliance() {
     const ok = p.esp <= p.pozoInfo.espMax;
     setCN('nom', ok, ok ? `Esp ${p.esp}m ≤ máx ${p.pozoInfo.espMax}m (${p.pozoInfo.tipo})` : `Esp ${p.esp}m > máx ${p.pozoInfo.espMax}m`);
   } else { setCN('nom', null, 'Sin calcular'); }
+
+
+  // NMX-C-402 / ASTM C76M-22A (Jacking M10)
+  if(STATE.m10) {
+    var mx = STATE.m10;
+    var okM10 = mx.claseASTM !== null && mx.Dload <= 3000;
+    var notaM10 = mx.claseASTM
+      ? 'DN' + mx.DN + 'mm, D-load=' + mx.Dload.toFixed(0) + ' lb/ft/ft → Clase ' + mx.claseASTM + ' ASTM C76M-22A (Grado NMX-' + (mx.gradoNMX || '—') + ')'
+      : 'D-load=' + mx.Dload.toFixed(0) + ' lb/ft/ft > 3000 — Requiere Diseño Especial';
+    setCN('m10', okM10, notaM10);
+  } else { setCN('m10', null, 'Sin calcular'); }
 
   // ISO 16422 / NMX-E-258 (Agua a Presión)
   if(STATE.agua) {
@@ -4014,6 +4061,35 @@ function generarPDF() {
     y += 4;
   }
 
+
+  // SECCIÓN M10 — JACKING (ACPA DD4 / ASCE 27-00)
+  if(STATE.m10) {
+    var mx = STATE.m10;
+    y = pdfSection(doc, '9. Jacking — Instalación sin Zanja (ACPA DD4 / ASCE 27-00)', y, W, M, TEAL, TEALD, INK);
+    var rowsM10 = [
+      ['Diámetro nominal DN', mx.DN + ' mm'],
+      ['Espesor de pared e', mx.e_mm + ' mm'],
+      ['Diámetro exterior Do', (mx.DN + 2*mx.e_mm) + ' mm'],
+      ['Resistencia f'c', mx.fc_MPa + ' MPa (' + (mx.fc_MPa * 145.038).toFixed(0) + ' psi)'],
+      ['Longitud de jacking L', mx.L + ' m'],
+      ['Altura de relleno H', mx.H + ' m'],
+      ['Ancho excavación Bt', mx.Bt + ' m'],
+      ['Método de instalación', mx.metodo === 'micro' ? 'Microtunneling (DN<914mm)' : 'TBM / Escudo (DN>=914mm)'],
+      ['Coef. Marston Ct', mx.Ct.toFixed(4)],
+      ['Carga tierra Wt (DD4 Ec.3)', mx.Wt_kNm.toFixed(2) + ' kN/m'],
+      ['Bedding factor Bf', mx.Bf + (mx.Bf >= 3.0 ? ' (con lechada anular)' : ' (sin lechada anular)')],
+      ['Factor de seguridad FS', mx.FS],
+      ['D-load requerido (DD4 Ec.4)', mx.Dload.toFixed(0) + ' lb/ft/ft'],
+      ['Clase ASTM C76M-22A', mx.claseASTM ? 'Clase ' + mx.claseASTM : 'DISEÑO ESPECIAL (D-load > 3000)'],
+      ['Grado NMX-C-402', mx.gradoNMX ? 'Grado ' + mx.gradoNMX : 'Fuera de catálogo — Diseño Especial'],
+      ['Esfuerzo allowable fJ (ASCE Ec.1)', mx.fJ_MPa.toFixed(2) + ' MPa (phi=0.9, LF_J=1.2)'],
+      ['Empuje axial máx. P_max (ASCE Ec.2)', mx.Pmax_kN.toFixed(1) + ' kN'],
+      ['Cohesión suelo', mx.useCoh ? 'Incluida' : 'Ignorada (conservador, recomendado ASCE 27-00)']
+    ];
+    y = pdfTable(doc, rowsM10, y, W, M, INK);
+    y += 4;
+  }
+
   // TABLA CUMPLIMIENTO
   if(y > 240) { doc.addPage(); y = 20; }
   y = pdfSection(doc, 'Panel de Cumplimiento Normativo', y, W, M, TEAL, TEALD, INK);
@@ -4034,6 +4110,9 @@ function generarPDF() {
     {norma:'ISO 16422 / NMX-E-258', calculado: !!STATE.agua,
      ok: STATE.agua ? STATE.agua.isoOk : false,
      nota: STATE.agua ? `v=${STATE.agua.v.toFixed(3)} m/s, P_adm=${STATE.agua.P_adm_kgcm2.toFixed(2)} kg/cm²` : 'Sin calcular'},
+{norma:'NMX-C-402 / ASTM C76M-22A', calculado: !!STATE.m10,
+     ok: STATE.m10 ? (STATE.m10.claseASTM !== null && STATE.m10.Dload <= 3000) : false,
+     nota: STATE.m10 ? (STATE.m10.claseASTM ? 'D-load=' + STATE.m10.Dload.toFixed(0) + ' lb/ft/ft → Clase ' + STATE.m10.claseASTM + ' (Grado NMX ' + (STATE.m10.gradoNMX || '—') + ')' : 'D-load > 3000 — Diseño Especial') : 'Sin calcular'},
     {norma:'SGAPDS-29 Sanitario (Harmon)', calculado: !!STATE.sanitario,
      ok: STATE.sanitario ? (STATE.sanitario.v>=0.6&&STATE.sanitario.v<=5.0) : false,
      nota: STATE.sanitario ? `M=${STATE.sanitario.M.toFixed(3)}, Qext=${STATE.sanitario.Qext.toFixed(2)} l/s, v=${STATE.sanitario.v.toFixed(3)} m/s` : 'Sin calcular'}
@@ -4072,7 +4151,8 @@ function generarPDF() {
     ['EN 1433', 'Canales de drenaje: clase de carga A15 (peatonal) a F900 (aeropuerto)'],
     ['NMX-E-215 / CONAGUA', 'Manning v=(1/n)*R^(2/3)*S^(1/2) | Velocidades: 0.60-3.0 m/s'],
     ['NOM-086-SEMARNAT', 'Espaciado maximo de pozos segun DN | Pozos de caida si desnivel > 0.60 m'],
-    ['ISO 16422 / NMX-E-258', 'PVC-O a presion | Velocidad 0.6-2.5 m/s | Factor temp. (Anexo C)']
+    ['ISO 16422 / NMX-E-258', 'PVC-O a presion | Velocidad 0.6-2.5 m/s | Factor temp. (Anexo C)'],
+    ['NMX-C-402 / ASTM C76M-22A', 'Jacking: Marston Ct=f(H,Bt,Kmu) | D-load=(Wt/Bf/D)*FS | ACPA DD4 / ASCE 27-00']
   ];
   normaLines.forEach((r, i) => {
     if(y > 268) { doc.addPage(); y = 20; }
@@ -6661,6 +6741,21 @@ function calcM10() {
   setEl('m10-notas', notasHtml);
 
   // Mostrar resultados
+
+  // ── Guardar en STATE global ────────────────────────────────────────
+  STATE.m10 = {
+    DN: DN, e_mm: e_mm, fc_MPa: fc_MPa,
+    L: L, H: H, Bt: Bt,
+    Wt_kNm: Wt_kNm, Dload: Dload,
+    Pmax_kN: Pmax_kN, fJ_MPa: fJ_MPa,
+    Bf: Bf, FS: FS, Ct: Ct,
+    claseASTM: claseASTM ? claseASTM.clase : null,
+    gradoNMX: gradoNMX ? gradoNMX.g : null,
+    metodo: metodo,
+    useCoh: useCoh,
+    suelo: document.getElementById('m10-suelo').value
+  };
+
   var resEl = $('res-m10');
   var phEl  = $('m10-placeholder');
   if(resEl) resEl.style.display = 'block';
