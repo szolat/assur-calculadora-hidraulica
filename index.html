@@ -1908,7 +1908,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
           <!-- ══ Panel ACPA D-load (visible solo si se selecciona Standard Installation) ══ -->
           <div id="m9-acpa-result" style="display:none;margin-top:12px;background:rgba(255,255,255,.12);border:1.5px solid rgba(252,211,77,.5);border-radius:8px;padding:12px">
-            <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fcd34d;margin-bottom:8px">D-load ACPA (Método Indirecto · ASTM C76)</div>
+            <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fcd34d;margin-bottom:8px">D-load ACPA (Método Indirecto · ASTM C76M-22A)</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               <div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">
                 <div style="font-size:1.15rem;font-weight:800;font-family:monospace;color:#fde68a" id="m9-acpa-dload">—</div>
@@ -2020,7 +2020,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
                     <th style="padding:5px 8px">F<sub>m</sub> kN/m<br><span style="font-weight:400;font-size:.68rem">(rotura)</span></th>
                     <th style="padding:5px 8px">f’c<br>(MPa)</th>
                     <th style="padding:5px 8px">Equiv.<br>NMX-C-402</th>
-                    <th style="padding:5px 8px">Equiv.<br>ASTM C76M</th>
+                    <th style="padding:5px 8px">Equiv.<br>ASTM C76M-22A</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2136,6 +2136,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <li><strong>N·CMT·3·02/04 SICT/IMT</strong> — Norma para tubos de concreto reforzado en carreteras federales (Clases 1–4, Pared A/B)</li>
             <li><strong>M-PRY-CAR-4-01-003-16 SICT/IMT</strong> — Manual de diseño estructural obras de drenaje (Factor encamado Bₓ, Marston, ejemplo DN 1520mm)</li>
             <li><strong>M-PRY-CAR-4-01-002-16 SICT/IMT</strong> — Manual de diseño hidráulico obras menores (periodos retorno, Manning)</li>
+            <li><strong>ASTM C76M-22A (sept. 2022)</strong> — Especificación tubería concreto reforzado, sistema métrico — 5 clases D-load (N/m/mm)</li>
             <li><strong>ATHA 2013 (UNE-127916)</strong> — Fichas de cálculo mecánico tubos hormigón</li>
           </ul>
         </div>
@@ -5669,7 +5670,7 @@ function calcM9() {
   var BFO_TABLE = {1: 2.3, 2: 1.9, 3: 1.7, 4: 1.5};
   // VAF por tipo (Ill. 4.6)
   var VAF_TABLE = {1: 1.35, 2: 1.40, 3: 1.40, 4: 1.45};
-  // Clase ASTM C76 por D-load (D0.01 crack lb/ft/ft)
+  // Clase ASTM C76M-22A por D-load (D0.01 crack lb/ft/ft)
   var ASTM_CLASSES = [
     {cls:'I',   D001:800,  Dult:1200},
     {cls:'II',  D001:1000, Dult:1500},
