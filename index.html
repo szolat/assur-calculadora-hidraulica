@@ -4649,16 +4649,18 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
       ok: ok, anchoMin: anchoMin, anchoOpt: anchoOpt, tubo: INST.tubo
     };
 
-    // ── Aviso dinámico en inst-tubo-info: DN grande o H > 5m ──
+    // ── Aviso dinámico en inst-tubo-info: DN grande, H > 5m o suelo Clase III/IV ──
     var infoEl = document.getElementById('inst-tubo-info');
     if(infoEl && FLEX.includes(INST.tubo)){
-      var dn      = INST.diametro;
+      var dn       = INST.diametro;
       var dnGrande = dn >= 600;
       var hCritica = h > 5.0;
-      if(dnGrande || hCritica){
+      var sueloCrit= ['III','IV'].includes(INST.clase);
+      if(dnGrande || hCritica || sueloCrit){
         var motivos = [];
         if(hCritica)  motivos.push('H = ' + h.toFixed(1) + ' m > 5 m');
         if(dnGrande)  motivos.push('DN = ' + dn + ' mm ≥ 600 mm');
+        if(sueloCrit) motivos.push('Suelo Clase ' + INST.clase + ' (inadecuado para Iowa)');
         infoEl.style.color      = '#78350f';
         infoEl.style.background = '#fef3c7';
         infoEl.style.border     = '1.5px solid #fbbf24';
