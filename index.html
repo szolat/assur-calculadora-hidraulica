@@ -1926,6 +1926,10 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
                 <div style="font-size:.95rem;font-weight:700;font-family:monospace;color:#93c5fd" id="m9-acpa-vaf">—</div>
                 <div style="font-size:.65rem;opacity:.8;margin-top:2px">VAF × PL (carga prisma)</div>
               </div>
+              <div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">
+                <div style="font-size:.95rem;font-weight:700;font-family:monospace;color:#f9a8d4" id="m9-acpa-wf">—</div>
+                <div style="font-size:.65rem;opacity:.8;margin-top:2px">W<sub>F</sub> fluido γ<sub>w</sub>=9.807 kN/m³</div>
+              </div>
             </div>
             <div id="m9-acpa-info" style="font-size:.68rem;color:rgba(255,255,255,.7);margin-top:6px;line-height:1.6"></div>
           </div>
@@ -5730,6 +5734,14 @@ function calcM9() {
     var WE_lb = qr * kN_lbft;
     var WL_lb = qTrafEfectiva * kN_lbft;
 
+    // Carga de fluido WF (AASHTO LRFD 12.12.3.6 / ACPA Cap.4)
+    // WF = γw × A_interior   [γw = 9.807 kN/m³ = 62.4 lb/ft³]
+    var gammaW_pcf = 62.4;            // lb/ft³ (agua limpia)
+    var Di_ft      = (DN / 1000) * 3.28084;  // diámetro interior en ft
+    var Ai_ft2     = Math.PI * Di_ft * Di_ft / 4;  // área sección interior ft²
+    var WF_lb      = gammaW_pcf * Ai_ft2;  // lb/ft (carga fluido interior)
+    var WF_kN      = WF_lb / kN_lbft;     // kN/m (para mostrar en SI)
+
     // Prism load PL (Eq. 4.2) en lb/ft
     var gamma_pcf2 = gamma * 6.36587;  // kN/m³ → lb/ft³
     var Do_ft2    = Bc * 3.28084;       // m → ft
@@ -5737,10 +5749,11 @@ function calcM9() {
     var PL_lb     = gamma_pcf2 * (H_ft2 + Do_ft2 * (4 - Math.PI) / 8) * Do_ft2;
     var W_vaf_lb  = vaf * PL_lb;        // W = VAF × PL (Eq. 4.1)
 
-    // D-load (Eq. 4.24)
+    // D-load (Eq. 4.24) incluyendo WF — AASHTO: siempre incluir peso fluido
+    // D-load = [(WE+WF)/Bf + WL/BfLL] × FS / D
     var D_ft2  = DN / 304.8;
     var FS_a   = 1.5;
-    var Dload  = ((WE_lb / bf_earth) + (WL_lb / bf_live)) * FS_a / D_ft2;
+    var Dload  = (((WE_lb + WF_lb) / bf_earth) + (WL_lb / bf_live)) * FS_a / D_ft2;
 
     // Clase ASTM C76
     var astmCls = null;
@@ -5760,11 +5773,13 @@ function calcM9() {
         ' | B<sub>f</sub>=' + bf_earth.toFixed(2));
       setEl('m9-acpa-vaf',
         'VAF=' + vaf + ' | W=' + (W_vaf_lb/kN_lbft).toFixed(1) + ' kN/m');
+      setEl('m9-acpa-wf',
+        WF_kN.toFixed(2) + ' kN/m (' + WF_lb.toFixed(0) + ' lb/ft)');
       var infoTxt = [
         'Tipo ' + acpaT + ' SIDD &nbsp;·&nbsp; DN=' + DN + 'mm (' + DN_in.toFixed(0) + '&quot;) &nbsp;·&nbsp; H=' + hr + 'm (' + H_ft2.toFixed(1) + 'ft)',
-        'W<sub>E</sub>=' + WE_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; W<sub>L</sub>=' + WL_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; B<sub>fLL</sub>=' + bfll_efectivo.toFixed(1) + ' (Illus.4.25)',
-        'PL=' + PL_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; W<sub>VAF×PL</sub>=' + W_vaf_lb.toFixed(0) + 'lb/ft [Eq.4.1]',
-        'D-load = [(' + WE_lb.toFixed(0) + '/' + bf_earth.toFixed(2) + ')+(' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ')]×' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b>'
+        'W<sub>E</sub>=' + WE_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; W<sub>F</sub>=' + WF_lb.toFixed(0) + 'lb/ft (γ<sub>w</sub>=62.4 lb/ft³) &nbsp;·&nbsp; W<sub>L</sub>=' + WL_lb.toFixed(0) + 'lb/ft',
+        'B<sub>f</sub>=' + bf_earth.toFixed(2) + ' &nbsp;·&nbsp; B<sub>fLL</sub>=' + bfll_efectivo.toFixed(1) + ' (Illus.4.25) &nbsp;·&nbsp; PL=' + PL_lb.toFixed(0) + 'lb/ft [Eq.4.2]',
+        'D-load = [(' + WE_lb.toFixed(0) + '+' + WF_lb.toFixed(0) + ')/' + bf_earth.toFixed(2) + '+' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ']×' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b>'
       ];
       setEl('m9-acpa-info', infoTxt.join('<br>'));
     }
@@ -5778,7 +5793,8 @@ function calcM9() {
     proc.push('  B<sub>fe</sub>=' + bfe.toFixed(2) + ' (Illus.4.22) &nbsp;|&nbsp; B<sub>fo</sub>=' + bfo + ' (Illus.4.23) &nbsp;|&nbsp; VAF=' + vaf + ' (Illus.4.6)');
     proc.push('  B<sub>f</sub>usado=' + bf_earth.toFixed(2) + ' (' + (tipo==='terraplen'?'terraplén=B<sub>fe</sub>':'zanja=B<sub>fo</sub>') + ') &nbsp;|&nbsp; B<sub>fLL</sub>=' + bfll_efectivo.toFixed(1) + ' (Illus.4.25)');
     proc.push('  PL (Eq.4.2)=' + (PL_lb/kN_lbft).toFixed(2) + ' kN/m &nbsp;|&nbsp; W=VAF×PL=' + (W_vaf_lb/kN_lbft).toFixed(2) + ' kN/m (Eq.4.1)');
-    proc.push('  D-load requerido = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b> → ' + (astmCls ? 'Clase ' + astmCls.cls + ' ASTM C76' : '⚠️ Especial (>Clase V)'));
+    proc.push('  W<sub>F</sub> fluido=γw×A<sub>i</sub> = 9.807×π×(' + (DN/1000).toFixed(3) + ')²/4 = <b>' + WF_kN.toFixed(2) + ' kN/m</b> (AASHTO LRFD 12.12.3.6)');
+    proc.push('  D-load = [(W<sub>E</sub>+W<sub>F</sub>)/B<sub>f</sub> + W<sub>L</sub>/B<sub>fLL</sub>]×FS/D = [(' + WE_lb.toFixed(0) + '+' + WF_lb.toFixed(0) + ')/' + bf_earth.toFixed(2) + '+' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ']×' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b> → ' + (astmCls ? 'Clase ' + astmCls.cls + ' ASTM C76' : '⚠️ Especial (>Clase V)'));
     // Re-render proceso con datos ACPA
     var proEl2 = document.getElementById('m9-proceso');
     if(proEl2) proEl2.innerHTML = proc.join('<br>');
