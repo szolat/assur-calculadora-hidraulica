@@ -4648,6 +4648,41 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
       clase: INST.clase, E: E_, defl: dPct, deflMm: dMm, limite: limite,
       ok: ok, anchoMin: anchoMin, anchoOpt: anchoOpt, tubo: INST.tubo
     };
+
+    // ── Aviso dinámico en inst-tubo-info: DN grande o H > 5m ──
+    var infoEl = document.getElementById('inst-tubo-info');
+    if(infoEl && FLEX.includes(INST.tubo)){
+      var dn      = INST.diametro;
+      var dnGrande = dn >= 600;
+      var hCritica = h > 5.0;
+      if(dnGrande || hCritica){
+        var motivos = [];
+        if(hCritica)  motivos.push('H = ' + h.toFixed(1) + ' m > 5 m');
+        if(dnGrande)  motivos.push('DN = ' + dn + ' mm ≥ 600 mm');
+        infoEl.style.color      = '#78350f';
+        infoEl.style.background = '#fef3c7';
+        infoEl.style.border     = '1.5px solid #fbbf24';
+        infoEl.innerHTML =
+          '⚠️ <strong>Condición crítica detectada (' + motivos.join(' · ') + ')</strong><br>'
+          + '<span style="font-size:.72rem;line-height:1.55">'
+          + 'La ecuación de Iowa <u>puede ser insuficiente</u> en estas condiciones. '
+          + 'Se recomienda <strong>cambiar a tubería de concreto NMX-C-402</strong> y diseñar con el Método de Marston + D-load ACPA.'
+          + '</span><br>'
+          + '<button onclick="showTab(\'disenio-concreto\')" '
+          + 'style="margin-top:7px;background:linear-gradient(135deg,#b45309,#d97706);color:#fff;'
+          + 'font-weight:700;font-size:.72rem;padding:5px 14px;border:none;border-radius:5px;cursor:pointer">'
+          + '▶ Ir a Módulo 9 — Diseño Estructural NMX-C-402</button>';
+      } else {
+        // Restaurar info box normal cuando las condiciones son seguras
+        infoEl.style.color      = '#1e40af';
+        infoEl.style.background = '#eff6ff';
+        infoEl.style.border     = '';
+        infoEl.innerHTML =
+          '⚡ Tubería <strong>flexible (HDPE/PVC)</strong> — IOWA Modificada. '
+          + 'El suelo aporta 70–90% de la resistencia. '
+          + 'Para H&gt;5m, DN&gt;600mm o suelo deficiente use el <strong>Módulo 9 — Diseño Concreto</strong>.';
+      }
+    }
   };
 
   document.addEventListener('DOMContentLoaded', function(){
