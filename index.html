@@ -654,6 +654,19 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <label>Pendiente del terreno (%)</label>
         <input type="number" id="pv-pend-terreno" value="0.5" step="0.01" min="0" placeholder="Ej: 0.5">
       </div>
+      <!-- NUEVOS INPUTS FLOTACIÓN / PRESIÓN LATERAL -->
+      <div>
+        <label>Nivel freático N<sub>f</sub> — profundidad desde superficie (m) <span style="color:#78350f;font-weight:700">0 = superficie</span></label>
+        <input type="number" id="pv-nf" value="999" step="0.1" min="0" placeholder="Ej: 2.5 — dejar 999 si no hay N.F.">
+      </div>
+      <div>
+        <label>Peso unitario concreto γ<sub>c</sub> (kN/m³) — pozo prefabricado</label>
+        <input type="number" id="pv-gc" value="23.6" step="0.1" min="15">
+      </div>
+      <div>
+        <label>Espesor pared pozo t<sub>w</sub> (m)</label>
+        <input type="number" id="pv-tw" value="0.15" step="0.01" min="0.05">
+      </div>
     </div>
     <button class="btn btn-primary" onclick="calcPozos()">⚡ Calcular Pozos</button>
 
@@ -684,6 +697,28 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           </div>
         </div>
         <div id="pv-vel-semaforo"></div>
+      </div>
+      <!-- FLOTACIÓN DD-41 / ACPA -->
+      <div id="pv-flotacion-section" style="margin-top:14px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--teal-d);margin-bottom:6px">💧 Análisis de Flotación (ACPA DD-41)</div>
+        <div class="result-grid" style="margin-bottom:8px">
+          <div class="result-metric"><div class="val" id="pv-fl-wpz">—</div><div class="lbl">Peso estructura W (kN)</div></div>
+          <div class="result-metric"><div class="val" id="pv-fl-rslide">—</div><div class="lbl">Resist. desliz. R (kN)</div></div>
+          <div class="result-metric"><div class="val" id="pv-fl-B">—</div><div class="lbl">Fuerza boyante B (kN)</div></div>
+          <div class="result-metric"><div class="val" id="pv-fl-fs">—</div><div class="lbl">FS flotación (mín 2.0)</div></div>
+        </div>
+        <div id="pv-flotacion-sem"></div>
+      </div>
+      <!-- PRESIÓN LATERAL DD-20 -->
+      <div id="pv-presion-section" style="margin-top:14px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--teal-d);margin-bottom:6px">🕴️ Presión lateral + estrés radial (ACPA DD-20)</div>
+        <div class="result-grid" style="margin-bottom:8px">
+          <div class="result-metric"><div class="val" id="pv-pl-p">—</div><div class="lbl">Presión total p (kPa)</div></div>
+          <div class="result-metric"><div class="val" id="pv-pl-s">—</div><div class="lbl">Estrés radial σ (MPa)</div></div>
+          <div class="result-metric"><div class="val" id="pv-pl-sadm">—</div><div class="lbl">σ<sub>adm</sub> concreto (MPa)</div></div>
+          <div class="result-metric"><div class="val" id="pv-pl-hmax">—</div><div class="lbl">H<sub>máx</sub> estructural (m)</div></div>
+        </div>
+        <div id="pv-presion-sem"></div>
       </div>
       <!-- ANÁLISIS DE POZO DE CAÍDA -->
       <div id="pv-caida-section" style="margin-top:12px">
@@ -2961,13 +2996,14 @@ function getPozoTipo(Di_m) {
   // Caja T1:         240×240 cm,   tubería máx 122 cm
   // Caja T2:         292×242 cm,   tubería máx 152 cm
   // Caja T3:         344×240 cm,   tubería máx 213 cm
-  if(Di_m <= 0.76) return {tipo:"Pozo común",dim:"Ø 1.00 m int (SGAPDS-29 T. 2.30)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
-  if(Di_m <= 1.07) return {tipo:"Pozo especial T1",dim:"Ø 1.50 m int (SGAPDS-29 T. 2.31)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1"};
-  if(Di_m <= 1.22) return {tipo:"Pozo especial T1-B",dim:"Ø 1.80 m int (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1"};
-  if(Di_m <= 1.52) return {tipo:"Pozo especial T2",dim:"Ø 2.00 m int (SGAPDS-29 T. 2.32)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1"};
-  if(Di_m <= 2.13) return {tipo:"Caja T1",dim:"2.40 × 2.40 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
-  if(Di_m <= 2.44) return {tipo:"Caja T2",dim:"2.92 × 2.42 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
-  return {tipo:"Caja T3",dim:"3.44 × 2.40 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
+  // Di_pz = diámetro interior del POZO (m) — usado en DD-20 (presión lateral) y DD-41 (flotación)
+  if(Di_m <= 0.76) return {tipo:"Pozo común",dim:"Ø 1.00 m int (SGAPDS-29 T. 2.30)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2",Di_pz:1.00};
+  if(Di_m <= 1.07) return {tipo:"Pozo especial T1",dim:"Ø 1.50 m int (SGAPDS-29 T. 2.31)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1",Di_pz:1.50};
+  if(Di_m <= 1.22) return {tipo:"Pozo especial T1-B",dim:"Ø 1.80 m int (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1",Di_pz:1.80};
+  if(Di_m <= 1.52) return {tipo:"Pozo especial T2",dim:"Ø 2.00 m int (SGAPDS-29 T. 2.32)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1",Di_pz:2.00};
+  if(Di_m <= 2.13) return {tipo:"Caja T1",dim:"2.40 × 2.40 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2",Di_pz:2.40};
+  if(Di_m <= 2.44) return {tipo:"Caja T2",dim:"2.92 × 2.42 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2",Di_pz:2.92};
+  return {tipo:"Caja T3",dim:"3.44 × 2.40 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2",Di_pz:3.44};
 }
 
 function calcPozos() {
@@ -3132,6 +3168,111 @@ function calcPozos() {
   STATE.pozos.velMsg    = velMsg;
   STATE.pozos.tramosConCaida = tramosConCaida;
   STATE.pozos.caidaHtml = caidaHtml;
+
+  // ====================================================================
+  // ANÁLISIS DE FLOTACIÓN — ACPA DD-41
+  // Metodología: Straight Wall Manhole
+  //   FS = (W_estructura + R_deslizamiento) / B_boyante  ≥ 2.0
+  //   B = γ_w × V_exterior  (volumen exterior del pozo sumergido)
+  //   R_slide = f × P_lat  (fricción lateral)
+  //   P_lat = γ_s_sub × Ka × H_sub × C_poz   (presión resultante)
+  // ====================================================================
+  (function() {
+    var Nf_m     = parseFloat(document.getElementById('pv-nf').value);  // nivel freático desde superficie
+    var gc_kNm3  = parseFloat(document.getElementById('pv-gc').value) || 23.6;
+    var tw_m     = parseFloat(document.getElementById('pv-tw').value) || 0.15;
+    var gw       = 9.807;          // kN/m³
+    var gs_dry   = 18.0;           // kN/m³ (suelo seco promedio)
+    var gs_sat   = 20.0;           // kN/m³ (saturado)
+    var gs_sub   = gs_sat - gw;    // 10.19 kN/m³ peso efectivo sumergido
+    var Ka       = 0.33;           // razón presión lateral (phi=30°, DD-41)
+    var f_coef   = 0.3;            // coef. fricción suelo-concreto (DD-41 Tabla)
+    var Di_pz    = pozoInfo.Di_pz; // diámetro interior del POZO (m), no del colector
+    var Do_pz    = Di_pz + 2 * tw_m;
+    var H        = profMax;        // altura total del pozo (m)
+
+    // Altura sumergida del pozo
+    var H_sub = (Nf_m < H) ? (H - Nf_m) : 0;  // profundidad del pozo por debajo del NF
+
+    // 1. Peso de la estructura W (paredes cilindro + losa base)
+    var A_anular = Math.PI * ((Do_pz/2)**2 - (Di_pz/2)**2);  // m²
+    var tb       = tw_m * 1.5;   // losa base ≈ 1.5× espesor pared (ASTM C478)
+    var A_base   = Math.PI * (Do_pz/2)**2;
+    var V_paredes = A_anular * H;
+    var V_base    = A_base * tb;
+    var Wpz      = gc_kNm3 * (V_paredes + V_base);   // kN
+
+    // 2. Resistencia de deslizamiento R (fricción lateral)
+    // Presión resultante lateral = integral de presión triangular
+    // P_lat = 0.5 × γ_sub × Ka × H_sub² × π × Do_pz  (por metro lin.)
+    var P_lat = 0.5 * gs_sub * Ka * H_sub * H_sub * Math.PI * Do_pz;  // kN
+    var R_slide  = f_coef * P_lat;  // kN
+
+    // 3. Fuerza boyante B = γ_w × V_ext_sumergido
+    var V_ext_sub = Math.PI * (Do_pz/2)**2 * H_sub;  // m³
+    var B         = gw * V_ext_sub;  // kN
+
+    // 4. Factor de seguridad
+    var FS_fl = (H_sub <= 0 || B <= 0) ? Infinity : (Wpz + R_slide) / B;
+
+    // Actualizar DOM
+    var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
+    set('pv-fl-wpz',    H_sub > 0 ? Wpz.toFixed(1) + ' kN' : 'Sin NF');
+    set('pv-fl-rslide', H_sub > 0 ? R_slide.toFixed(1) + ' kN' : '—');
+    set('pv-fl-B',      H_sub > 0 ? B.toFixed(1) + ' kN' : '—');
+    set('pv-fl-fs',     H_sub > 0 ? FS_fl.toFixed(2) : 'N/A — sin nivel freático');
+
+    var semFl;
+    if(H_sub <= 0) {
+      semFl = '<span class="semaforo sem-ok">✅ Sin nivel freático activo — flotación no aplica</span>';
+    } else if(FS_fl >= 2.0) {
+      semFl = '<span class="semaforo sem-ok">✅ DD-41: FS = ' + FS_fl.toFixed(2) + ' ≥ 2.0 — Estable contra flotación</span>';
+    } else if(FS_fl >= 1.5) {
+      semFl = '<span class="semaforo sem-warn">⚠️ DD-41: FS = ' + FS_fl.toFixed(2) + ' < 2.0 — Considerar base extendida o anclaje (ver DD-41 Secc. 5)</span>';
+    } else {
+      semFl = '<span class="semaforo sem-bad">🔴 DD-41: FS = ' + FS_fl.toFixed(2) + ' < 1.5 — RIESGO DE FLOTACIÓN. Requiere diseño especial urgente</span>';
+    }
+    document.getElementById('pv-flotacion-sem').innerHTML = semFl;
+
+    // ====================================================================
+    // ANÁLISIS PRESIÓN LATERAL Y ESTRÉS RADIAL — ACPA DD-20
+    // Ec.(4): p = γ_s_sub × Ks × H + γ_w × H  [peor caso: NF en superficie]
+    // Ec.(6): σ = 3.4 × H (psi, concreto f'c=28 MPa ASTM C478)
+    //         = 3.4 × H / 145.038 [MPa] con H en pies; en SI: σ = 0.0234 × H_m
+    // σ_adm = 0.45 × f'c (f'c mín. ASTM C478 = 27.6 MPa) = 12.42 MPa
+    // H_max: σ = σ_adm → H_max = σ_adm / 0.0234 [m]
+    // ====================================================================
+    var Ks_dd20  = 1/3;         // phi=30°
+    // Peor caso: NF a nivel de superficie
+    var p_kPa = (gs_sat - gw) * Ks_dd20 * H + gw * H;  // kN/m² (DD-20 Ec.4 en SI)
+    // Equivalente SI de Ec.(6): σ = p×D/(2×t)
+    var sigma_MPa = (p_kPa * Di_pz) / (2 * tw_m * 1000);  // MPa
+    var fc_adm    = 27.6;      // MPa mín. ASTM C478 para pozos prefabricados
+    var s_adm     = 0.45 * fc_adm;  // 12.42 MPa
+    // H_max: s_adm = (p_kPa_por_metro × Di_pz) / (2×tw×1000)
+    //        H_max = s_adm × 2 × tw × 1000 / (Di_pz × (gs_sub×Ks_dd20 + gw))
+    var coef_p    = (gs_sub * Ks_dd20 + gw);  // kPa/m
+    var H_max_str = (s_adm * 2 * tw_m * 1000) / (Di_pz * coef_p);  // m
+
+    set('pv-pl-p',    p_kPa.toFixed(1) + ' kPa');
+    set('pv-pl-s',    sigma_MPa.toFixed(3) + ' MPa');
+    set('pv-pl-sadm', s_adm.toFixed(1) + ' MPa (0.45×f\'c)');
+    set('pv-pl-hmax', H_max_str.toFixed(1) + ' m (estructural)');
+
+    var semPl;
+    if(sigma_MPa <= s_adm * 0.8) {
+      semPl = '<span class="semaforo sem-ok">✅ DD-20: σ = ' + sigma_MPa.toFixed(3) + ' MPa ≤ 0.80×σ<sub>adm</sub> = ' + (s_adm*0.8).toFixed(2) + ' MPa — Estructura OK</span>';
+    } else if(sigma_MPa <= s_adm) {
+      semPl = '<span class="semaforo sem-warn">⚠️ DD-20: σ = ' + sigma_MPa.toFixed(3) + ' MPa cerca de límite (' + s_adm.toFixed(1) + ' MPa) — Revisar espesor de pared</span>';
+    } else {
+      semPl = '<span class="semaforo sem-bad">🔴 DD-20: σ = ' + sigma_MPa.toFixed(3) + ' MPa > σ<sub>adm</sub> = ' + s_adm.toFixed(1) + ' MPa — SUPERA LÍMITE. Aumentar espesor o usar f\'c mayor</span>';
+    }
+    document.getElementById('pv-presion-sem').innerHTML = semPl;
+
+    // Guardar en STATE
+    STATE.pozos.flotacion = { Wpz, R_slide, B, FS_fl, H_sub, semFl };
+    STATE.pozos.presionLateral = { p_kPa, sigma_MPa, s_adm, H_max_str };
+  })();
 
   document.getElementById('res-pozos').classList.add('visible');
   mostrarNota('nota-pozos');
