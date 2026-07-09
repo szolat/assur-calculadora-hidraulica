@@ -1269,8 +1269,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div style="background:#f8fafc;border-radius:7px;padding:12px;font-size:.75rem">
             <div style="color:#64748b;font-size:.72rem;font-weight:600;margin-bottom:8px">Parámetros de cálculo:</div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Diámetro D</span><span id="inst-p-diam" style="font-family:monospace;font-weight:700;color:var(--teal-d)">300 mm</span></div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga muerta Wc</span><span id="inst-p-wc" style="font-family:monospace;font-weight:700;color:var(--teal-d)">4,500 kg/m</span></div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga viva Wl</span><span id="inst-p-wl" style="font-family:monospace;font-weight:700;color:var(--teal-d)">490 kg/m</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga muerta Wc (ASTM D-2321)</span><span id="inst-p-wc" style="font-family:monospace;font-weight:700;color:var(--teal-d)">— kN/m</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Carga viva Wl</span><span id="inst-p-wl" style="font-family:monospace;font-weight:700;color:var(--teal-d)">— kN/m</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Rigidez PS</span><span id="inst-p-ps" style="font-family:monospace;font-weight:700;color:var(--teal-d)">34 kPa</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Módulo suelo E'</span><span id="inst-p-e" style="font-family:monospace;font-weight:700;color:var(--teal-d)">140 kPa</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#64748b">Factor retraso DL</span><span style="font-family:monospace;font-weight:700;color:var(--teal-d)">1.5 (constante)</span></div>
@@ -2945,12 +2945,29 @@ function calcManning() {
 // =============================================================
 // SECCIÓN 4 — POZOS DE VISITA
 // =============================================================
+// getPozoTipo — SGAPDS-29 CONAGUA 2009 Secc. 2.2.2, 3.1.6.1 y Tabla 3.3
+// Indexa por diámetro de COLECTOR (no de pozo) tal como exige la norma
 function getPozoTipo(Di_m) {
-  if(Di_m <= 0.45) return {tipo:"Pozo común redondo",dim:"Ø 1.20 m",espRec:60,espMax:80};
-  if(Di_m <= 0.76) return {tipo:"Tipo 1",dim:"Ø 1.52 m",espRec:75,espMax:90};
-  if(Di_m <= 1.07) return {tipo:"Tipo 2",dim:"Ø 1.83 m",espRec:90,espMax:100};
-  if(Di_m <= 1.52) return {tipo:"Caja cuadrada",dim:"1.50 × 1.50 m",espRec:100,espMax:125};
-  return {tipo:"Caja de deflexión",dim:"≥ 2.00 × 2.00 m",espRec:125,espMax:150};
+  // Tabla 3.3 SGAPDS-29: separación máxima por diámetro de colector
+  // Ø 20–61 cm → 125 m | Ø 62–122 cm → 150 m | Ø > 122 cm → 175 m
+  var Di_cm = Di_m * 100;
+  var espMax = Di_cm <= 61 ? 125 : Di_cm <= 122 ? 150 : 175;
+  var espRec = Math.round(espMax * 0.8 / 5) * 5; // 80% del máximo, redondeado a 5m
+  // Tipología Sección 2.2.2 / 3.1.6.1 SGAPDS-29:
+  // Pozo común:      Ø int 100 cm, tubería máx 76 cm
+  // Especial T1:     Ø int 150 cm, tubería máx 107 cm
+  // Especial T1-B:   Ø int 180 cm, tubería máx 122 cm
+  // Especial T2:     Ø int 200 cm, tubería máx 150 cm
+  // Caja T1:         240×240 cm,   tubería máx 122 cm
+  // Caja T2:         292×242 cm,   tubería máx 152 cm
+  // Caja T3:         344×240 cm,   tubería máx 213 cm
+  if(Di_m <= 0.76) return {tipo:"Pozo común",dim:"Ø 1.00 m int (SGAPDS-29 T. 2.30)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
+  if(Di_m <= 1.07) return {tipo:"Pozo especial T1",dim:"Ø 1.50 m int (SGAPDS-29 T. 2.31)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1"};
+  if(Di_m <= 1.22) return {tipo:"Pozo especial T1-B",dim:"Ø 1.80 m int (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1"};
+  if(Di_m <= 1.52) return {tipo:"Pozo especial T2",dim:"Ø 2.00 m int (SGAPDS-29 T. 2.32)",espRec:espRec,espMax:espMax,ref:"Sec. 3.1.6.1"};
+  if(Di_m <= 2.13) return {tipo:"Caja T1",dim:"2.40 × 2.40 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
+  if(Di_m <= 2.44) return {tipo:"Caja T2",dim:"2.92 × 2.42 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
+  return {tipo:"Caja T3",dim:"3.44 × 2.40 m (SGAPDS-29)",espRec:espRec,espMax:espMax,ref:"Sec. 2.2.2"};
 }
 
 function calcPozos() {
@@ -3428,14 +3445,15 @@ function calcAgua() {
   const popOk  = !isNaN(P_op) && P_op > 0;
   const presOk = popOk ? (P_op <= P_adm_kgcm2) : null;
 
-  // Semáforo velocidad: verde 0.6-2.5, ámbar 2.5-3.0, rojo >3.0
+  // Semáforo velocidad ISO 16422 / NMX-E-258 (práctica común PVC presión: 0.6–2.5 m/s)
+  // Rango ámbar 2.5–3.0 m/s: operativo pero aumenta riesgo de golpe de ariete (Joukowsky)
   let semCls, semMsg;
-  if(v >= 0.6 && v <= 2.5)       { semCls = 'sem-ok';   semMsg = '✅ Velocidad correcta (0.6–2.5 m/s)'; }
-  else if(v > 2.5 && v <= 3.0)   { semCls = 'sem-warn'; semMsg = '⚠️ Velocidad elevada (2.5–3.0 m/s) — revisar'; }
-  else if(v > 3.0)                { semCls = 'sem-bad';  semMsg = '🔴 Velocidad excesiva (>3.0 m/s) — riesgo golpe de ariete'; }
+  if(v >= 0.6 && v <= 2.5)       { semCls = 'sem-ok';   semMsg = '✅ ISO 16422: Velocidad correcta (0.6–2.5 m/s)'; }
+  else if(v > 2.5 && v <= 3.0)   { semCls = 'sem-warn'; semMsg = '⚠️ Velocidad elevada (2.5–3.0 m/s) — revisar golpe de ariete'; }
+  else if(v > 3.0)                { semCls = 'sem-bad';  semMsg = '🔴 Velocidad excesiva (>3.0 m/s) — riesgo golpe de ariete, fuera de rango ISO 16422'; }
   else                            { semCls = 'sem-warn'; semMsg = '⚠️ Velocidad baja (<0.6 m/s) — conducción poco eficiente, considere reducir diámetro'; }
 
-  // Cumplimiento normativo ISO 16422
+  // Cumplimiento normativo ISO 16422 / NMX-E-258: consistente con semáforo (0.6–2.5 m/s)
   const velOk  = v >= 0.6 && v <= 2.5;
   const isoOk  = velOk && (presOk !== false);  // cumple si velocidad ok y presión ok (o no especificada)
 
@@ -4593,8 +4611,8 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
 
     var set = function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
     set('inst-p-diam',   INST.diametro + ' mm');
-    set('inst-p-wc',     Math.round(WC).toLocaleString('es-MX') + ' kg/m');
-    set('inst-p-wl',     WL.toLocaleString('es-MX') + ' kg/m');
+    set('inst-p-wc',     (WC).toFixed(2) + ' kN/m');  // Iowa Modificada — Spangler/ASTM D-2321
+    set('inst-p-wl',     (WL / 9.80665).toFixed(1) + ' kN/m');  // Wl en kN/m (unidades consistentes con Wc)
     var psLabel = FLEX.includes(INST.tubo)
       ? (PS + ' kPa')
       : ('M=' + gradoInfo.M_grieta + ' N/m/mm | f\'c=' + gradoInfo.fc_MPa + ' MPa');
@@ -6074,7 +6092,7 @@ function calcSanitario() {
 
   var Ap   = dot * (apPct / 100);
   var Qmed = (Ap * pob) / 86400;
-  var Qmin = Math.max(0.5 * Qmed, 1.5);  // SGAPDS-29 Sec.3.1.3: mínimo 1.5 l/s
+  var Qmin = Math.max(0.5 * Qmed, 1.0);  // SGAPDS-29 Tabla 3.1 Sec.3.1.3: mínimo 1.0 l/s
 
   // Coeficiente de Harmon — SGAPDS-29 Sección 3.1.3.3
   var Pmiles = pob / 1000;
