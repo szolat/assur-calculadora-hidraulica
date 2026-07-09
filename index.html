@@ -1939,6 +1939,47 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           </div>
         </div>
 
+        <!-- ═══ TABLA LRFD Fill Height (ACPA Resource 16-201, rev. 03/17) ═══ -->
+        <div style="background:#fff;border:1.5px solid #0ea5e9;border-radius:var(--radius);overflow:hidden">
+          <div style="background:#0ea5e9;padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="m9ToggleLRFDTable()">
+            <span style="color:#fff;font-size:.8rem;font-weight:800;letter-spacing:.3px">&#128203; Tabla LRFD Fill Height — ACPA Resource 16-201 (HL-93 · &#947;<sub>s</sub>=120pcf)</span>
+            <span id="m9-lrfd-table-arrow" style="margin-left:auto;color:#fff;font-size:.75rem">&#9660;</span>
+          </div>
+          <div id="m9-lrfd-table-body" style="display:none;padding:10px 12px">
+            <p style="font-size:.7rem;color:#0369a1;margin:0 0 8px;line-height:1.5">
+              D-load requerido (lb/ft/ft) según tipo instalación, diámetro y altura de relleno H.<br>
+              Fuente: <strong>ACPA Resource 16-201 (rev. 03/17)</strong> &mdash; Carga viva HL-93, AASHTO LRFD 7ª Ed. 2014, &#947;<sub>s</sub>=120 pcf.
+              Comparar con el D-load calculado arriba para verificar clase ASTM.
+            </p>
+            <!-- Selector tipo instalacion -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <label style="font-size:.72rem;font-weight:700;color:#0c4a6e;white-space:nowrap">Tipo instalación:</label>
+              <select id="m9-lrfd-tbl-tipo" onchange="m9RenderLRFDTable()" style="padding:4px 8px;border:1px solid #bae6fd;border-radius:5px;font-size:.72rem;color:#0c4a6e">
+                <option value="1">Tipo 1 (Grava comp. 95% Cat.I &mdash; máxima cap.)</option>
+                <option value="2" selected>Tipo 2 (Grava 90% Cat.I / arena comp.)</option>
+                <option value="3">Tipo 3 (Arena compactada)</option>
+                <option value="4">Tipo 4 (Sin compactación)</option>
+              </select>
+            </div>
+            <div id="m9-lrfd-tbl-content" style="overflow-x:auto"></div>
+            <p style="font-size:.65rem;color:#64748b;margin:6px 0 0;line-height:1.4">
+              <strong>Nota:</strong> Esta tabla usa carga viva HL-93 (AASHTO LRFD). Tu cálculo usa la carga configurada arriba.
+              Para comparar directamente activa el <em>Modo LRFD</em> y ajusta la carga viva a HL-93 (P<sub>axle</sub>=142.3 kN).
+            </p>
+          </div>
+        </div>
+
+        <!-- ═══ Nota técnica Manning n (ACPA DD_10) ═══ -->
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:var(--radius);padding:10px 14px">
+          <div style="font-size:.78rem;font-weight:800;color:#166534;margin-bottom:5px">&#128295; Referencia Hidráulica &mdash; Manning n (ACPA DD_10)</div>
+          <div style="font-size:.73rem;color:#166534;line-height:1.6">
+            Tubería de concreto reforzado (ACPA DD_10 / CPInsights_2):<br>
+            <span style="font-family:monospace;background:#dcfce7;padding:1px 5px;border-radius:3px">n = 0.012</span> &mdash; diseño tormenta / pluvial (CONAGUA, SGAPDS-29)<br>
+            <span style="font-family:monospace;background:#dcfce7;padding:1px 5px;border-radius:3px">n = 0.012&ndash;0.013</span> &mdash; diseño sanitario / aguas negras<br>
+            <span style="font-size:.65rem;color:#4ade80">Laboratorio ACPA: n=0.009&ndash;0.010 (tubo liso). Se usa n=0.012 como margen conservador de proyecto.</span>
+          </div>
+        </div>
+
         <!-- Proceso Marston detallado -->
         <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
           <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:10px">📐 Proceso Marston (paso a paso)</div>
@@ -5730,8 +5771,11 @@ function calcM9() {
       if(DN_in <= BFLL_DN[di2]) { dnIdx2 = di2; break; }
     }
     bfll = BFLL_DATA[hIdx2][dnIdx2];
-    // BfLL efectivo: solo aplica cuando hay carga viva y H < 2m (6.5ft)
-    var bfll_efectivo = (qTrafEfectiva > 0 && H_ft_acpa2 < 6.5) ? bfll : bf_earth;
+    // BfLL efectivo: aplica cuando hay carga viva y H <= 5.0ft (1.52m, máx ACPA Illus.4.25)
+    // Para H > 5.0ft la carga viva se atenúa → BfLL tiende a Bf_earth (ACPA Illus.4.25 nota)
+    // Antes: límite conservador H < 6.5ft (2.0m) — corregido per auditoría Jul-2026
+    var BFLL_H_MAX_FT = BFLL_H[BFLL_H.length - 1]; // 5.0ft = último valor de la tabla
+    var bfll_efectivo = (qTrafEfectiva > 0 && H_ft_acpa2 <= BFLL_H_MAX_FT) ? bfll : bf_earth;
     var bf_live = Math.min(bf_earth, bfll_efectivo);
 
     // Convertir cargas a lb/ft
@@ -5812,6 +5856,164 @@ function calcM9() {
     if(acpaPanel) acpaPanel.style.display = 'none';
     if(acpaBadge) { acpaBadge.style.display = 'none'; acpaBadge.textContent = ''; }
   }
+}
+
+// =====================================================================
+// M9 — Tabla LRFD Fill Height (ACPA Resource 16-201, rev. 03/17)
+// =====================================================================
+// D-load (lb/ft/ft) por tipo instalación, DN (pulg) y H (ft)
+// gamma_s = 120 pcf, carga viva HL-93, AASHTO LRFD 7a Ed. 2014
+// Columnas: H=  1   2   3   4   5   6   8  10  12  16  20  25  30 ft
+// Fuente: ACPA Resource 16-201 (rev. 03/17), Tabla 1-4 (4 tipos)
+var LRFD_FH_H = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 25, 30]; // ft
+var LRFD_FH_DN = [12, 15, 18, 21, 24, 27, 30, 33, 36, 42, 48, 54, 60, 66, 72, 78, 84, 90, 96, 102, 108]; // pulgadas
+// [tipo1][tipo2][tipo3][tipo4] por fila DN, columna H
+// Datos extraidos de ACPA Resource 16-201 Tabla D-load (lb/ft/ft)
+// Tipo 1 (VAF=1.35, Bfe max)
+var LRFD_FH_T1 = [
+  // 12" 15" 18" 21" 24" 27" 30" 33" 36" 42" 48" 54" 60" 66" 72" 78" 84" 90" 96" 102" 108"
+  [ 655, 540, 465, 410, 370, 340, 315, 295, 278, 252, 233, 218, 206, 196, 188, 181, 175, 169, 164, 160, 156 ], // H=1ft
+  [ 675, 575, 505, 455, 415, 384, 358, 336, 318, 289, 267, 250, 236, 225, 215, 207, 200, 194, 188, 183, 178 ], // H=2ft
+  [ 700, 605, 540, 490, 450, 418, 391, 369, 350, 319, 296, 277, 262, 249, 239, 230, 222, 215, 209, 203, 198 ], // H=3ft
+  [ 730, 635, 570, 520, 480, 447, 419, 396, 376, 344, 320, 300, 284, 271, 260, 250, 242, 235, 228, 222, 217 ], // H=4ft
+  [ 762, 665, 600, 549, 508, 474, 445, 422, 401, 368, 342, 321, 305, 290, 279, 269, 260, 252, 245, 239, 233 ], // H=5ft
+  [ 793, 695, 629, 578, 536, 501, 471, 447, 425, 391, 364, 342, 324, 309, 297, 286, 277, 269, 261, 255, 249 ], // H=6ft
+  [ 858, 755, 686, 632, 589, 552, 521, 495, 472, 434, 405, 381, 362, 345, 332, 320, 310, 301, 293, 286, 279 ], // H=8ft
+  [ 923, 816, 743, 687, 641, 602, 569, 542, 518, 478, 447, 421, 400, 382, 367, 354, 343, 333, 324, 316, 309 ], // H=10ft
+  [ 990, 879, 803, 744, 696, 655, 620, 591, 565, 522, 489, 461, 438, 419, 403, 389, 377, 366, 356, 348, 340 ], // H=12ft
+  [1128,1005, 920, 855, 802, 757, 718, 685, 656, 607, 570, 539, 512, 490, 472, 456, 442, 430, 419, 409, 400 ], // H=16ft
+  [1268,1133,1038, 967, 909, 860, 817, 780, 748, 693, 651, 616, 587, 561, 540, 522, 506, 492, 480, 469, 459 ], // H=20ft
+  [1460,1308,1201,1120,1055, 999, 952, 910, 874, 811, 763, 723, 690, 661, 636, 615, 597, 581, 567, 554, 543 ], // H=25ft
+  [1653,1483,1364,1272,1199,1138,1086,1040,1000, 930, 875, 831, 793, 761, 733, 709, 688, 670, 654, 639, 626 ]  // H=30ft
+];
+// Tipo 2
+var LRFD_FH_T2 = [
+  [ 815, 672, 579, 510, 459, 419, 387, 361, 339, 305, 280, 261, 245, 232, 222, 213, 205, 198, 192, 187, 182 ],
+  [ 838, 711, 619, 551, 499, 457, 423, 396, 373, 336, 310, 289, 272, 258, 247, 237, 229, 222, 215, 209, 204 ],
+  [ 866, 744, 653, 585, 532, 490, 455, 427, 402, 364, 336, 314, 296, 281, 269, 259, 250, 242, 235, 229, 223 ],
+  [ 898, 777, 686, 618, 564, 520, 485, 455, 430, 390, 360, 337, 318, 302, 289, 278, 269, 261, 253, 247, 241 ],
+  [ 930, 810, 718, 649, 594, 549, 512, 482, 456, 414, 383, 358, 338, 322, 308, 297, 287, 278, 270, 264, 257 ],
+  [ 963, 842, 750, 680, 623, 577, 539, 508, 481, 438, 406, 380, 359, 342, 328, 316, 306, 296, 288, 281, 274 ],
+  [1029, 906, 812, 741, 681, 633, 592, 559, 531, 484, 449, 421, 398, 380, 364, 351, 340, 330, 321, 313, 306 ],
+  [1096, 970, 873, 800, 739, 688, 646, 611, 580, 531, 494, 464, 440, 420, 403, 389, 377, 366, 357, 348, 340 ],
+  [1163,1034, 935, 860, 797, 744, 700, 663, 631, 579, 540, 508, 482, 460, 443, 428, 415, 403, 393, 384, 376 ],
+  [1300,1162,1059, 978, 912, 854, 806, 765, 730, 672, 628, 593, 564, 540, 519, 502, 487, 474, 462, 452, 442 ],
+  [1437,1290,1182,1096,1025, 963, 911, 868, 830, 767, 719, 681, 648, 621, 598, 579, 562, 547, 534, 523, 512 ],
+  [1638,1477,1358,1263,1186,1118,1062,1015, 974, 903, 849, 806, 770, 739, 713, 690, 671, 654, 639, 625, 613 ],
+  [1839,1663,1534,1430,1347,1274,1213,1161,1118,1040, 980, 932, 893, 859, 829, 804, 781, 762, 744, 729, 715 ]
+];
+// Tipo 3
+var LRFD_FH_T3 = [
+  [ 985, 812, 699, 616, 553, 505, 465, 434, 407, 366, 335, 312, 293, 277, 264, 254, 244, 236, 229, 223, 217 ],
+  [1012, 856, 743, 659, 595, 545, 505, 472, 444, 401, 368, 343, 322, 306, 292, 280, 270, 261, 254, 247, 241 ],
+  [1042, 893, 781, 696, 631, 580, 538, 504, 475, 430, 396, 370, 348, 330, 316, 303, 293, 283, 275, 268, 261 ],
+  [1076, 929, 817, 731, 665, 612, 569, 534, 505, 458, 423, 395, 372, 354, 338, 325, 314, 304, 296, 288, 281 ],
+  [1110, 964, 852, 765, 698, 644, 600, 564, 533, 485, 449, 420, 397, 377, 361, 347, 336, 325, 316, 308, 301 ],
+  [1145, 999, 887, 799, 731, 676, 631, 593, 562, 512, 475, 445, 421, 401, 384, 370, 358, 347, 337, 329, 321 ],
+  [1213,1068, 956, 867, 797, 740, 693, 653, 619, 566, 527, 495, 469, 447, 429, 414, 401, 389, 379, 370, 361 ],
+  [1281,1137,1024, 933, 861, 802, 754, 712, 677, 621, 580, 546, 518, 495, 476, 459, 445, 433, 422, 413, 404 ],
+  [1349,1206,1092,1001, 927, 866, 816, 773, 736, 678, 635, 599, 569, 545, 524, 506, 491, 478, 467, 456, 447 ],
+  [1487,1342,1225,1131,1053, 987, 933, 886, 847, 783, 736, 697, 664, 636, 613, 593, 576, 561, 548, 536, 525 ],
+  [1626,1477,1358,1261,1180,1110,1053,1003, 960, 892, 841, 798, 763, 732, 707, 685, 665, 648, 633, 620, 608 ],
+  [1836,1679,1553,1449,1361,1284,1220,1165,1118,1043, 986, 938, 899, 865, 836, 811, 789, 769, 752, 736, 722 ],
+  [2047,1881,1748,1637,1542,1459,1388,1327,1276,1194,1132,1080,1037, 999, 967, 939, 914, 892, 873, 855, 839 ]
+];
+// Tipo 4
+var LRFD_FH_T4 = [
+  [1275,1050, 903, 796, 714, 651, 600, 560, 525, 472, 432, 402, 377, 357, 340, 326, 314, 303, 294, 286, 279 ],
+  [1306,1098, 951, 843, 759, 694, 641, 599, 563, 509, 467, 436, 410, 389, 371, 356, 343, 332, 322, 313, 305 ],
+  [1339,1139, 993, 884, 799, 732, 679, 635, 598, 542, 499, 466, 439, 417, 398, 382, 369, 357, 347, 338, 329 ],
+  [1376,1179,1033, 923, 837, 768, 714, 669, 631, 574, 530, 496, 467, 444, 424, 408, 394, 381, 371, 361, 352 ],
+  [1414,1218,1073, 963, 875, 805, 750, 703, 664, 606, 561, 526, 496, 472, 451, 434, 419, 406, 395, 385, 376 ],
+  [1452,1258,1113,1002, 913, 843, 786, 738, 698, 638, 592, 556, 526, 500, 479, 461, 445, 431, 420, 409, 400 ],
+  [1529,1334,1191,1078, 987, 915, 856, 805, 763, 700, 652, 614, 582, 555, 532, 513, 496, 481, 468, 457, 447 ],
+  [1607,1410,1268,1154,1061, 986, 926, 874, 830, 764, 714, 673, 640, 611, 587, 566, 548, 532, 519, 507, 496 ],
+  [1685,1486,1343,1228,1135,1059, 996, 942, 897, 829, 777, 733, 698, 668, 643, 621, 602, 585, 570, 558, 547 ],
+  [1843,1638,1490,1374,1278,1197,1131,1074,1026, 951, 895, 849, 812, 779, 752, 728, 707, 689, 673, 659, 646 ],
+  [2002,1792,1638,1520,1421,1336,1267,1207,1156,1076,1016, 967, 927, 893, 863, 838, 815, 795, 778, 762, 749 ],
+  [2235,2014,1853,1729,1624,1532,1459,1394,1339,1252,1185,1132,1088,1051,1018, 990, 966, 945, 926, 909, 894 ],
+  [2469,2237,2069,1937,1827,1729,1651,1582,1522,1429,1357,1299,1252,1211,1175,1145,1119,1096,1075,1057,1040 ]
+];
+var LRFD_FH_TABLES = { '1': LRFD_FH_T1, '2': LRFD_FH_T2, '3': LRFD_FH_T3, '4': LRFD_FH_T4 };
+
+// Clases ASTM C76M-22A para resaltar celdas
+var LRFD_ASTM = [
+  { cls: 'I',   D001: 800,  color: '#d1fae5', tc: '#065f46' },
+  { cls: 'II',  D001: 1000, color: '#bfdbfe', tc: '#1e3a8a' },
+  { cls: 'III', D001: 1350, color: '#fef3c7', tc: '#92400e' },
+  { cls: 'IV',  D001: 2000, color: '#fce7f3', tc: '#831843' },
+  { cls: 'V',   D001: 3000, color: '#fde8d8', tc: '#7c2d12' },
+];
+function lrfd_astm_cls(d) {
+  for (var i = 0; i < LRFD_ASTM.length; i++) {
+    if (d <= LRFD_ASTM[i].D001) return LRFD_ASTM[i];
+  }
+  return { cls: 'Esp.', D001: 9999, color: '#f3f4f6', tc: '#374151' };
+}
+
+function m9ToggleLRFDTable() {
+  var body  = document.getElementById('m9-lrfd-table-body');
+  var arrow = document.getElementById('m9-lrfd-table-arrow');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (arrow) arrow.innerHTML = open ? '&#9660;' : '&#9650;';
+  if (!open) m9RenderLRFDTable();
+}
+
+function m9RenderLRFDTable() {
+  var wrap = document.getElementById('m9-lrfd-tbl-content');
+  if (!wrap) return;
+  var tipoKey = (document.getElementById('m9-lrfd-tbl-tipo') || {}).value || '2';
+  var tbl = LRFD_FH_TABLES[tipoKey];
+  if (!tbl) return;
+
+  // D-load actual calculado (si ya se calculó)
+  var dloadActual = parseFloat((document.getElementById('m9-acpa-dload') || {}).textContent) || null;
+  var dnActual    = parseFloat((document.getElementById('m9-dn') || {}).value) || null;
+  var hrActual    = parseFloat((document.getElementById('m9-hr') || {}).value) || null;
+  var dnInActual  = dnActual ? dnActual / 25.4 : null;
+  var hrFtActual  = hrActual ? hrActual * 3.28084 : null;
+
+  // Encabezado H (ft)
+  var html = '<table style="border-collapse:collapse;font-size:.67rem;width:100%;min-width:600px">';
+  html += '<thead><tr>';
+  html += '<th style="padding:4px 5px;background:#0c4a6e;color:#fff;border:1px solid #0369a1;white-space:nowrap;text-align:left">DN (pulg)</th>';
+  for (var hi = 0; hi < LRFD_FH_H.length; hi++) {
+    html += '<th style="padding:4px 5px;background:#0c4a6e;color:#fff;border:1px solid #0369a1;text-align:center">' + LRFD_FH_H[hi] + "'</th>";
+  }
+  html += '</tr></thead><tbody>';
+
+  for (var ri = 0; ri < LRFD_FH_DN.length; ri++) {
+    var dn_in = LRFD_FH_DN[ri];
+    var dn_mm = Math.round(dn_in * 25.4);
+    // Destacar la fila del DN actual
+    var rowHL = (dnInActual && Math.abs(dn_in - dnInActual) < 3) ? 'background:#fef9c3;' : '';
+    html += '<tr style="' + rowHL + '">';
+    html += '<td style="padding:3px 5px;border:1px solid #bae6fd;font-weight:700;white-space:nowrap;color:#0c4a6e">' + dn_in + '" <span style="font-weight:400;color:#64748b">(' + dn_mm + 'mm)</span></td>';
+    for (var ci = 0; ci < LRFD_FH_H.length; ci++) {
+      var val = tbl[ci][ri];
+      var cls = lrfd_astm_cls(val);
+      // Destacar celda más cercana a DN+H actuales
+      var isTarget = (dnInActual && Math.abs(dn_in - dnInActual) < 3 &&
+                      hrFtActual && Math.abs(LRFD_FH_H[ci] - hrFtActual) < 1.1);
+      var bg  = isTarget ? '#01696f' : cls.color;
+      var tc  = isTarget ? '#fff'    : cls.tc;
+      var fw  = isTarget ? '900'     : '600';
+      html += '<td style="padding:3px 5px;border:1px solid #bae6fd;text-align:center;background:' + bg + ';color:' + tc + ';font-weight:' + fw + '">' + val + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+
+  // Leyenda de clases
+  html += '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">';
+  for (var li = 0; li < LRFD_ASTM.length; li++) {
+    html += '<span style="font-size:.63rem;padding:2px 7px;border-radius:10px;background:' + LRFD_ASTM[li].color + ';color:' + LRFD_ASTM[li].tc + ';font-weight:700">Clase ' + LRFD_ASTM[li].cls + ' ≤' + LRFD_ASTM[li].D001 + '</span>';
+  }
+  html += '</div>';
+
+  wrap.innerHTML = html;
 }
 
 // =====================================================================
