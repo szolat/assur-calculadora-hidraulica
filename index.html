@@ -1849,11 +1849,15 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           </div>
 
           <div>
-            <label>Coeficiente de seguridad γ<sub>seg</sub></label>
+            <label style="font-weight:700">Factor de seguridad FS — D-load &amp; γ<sub>seg</sub> NMX</label>
             <select id="m9-gamseg" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
-              <option value="1.5" selected>1.5 — Criterio de rotura (recomendado NMX)</option>
-              <option value="1.0">1.0 — Criterio de fisuración (0.3 mm)</option>
+              <option value="1.5" selected>FS = 1.5 — Conservador NMX-C-402 / México (recomendado)</option>
+              <option value="1.0">FS = 1.0 — ACPA Eq.4.24 estricto (D₀.₀₁ crack load directo)</option>
             </select>
+            <div id="m9-fs-hint" style="margin-top:4px;font-size:.7rem;line-height:1.5;padding:5px 8px;border-radius:5px;background:#fef9c3;border:1px solid #fde68a;color:#78350f">
+              <b>FS=1.5</b> eleva el D-load calculado +50% → clase más conservadora.<br>
+              <b>FS=1.0</b> cumple ACPA Eq.4.24 estricto (D₀.₀₁); usar en proyectos AASHTO o exportación.
+            </div>
           </div>
 
           <!-- Botón calcular — dentro del bloque Carga Viva como solicitó usuario -->
@@ -5752,8 +5756,11 @@ function calcM9() {
 
     // D-load (Eq. 4.24) incluyendo WF — AASHTO: siempre incluir peso fluido
     // D-load = [(WE+WF)/Bf + WL/BfLL] × FS / D
+    // FS: lee del selector m9-gamseg (mismo que γ_seg NMX)
+    //   1.0 = ACPA Eq.4.24 estricto (D_0.01 crack load directo)
+    //   1.5 = Conservador NMX / México (por defecto)
     var D_ft2  = DN / 304.8;
-    var FS_a   = 1.5;
+    var FS_a   = parseFloat((document.getElementById('m9-gamseg') || {}).value || 1.5);
     var Dload  = (((WE_lb + WF_lb) / bf_earth) + (WL_lb / bf_live)) * FS_a / D_ft2;
 
     // Clase ASTM C76
@@ -5780,7 +5787,8 @@ function calcM9() {
         'Tipo ' + acpaT + ' SIDD &nbsp;·&nbsp; DN=' + DN + 'mm (' + DN_in.toFixed(0) + '&quot;) &nbsp;·&nbsp; H=' + hr + 'm (' + H_ft2.toFixed(1) + 'ft)',
         'W<sub>E</sub>=' + WE_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; W<sub>F</sub>=' + WF_lb.toFixed(0) + 'lb/ft (γ<sub>w</sub>=62.4 lb/ft³) &nbsp;·&nbsp; W<sub>L</sub>=' + WL_lb.toFixed(0) + 'lb/ft',
         'B<sub>f</sub>=' + bf_earth.toFixed(2) + ' &nbsp;·&nbsp; B<sub>fLL</sub>=' + bfll_efectivo.toFixed(1) + ' (Illus.4.25) &nbsp;·&nbsp; PL=' + PL_lb.toFixed(0) + 'lb/ft [Eq.4.2]',
-        'D-load = [(' + WE_lb.toFixed(0) + '+' + WF_lb.toFixed(0) + ')/' + bf_earth.toFixed(2) + '+' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ']×' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b>'
+        'D-load = [(' + WE_lb.toFixed(0) + '+' + WF_lb.toFixed(0) + ')/' + bf_earth.toFixed(2) + '+' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ']&times;FS=' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b>' +
+        (FS_a === 1.0 ? ' &nbsp;<span style="background:#dbeafe;color:#1d4ed8;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px">ACPA Eq.4.24 estricto</span>' : ' &nbsp;<span style="background:#fef3c7;color:#92400e;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px">FS=1.5 conservador NMX</span>')
       ];
       setEl('m9-acpa-info', infoTxt.join('<br>'));
     }
@@ -5795,7 +5803,7 @@ function calcM9() {
     proc.push('  B<sub>f</sub>usado=' + bf_earth.toFixed(2) + ' (' + (tipo==='terraplen'?'terraplén=B<sub>fe</sub>':'zanja=B<sub>fo</sub>') + ') &nbsp;|&nbsp; B<sub>fLL</sub>=' + bfll_efectivo.toFixed(1) + ' (Illus.4.25)');
     proc.push('  PL (Eq.4.2)=' + (PL_lb/kN_lbft).toFixed(2) + ' kN/m &nbsp;|&nbsp; W=VAF×PL=' + (W_vaf_lb/kN_lbft).toFixed(2) + ' kN/m (Eq.4.1)');
     proc.push('  W<sub>F</sub> fluido=γw×A<sub>i</sub> = 9.807×π×(' + (DN/1000).toFixed(3) + ')²/4 = <b>' + WF_kN.toFixed(2) + ' kN/m</b> (AASHTO LRFD 12.12.3.6)');
-    proc.push('  D-load = [(W<sub>E</sub>+W<sub>F</sub>)/B<sub>f</sub> + W<sub>L</sub>/B<sub>fLL</sub>]×FS/D = [(' + WE_lb.toFixed(0) + '+' + WF_lb.toFixed(0) + ')/' + bf_earth.toFixed(2) + '+' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ']×' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b> → ' + (astmCls ? 'Clase ' + astmCls.cls + ' ASTM C76' : '⚠️ Especial (>Clase V)'));
+    proc.push('  D-load = [(W<sub>E</sub>+W<sub>F</sub>)/B<sub>f</sub> + W<sub>L</sub>/B<sub>fLL</sub>]&times;FS/D = [(' + WE_lb.toFixed(0) + '+' + WF_lb.toFixed(0) + ')/' + bf_earth.toFixed(2) + '+' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ']&times;FS=' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b>  [FS=' + FS_a + (FS_a===1.0?' ACPA estricto':' conservador NMX') + '] &rarr; ' + (astmCls ? 'Clase ' + astmCls.cls + ' ASTM C76M-22A' : '&gt; Clase V (Especial)'));
     // Re-render proceso con datos ACPA
     var proEl2 = document.getElementById('m9-proceso');
     if(proEl2) proEl2.innerHTML = proc.join('<br>');
