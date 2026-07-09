@@ -1125,7 +1125,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <span style="font-size:1.2rem;margin-top:2px">📋</span>
       <div>
         <div style="font-weight:700;font-size:.85rem">Verificación de instalación de tubería</div>
-        <div style="font-size:.78rem;margin-top:3px;opacity:.85">Aplica para tubería PVC, PEAD corrugado y concreto. Basado en Manual MITD-CONAGUA 2012, norma ASTM-D-2321 y NOM-001-CONAGUA vigente.</div>
+        <div style="font-size:.78rem;margin-top:3px;opacity:.85">Aplica para tubería flexible (PVC y PEAD corrugado). Basado en Manual MITD-CONAGUA 2012, norma ASTM-D-2321 y NOM-001-CONAGUA vigente. Para tubería de concreto, use el Módulo 9.</div>
       </div>
     </div>
 
@@ -1137,12 +1137,12 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <!-- Tipo de tubería -->
         <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px">
           <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:12px">🔧 Tipo de tubería</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px">
             <button id="ibt-pead" onclick="inst_selectTubo(this,'pead')" style="border:2px solid var(--teal);background:rgba(1,105,111,.08);border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--teal-d);cursor:pointer">PEAD<br><span style="font-weight:400;color:#666">Corrugado</span></button>
             <button id="ibt-pvc" onclick="inst_selectTubo(this,'pvc')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">PVC<br><span style="font-weight:400;color:#666">Liso</span></button>
-            <button id="ibt-concreto" onclick="inst_selectTubo(this,'concreto')" style="border:2px solid var(--line);background:#fafaf8;border-radius:8px;padding:10px 4px;font-size:.75rem;font-weight:700;color:var(--ink);cursor:pointer">Concreto<br><span style="font-weight:400;color:#666">Rígido</span></button>
+
           </div>
-          <div id="inst-tubo-info" style="font-size:.75rem;color:#1e40af;background:#eff6ff;border-radius:6px;padding:8px 12px">⚡ Tubería <strong>flexible (HDPE/PVC)</strong> — IOWA Modificada. El suelo aporta 70–90% de la resistencia. Cambiar a Concreto si H&gt;5m, DN&gt;600mm o suelo deficiente.</div>
+          <div id="inst-tubo-info" style="font-size:.75rem;color:#1e40af;background:#eff6ff;border-radius:6px;padding:8px 12px">⚡ Tubería <strong>flexible (HDPE/PVC)</strong> — IOWA Modificada. El suelo aporta 70–90% de la resistencia. Para H&gt;5m, DN&gt;600mm o suelo deficiente use el <strong>Módulo 9 — Diseño Concreto</strong>.</div>
         </div>
 
         <!-- Parámetros de zanja -->
@@ -1155,19 +1155,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <option value="300" selected>300 mm</option>
             </select>
           </div>
-          <!-- Grado/Clase (solo visible para concreto) -->
-          <div id="inst-grado-div" style="margin-bottom:10px;display:none">
-            <label>Grado de tubería (NMX-C-402-ONNCCE-2020)</label>
-            <select id="inst-grado" onchange="inst_calcular()">
-              <option value="1" selected>Grado 1 — M=50 N/m/mm (grieta), ruptura 75 N/m/mm</option>
-              <option value="2">Grado 2 — M=65 N/m/mm (grieta), ruptura 100 N/m/mm</option>
-              <option value="3">Grado 3 — M=100 N/m/mm (grieta), ruptura 150 N/m/mm</option>
-              <option value="4">Grado 4 — M=140 N/m/mm (grieta), ruptura 175 N/m/mm</option>
-            </select>
-            <div style="font-size:.7rem;color:#666;margin-top:3px">NMX-C-402-ONNCCE-2020 · 4 grados · f'c: Grado 1-2 = 27.6 MPa, Grado 3 = 34.5 MPa, Grado 4 = 41.4 MPa</div>
-          </div>
-          <div style="display:none"><!-- placeholder closing tag balance -->
-          </div>
+
           <div style="margin-bottom:10px">
             <label>Profundidad de instalación (m) <span title="Desde superficie hasta clave del tubo. Afecta carga muerta Wc y tipo de acostillado." style="color:var(--gold);cursor:help">ⓘ</span></label>
             <input id="inst-prof" type="number" value="2.5" min="0.3" max="10" step="0.1" oninput="inst_calcular()">
@@ -1316,180 +1304,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div id="inst-checklist" style="display:flex;flex-direction:column;gap:7px"></div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════════
-             PANEL CONCRETO — Método de Marston + NMX-C-402 / NMX-C-401
-             Visible sólo cuando tipo tubería = concreto
-        ═══════════════════════════════════════════════════════════════ -->
-        <div id="panel-concreto" style="display:none;margin-top:16px">
 
-          <!-- Título -->
-          <div style="background:linear-gradient(135deg,#78350f,#92400e);color:#fff;border-radius:10px 10px 0 0;padding:14px 16px;font-weight:800;font-size:.95rem;letter-spacing:.3px">
-            🏗️ Diseño Estructural Tubería de Concreto — NMX-C-402 / NMX-C-401
-          </div>
-
-          <!-- Datos de instalación (carga de relleno) -->
-          <div style="background:#fff;border:1.5px solid #d97706;border-top:none;border-radius:0 0 10px 10px;padding:16px;display:flex;flex-direction:column;gap:14px">
-
-            <!-- Fila 1: Tipo instalación + Tipo apoyo -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Tipo de instalación</label>
-                <select id="cn-tipo" onchange="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.82rem">
-                  <option value="zanja">En zanja</option>
-                  <option value="terraplen">En terraplén</option>
-                </select>
-              </div>
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Tipo de apoyo (Bedding)</label>
-                <select id="cn-apoyo" onchange="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.82rem">
-                  <option value="4">Hormigón a riñones — Bₓ=4.0 / Clase A SCT (zanja)</option>
-                  <option value="2.8">Hormigón a 120° — Bₓ=2.8 / Clase A SCT (zanja)</option>
-                  <option value="2.3">Hormigón a 90° — Bₓ=2.3 / Clase A SCT (zanja)</option>
-                  <option value="2.1">Granular a riñones — Bₓ=2.1 / Clase B SCT (zanja)</option>
-                  <option value="1.7">Granular a 90° — Bₓ=1.7 / Clase C SCT (zanja)</option>
-                  <option value="1.1">Directo sobre terreno — Bₓ=1.1 / Clase D SCT</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Fila 2: Tipo relleno -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Tipo de relleno (Marston)</label>
-                <select id="cn-relleno" onchange="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.82rem">
-                  <option value="0.110,21.0">Arcilla plástica — λμ=0.110, γ=21 kN/m³</option>
-                  <option value="0.130,19.2">Arcilla ordinaria — λμ=0.130, γ=19.2 kN/m³</option>
-                  <option value="0.150,19.2">Arena arcillosa — λμ=0.150, γ=19.2 kN/m³</option>
-                  <option value="0.165,17.6" selected>Arena y grava — λμ=0.165, γ=17.6 kN/m³</option>
-                  <option value="0.192,19.0">Arena sin cohesión — λμ=0.192, γ=19.0 kN/m³</option>
-                </select>
-              </div>
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Diámetro nominal DN (mm)</label>
-                <select id="cn-dn" onchange="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.82rem">
-                  <option value="300">300 mm</option>
-                  <option value="380">380 mm</option>
-                  <option value="450">450 mm</option>
-                  <option value="610">610 mm</option>
-                  <option value="760">760 mm</option>
-                  <option value="910">910 mm</option>
-                  <option value="1070">1070 mm</option>
-                  <option value="1220" selected>1220 mm</option>
-                  <option value="1370">1370 mm</option>
-                  <option value="1520">1520 mm</option>
-                  <option value="1830">1830 mm</option>
-                  <option value="2130">2130 mm</option>
-                  <option value="2440">2440 mm</option>
-                  <option value="2750">2750 mm</option>
-                  <option value="3050">3050 mm</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Fila 3: hr, b (ancho zanja), carga tráfico -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Altura relleno hr (m)</label>
-                <input type="number" id="cn-hr" value="2.0" min="0.3" max="20" step="0.1" oninput="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.85rem">
-              </div>
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Ancho zanja b (m)</label>
-                <input type="number" id="cn-b" value="1.5" min="0.3" max="6" step="0.05" oninput="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.85rem">
-              </div>
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Sobrecarga tráfico q (kN/m)</label>
-                <!-- Botones preset de carga viva para concreto NMX-C-402 -->
-                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;margin-bottom:4px">
-                  <button type="button" onclick="document.getElementById('cn-trafico').value=0;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚶 0</button>
-                  <button type="button" onclick="document.getElementById('cn-trafico').value=48;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚗 H-10<br><span style="font-size:.6rem">48 kN/m</span></button>
-                  <button type="button" onclick="document.getElementById('cn-trafico').value=96;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚛 H-20<br><span style="font-size:.6rem">96 kN/m</span></button>
-                  <button type="button" onclick="document.getElementById('cn-trafico').value=120;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🛣️ H-25<br><span style="font-size:.6rem">120 kN/m</span></button>
-                  <button type="button" onclick="document.getElementById('cn-trafico').value=50;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">✈️ DC-9<br><span style="font-size:.6rem">50 kN/m</span></button>
-                  <button type="button" onclick="document.getElementById('cn-trafico').value=80;cn_calcular()" style="font-size:.65rem;padding:3px 6px;border:1px solid #d4c5a9;border-radius:4px;background:#fff8f1;cursor:pointer;color:#78350f">🚂 E-80<br><span style="font-size:.6rem">80 kN/m</span></button>
-                </div>
-                <input type="number" id="cn-trafico" value="0" min="0" max="500" step="5" oninput="cn_calcular()" style="width:100%;margin-top:0;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.85rem">
-                <div style="font-size:.7rem;color:#78350f;margin-top:2px;line-height:1.5">
-                  <b>Ref. AASHTO/FAA/AREMA (kN/m distribuida sobre tubo):</b><br>
-                  H-10: ~48 kN/m · H-20: ~96 kN/m · H-25: ~120 kN/m<br>
-                  Aeropuerto FAA/DC-9 (900 kN): ~50 kN/m · Boeing 747: ~100 kN/m<br>
-                  Ferroviario Cooper E-80: ~80 kN/m · Eje 7t=35 kN/m · Eje 13t=65 kN/m
-                </div>
-              </div>
-            </div>
-
-            <!-- Fila 4: coef. seguridad -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <div>
-                <label style="font-size:.78rem;font-weight:700;color:#92400e">Coef. seguridad γ_seg</label>
-                <select id="cn-gamseg" onchange="cn_calcular()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid #d4c5a9;border-radius:6px;font-size:.82rem">
-                  <option value="1.5" selected>1.5 — criterio rotura (recomendado)</option>
-                  <option value="1.0">1.0 — criterio fisuración</option>
-                </select>
-              </div>
-              <div style="display:flex;align-items:flex-end">
-                <button onclick="cn_calcular()" style="width:100%;padding:9px;background:linear-gradient(135deg,#92400e,#d97706);color:#fff;font-weight:700;font-size:.85rem;border:none;border-radius:8px;cursor:pointer">⚙️ Calcular Grado NMX</button>
-              </div>
-            </div>
-
-            <!-- RESULTADOS -->
-            <div id="cn-resultados" style="display:none">
-
-              <!-- Proceso de cálculo -->
-              <div style="background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;padding:12px;font-size:.78rem;color:#78350f">
-                <div style="font-weight:700;margin-bottom:6px">📐 Proceso Marston (NMX-C-402)</div>
-                <div id="cn-proceso" style="line-height:1.7"></div>
-              </div>
-
-              <!-- KPIs resultado -->
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px">
-                <div style="background:#fff;border:1.5px solid #d97706;border-radius:8px;padding:12px;text-align:center">
-                  <div style="font-size:.7rem;color:#78350f;font-weight:700">Carga relleno qr</div>
-                  <div id="cn-qr" style="font-size:1.2rem;font-weight:800;color:#92400e">—</div>
-                  <div style="font-size:.68rem;color:#666">kN/m</div>
-                </div>
-                <div style="background:#fff;border:1.5px solid #d97706;border-radius:8px;padding:12px;text-align:center">
-                  <div style="font-size:.7rem;color:#78350f;font-weight:700">Carga cálculo</div>
-                  <div id="cn-qcalc" style="font-size:1.2rem;font-weight:800;color:#92400e">—</div>
-                  <div style="font-size:.68rem;color:#666">kN/m²/m</div>
-                </div>
-                <div style="background:#fff;border:1.5px solid #1e40af;border-radius:8px;padding:12px;text-align:center">
-                  <div style="font-size:.7rem;color:#1e40af;font-weight:700">Grado NMX requerido</div>
-                  <div id="cn-grado" style="font-size:1.4rem;font-weight:800;color:#1e40af">—</div>
-                  <div style="font-size:.68rem;color:#666">NMX-C-402</div>
-                </div>
-              </div>
-
-              <!-- Tabla comparativa grados -->
-              <div style="margin-top:12px;overflow-x:auto">
-                <div style="font-size:.78rem;font-weight:700;color:#92400e;margin-bottom:6px">📊 Tabla de Grados NMX-C-402-ONNCCE-2020</div>
-                <table style="width:100%;border-collapse:collapse;font-size:.76rem">
-                  <thead>
-                    <tr style="background:#92400e;color:#fff">
-                      <th style="padding:6px 8px;text-align:left">Grado</th>
-                      <th style="padding:6px 8px">M_grieta (N/m/mm)</th>
-                      <th style="padding:6px 8px">M_rupt (N/m/mm)</th>
-                      <th style="padding:6px 8px">f'c (MPa)</th>
-                      <th style="padding:6px 8px">Equivalente ASTM</th>
-                      <th style="padding:6px 8px">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody id="cn-tabla-grados"></tbody>
-                </table>
-              </div>
-
-              <!-- Ancho de zanja mínimo -->
-              <div id="cn-zanja-info" style="margin-top:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:.78rem;color:#166534">
-                <div style="font-weight:700;margin-bottom:4px">📏 Ancho de Zanja Recomendado</div>
-                <div id="cn-zanja-texto"></div>
-              </div>
-
-              <!-- Advertencia grado no disponible -->
-              <div id="cn-alerta" style="display:none;margin-top:8px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:.78rem;color:#991b1b;font-weight:700">
-              </div>
-
-            </div><!-- /cn-resultados -->
-          </div><!-- /panel body -->
-        </div><!-- /panel-concreto -->
 
       </div>
     </div><!-- fin grid -->
@@ -1842,13 +1657,6 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             </div>
           </div>
 
-          <!-- ══ ASISTENTE DE OPTIMIZACIÓN ══════════════════════════════════════ -->
-          <div id="m9-asistente-wrap" style="margin-bottom:4px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px;display:none">
-            <div style="font-size:.8rem;font-weight:700;color:#166534;margin-bottom:5px">Asistente de Optimizacion — encamado sugerido</div>
-            <div id="m9-asistente-msg" style="font-size:.78rem;color:#166534;line-height:1.5"></div>
-            <div id="m9-asistente-btns" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px"></div>
-          </div>
-
           <div>
             <label style="font-weight:700">Factor de seguridad FS — D-load &amp; γ<sub>seg</sub> NMX</label>
             <select id="m9-gamseg" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
@@ -1861,10 +1669,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             </div>
           </div>
 
-          <!-- Botón calcular — dentro del bloque Carga Viva como solicitó usuario -->
-          <div style="margin-top:14px">
-            <button onclick="calcM9()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0f4c5c,#01696f);color:#fff;font-weight:700;font-size:.9rem;border:none;border-radius:8px;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 8px rgba(1,105,111,.25)">⚙️ Calcular Grado NMX-C-402 + Clase SCT</button>
-          </div>
+
         </div>
 
       </div><!-- /col izquierda -->
@@ -2189,6 +1994,13 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
       </div><!-- /col derecha -->
     </div><!-- /grid -->
+
+    <!-- ══ ASISTENTE DE OPTIMIZACIÓN ══════════════════════════════════════ -->
+    <div id="m9-asistente-wrap" style="margin-top:16px;margin-bottom:4px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px;display:none">
+      <div style="font-size:.8rem;font-weight:700;color:#166534;margin-bottom:5px">Asistente de Optimizacion — encamado sugerido</div>
+      <div id="m9-asistente-msg" style="font-size:.78rem;color:#166534;line-height:1.5"></div>
+      <div id="m9-asistente-btns" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px"></div>
+    </div>
 
     <!-- Advertencia automática DN<600mm + carga vehicular -->
     <div id="m9-warn-dn" style="display:none;margin-top:12px;background:#fef9c3;border:1.5px solid #eab308;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#713f12;line-height:1.5"></div>
@@ -4603,14 +4415,11 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
       if(d === prev || (!diam.includes(prev) && d === diam[0])) o.selected = true;
       sel.appendChild(o);
     });
-    // Mostrar/ocultar selector de grado
-    var gradDiv = document.getElementById('inst-grado-div');
-    if(gradDiv) gradDiv.style.display = tipo === 'concreto' ? 'block' : 'none';
   }
 
   window.inst_selectTubo = function(btn, tipo) {
     INST.tubo = tipo;
-    ['pead','pvc','concreto'].forEach(function(k){
+    ['pead','pvc'].forEach(function(k){
       var el = document.getElementById('ibt-'+k);
       if(!el) return;
       if(k === tipo){
@@ -4642,150 +4451,8 @@ function dibujarCaudalSVG(Am2, Lm, Q, Qm, C) {
     }
     inst_repoblarDiametros(tipo);
     inst_calcular();
-    // Mostrar/ocultar panel Concreto NMX-C-402
-    var panelCn = document.getElementById('panel-concreto');
-    if(panelCn) panelCn.style.display = (tipo === 'concreto') ? 'block' : 'none';
-    if(tipo === 'concreto') cn_calcular();
   };
 
-  // ══════════════════════════════════════════════════════════
-  //  CONCRETO — Método de Marston + NMX-C-402-ONNCCE-2020
-  //  Fórmulas: Manual de Tubos de Hormigón Armado, ATHA/IECA
-  //  Norma mexicana: NMX-C-402-ONNCCE-2020 (4 Grados)
-  // ══════════════════════════════════════════════════════════
-  window.cn_calcular = function() {
-    // — Leer inputs —
-    var tipo      = (document.getElementById('cn-tipo')    || {}).value || 'zanja';
-    var Fa        = parseFloat((document.getElementById('cn-apoyo')   || {}).value || 2.3);
-    var relleno   = ((document.getElementById('cn-relleno') || {}).value || '0.130,19.2').split(',');
-    var lamu      = parseFloat(relleno[0]);   // coeficiente Marston λμ'
-    var gamma     = parseFloat(relleno[1]);   // peso específico kN/m³
-    var DN        = parseFloat((document.getElementById('cn-dn')      || {}).value || 1220); // mm
-    var hr        = parseFloat((document.getElementById('cn-hr')      || {}).value || 2.0);  // m
-    var b         = parseFloat((document.getElementById('cn-b')       || {}).value || 1.5);  // m
-    var qTraf     = parseFloat((document.getElementById('cn-trafico') || {}).value || 0);    // kN/m
-    var gamSeg    = parseFloat((document.getElementById('cn-gamseg')  || {}).value || 1.5);
-
-    if(isNaN(hr)||hr<=0||isNaN(b)||b<=0) return;
-
-    var D = DN / 1000; // m (diámetro interior en metros)
-    // Bc = diámetro exterior (NMX-C-402: e estimada = 0.1×D + 0.04 m)
-    var e_est = 0.1 * D + 0.04;         // m espesor pared estimado
-    var Bc    = D + 2 * e_est;          // m diámetro exterior (para Marston terraplén)
-
-    // — 1. Coeficiente de Marston Cz (instalación en zanja) —
-    //    W_c = Cd · γ · Bd²  (kN/m)  — Fórmula Marston NMX-C-402
-    //    Cd = [1 - e^(-2λμ'·hr/b)] / (2λμ'·hr/b)  ← Cd ya contiene hr/b internamente
-    var expo  = -2 * lamu * hr / b;
-    var Cz    = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
-
-    var qr_zanja    = Cz * gamma * hr * b;           // kN/m (Marston zanja: Wc = Cd·γ·hr·b  SCT M-PRY-CAR-4-01-003-16 pg5)
-    var qr_terraplen = gamma * hr * Bc;              // kN/m (Marston terraplén: Wc = γ·H·Bc — Bc=diámetro exterior NMX-C-402)
-
-    // Tomar el menor (conservador según ATHA: debe compararse y tomarse el menor)
-    var qr = (tipo === 'terraplen') ? qr_terraplen : qr_zanja;
-    // Si es terraplén, Marston exige también comparar con qr_zanja y tomar el menor
-    if(tipo === 'terraplen') qr = Math.min(qr_terraplen, qr_zanja);
-
-    // — 2. Carga total (relleno + tráfico) —
-    var qTotal = qr + qTraf;
-
-    // — 3. Carga de cálculo (kN/m²/m) —
-    //    q_calc = q_total · γ_seg / (Fa · D)
-    var qCalc = qTotal * gamSeg / (Fa * D);
-
-    // — 4. Seleccionar Grado NMX-C-402 necesario —
-    //    NMX usa M_grieta en N/m/mm = kN/m² (mismas unidades que q_calc)
-    //    Se elige el grado con M_grieta >= q_calc
-    var grados = [
-      { g:'1', M_g:50,  M_r:75,  fc:27.6, astm:'Clase I/II' },
-      { g:'2', M_g:65,  M_r:100, fc:27.6, astm:'Clase III'  },
-      { g:'3', M_g:100, M_r:150, fc:34.5, astm:'Clase IV'   },
-      { g:'4', M_g:140, M_r:175, fc:41.4, astm:'Clase V'    }
-    ];
-    var gradoSel = null;
-    for(var i=0;i<grados.length;i++){
-      // Criterio NMX-C-402: M_grieta >= q_calc (γ_seg ya está aplicado en q_calc)
-      // SIEMPRE se compara contra M_grieta — γ_seg no cambia el umbral de referencia
-      var umbral = grados[i].M_g;
-      if(umbral >= qCalc) { gradoSel = grados[i]; break; }
-    }
-
-    // — 5. Ancho de zanja mínimo recomendado —
-    //    Según ATHA: b_min = De + 0.40 m (para DN <= 600mm)
-    //                 b_min = De + 0.50 m (para DN > 600mm)
-    //    De estimado: De ≈ D + 2·e  con e ≈ 0.1·D + 0.04 m (aprox. para concreto reforzado)
-    var e_pared = e_est;              // m espesor pared (ya calculado)
-    var De = Bc;                    // m diámetro exterior (= Bc ya calculado)
-    var bMin = De + (DN <= 600 ? 0.40 : 0.50);
-    var bOpt = De + (DN <= 600 ? 0.60 : 0.75);
-
-    // — Mostrar resultados —
-    document.getElementById('cn-resultados').style.display = 'block';
-    document.getElementById('cn-qr').textContent     = qr.toFixed(2);
-    document.getElementById('cn-qcalc').textContent  = qCalc.toFixed(1);
-
-    var gradoEl = document.getElementById('cn-grado');
-    var alertaEl = document.getElementById('cn-alerta');
-    if(gradoSel){
-      gradoEl.textContent = 'Grado ' + gradoSel.g;
-      gradoEl.style.color = '#1e40af';
-      alertaEl.style.display = 'none';
-    } else {
-      gradoEl.textContent = '>Grado 4';
-      gradoEl.style.color = '#dc2626';
-      alertaEl.style.display = 'block';
-      alertaEl.textContent = '⚠️ La carga de cálculo (' + qCalc.toFixed(1) + ' kN/m²/m) supera el Grado 4 (M_rupt=175). Revise el tipo de apoyo, reduzca ancho de zanja o considere doble armadura. NMX-C-402 máximo = Grado 4.';
-    }
-
-    // Proceso detallado
-    var proc = [];
-    proc.push('▶ DN=' + DN + ' mm | D=' + D.toFixed(3) + ' m | De≈' + De.toFixed(3) + ' m (estimado)');
-    proc.push('▶ hr=' + hr + ' m | b=' + b + ' m | γ=' + gamma + ' kN/m³ | λμ\u2019=' + lamu);
-    proc.push('▶ Cz Marston = [1-e^(' + (2*lamu*hr/b).toFixed(3) + ')] / (2×' + lamu + '×' + (hr/b).toFixed(3) + ') = <b>' + Cz.toFixed(4) + '</b>');
-    proc.push('▶ q_relleno (Marston zanja) = Cz·γ·hr·b = ' + Cz.toFixed(4) + ' × ' + gamma + ' × ' + hr + ' × ' + b + ' = <b>' + qr_zanja.toFixed(2) + ' kN/m</b>  [SCT M-PRY-CAR-4-01-003-16]');
-    if(tipo === 'terraplen') proc.push('▶ q_terraplén = γ·hr·Bc = ' + gamma + '×' + hr + '×' + Bc.toFixed(3) + ' = <b>' + qr_terraplen.toFixed(2) + ' kN/m</b> (Bc=diám. exterior) | Adoptado (menor): <b>' + qr.toFixed(2) + ' kN/m</b>');
-    proc.push('▶ q_tráfico = ' + qTraf + ' kN/m | q_TOTAL = ' + qr.toFixed(2) + ' + ' + qTraf + ' = <b>' + qTotal.toFixed(2) + ' kN/m</b>');
-    proc.push('▶ Fa (factor apoyo) = ' + Fa + ' | γ_seg = ' + gamSeg);
-    proc.push('▶ <b>Carga cálculo = q_total × γ_seg / (Fa × D)</b> = ' + qTotal.toFixed(2) + ' × ' + gamSeg + ' / (' + Fa + ' × ' + D.toFixed(3) + ') = <b>' + qCalc.toFixed(1) + ' N/m/mm</b>');
-    proc.push('▶ Criterio NMX-C-402: M_grieta ≥ ' + qCalc.toFixed(1) + ' N/m/mm (γ_seg ya aplicado en q_calc) → <b>Grado ' + (gradoSel ? gradoSel.g : '> 4') + '</b>');
-    document.getElementById('cn-proceso').innerHTML = proc.join('<br>');
-
-    // Tabla de grados
-    var tbody = document.getElementById('cn-tabla-grados');
-    if(tbody){
-      tbody.innerHTML = '';
-      var astmMap = {'1':'I / II','2':'III','3':'IV','4':'V'};
-      grados.forEach(function(g){
-        var umbral = g.M_g;  // NMX-C-402: siempre M_grieta
-        var ok = (umbral >= qCalc);
-        var esSel = (gradoSel && g.g === gradoSel.g);
-        var bg = esSel ? '#dbeafe' : (ok ? '#f0fdf4' : '#fef2f2');
-        var ic = esSel ? '✅ REQUERIDO' : (ok ? '✔ Cumple' : '✖ Insuficiente');
-        var fcol = esSel ? '#1e40af' : (ok ? '#166534' : '#991b1b');
-        tbody.innerHTML += '<tr style="background:'+bg+';border-bottom:1px solid #e5e7eb">' +
-          '<td style="padding:5px 8px;font-weight:700">Grado ' + g.g + '</td>' +
-          '<td style="padding:5px 8px;text-align:center">' + g.M_g + '</td>' +
-          '<td style="padding:5px 8px;text-align:center">' + g.M_r + '</td>' +
-          '<td style="padding:5px 8px;text-align:center">' + g.fc + '</td>' +
-          '<td style="padding:5px 8px;text-align:center">ASTM ' + astmMap[g.g] + '</td>' +
-          '<td style="padding:5px 8px;text-align:center;color:'+fcol+';font-weight:700">' + ic + '</td>' +
-          '</tr>';
-      });
-    }
-
-    // Ancho de zanja
-    var zanjaEl = document.getElementById('cn-zanja-texto');
-    if(zanjaEl){
-      var bActual = b;
-      var estado  = bActual >= bMin ? '✅ Ancho OK' : '⚠️ Ancho insuficiente';
-      zanjaEl.innerHTML =
-        'De≈<b>' + (De*1000).toFixed(0) + ' mm</b> | ' +
-        'b_mín recomendado = <b>' + (bMin*1000).toFixed(0) + ' mm</b> | ' +
-        'b_óptimo = <b>' + (bOpt*1000).toFixed(0) + ' mm</b><br>' +
-        'Ancho ingresado: <b>' + (bActual*1000).toFixed(0) + ' mm</b> — <b>' + estado + '</b>';
-    }
-  };
 
   window.inst_setDrenaje = function(btn, val) {
     INST.drenaje = val;
