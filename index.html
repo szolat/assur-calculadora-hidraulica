@@ -266,6 +266,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   <button class="tab-btn" onclick="showTab('sanitario')">🏙️ 7 · Sanitario</button>
   <button class="tab-btn" onclick="showTab('instalacion')">🏗️ 8 · Instalación</button>
   <button class="tab-btn" onclick="showTab('disenio-concreto')">🧱 9 · Diseño Concreto</button>
+  <button class="tab-btn" onclick="showTab('jacking')">🔩 10 · Jacking</button>
   <button class="tab-btn" onclick="showTab('reporte')">📋 Reporte</button>
   </div>
 </div><!-- /tabs-nav-wrapper -->
@@ -2204,6 +2205,229 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   </div>
 </div>
 <!-- /MÓDULO 9 -->
+
+<!-- MÓDULO 10 — JACKING (ACPA DD4 / ASCE 27-00) -->
+<div id="sec-jacking" class="section">
+  <div class="section-header">
+    <h2 style="font-size:1.1rem;color:var(--teal-d);margin:0">🔩 Módulo 10 — Instalación por Jacking (Microtunneling)</h2>
+    <p style="font-size:.78rem;color:#555;margin:4px 0 0 0">ACPA DD4 · ASCE 27-00 · ASTM C76M-22A · NMX-C-402-ONNCCE-2020</p>
+  </div>
+
+  <div class="two-col">
+    <!-- COLUMNA IZQUIERDA — INPUTS -->
+    <div class="left-col">
+
+      <!-- Datos del tubo -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title">🧱 Datos de la Tubería</div>
+
+        <label class="inp-lbl">Diámetro nominal DN (mm)</label>
+        <select id="m10-dn" onchange="m10UpdateDo();calcM10()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+          <option value="300">DN 300 mm (12")</option>
+          <option value="375">DN 375 mm (15")</option>
+          <option value="450">DN 450 mm (18")</option>
+          <option value="525">DN 525 mm (21")</option>
+          <option value="600" selected>DN 600 mm (24")</option>
+          <option value="675">DN 675 mm (27")</option>
+          <option value="750">DN 750 mm (30")</option>
+          <option value="825">DN 825 mm (33")</option>
+          <option value="900">DN 900 mm (36")</option>
+          <option value="1050">DN 1050 mm (42")</option>
+          <option value="1200">DN 1200 mm (48")</option>
+          <option value="1350">DN 1350 mm (54")</option>
+          <option value="1500">DN 1500 mm (60")</option>
+          <option value="1650">DN 1650 mm (66")</option>
+          <option value="1800">DN 1800 mm (72")</option>
+        </select>
+
+        <label class="inp-lbl" style="margin-top:8px">Espesor de pared e (mm) <span style="font-size:.7rem;color:#888">— NMX-C-402 Tabla 1</span></label>
+        <input type="number" id="m10-e" value="63" min="30" max="400" step="1" oninput="calcM10()"
+          style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+
+        <label class="inp-lbl" style="margin-top:8px">Resistencia f'c (MPa)</label>
+        <select id="m10-fc" onchange="calcM10()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+          <option value="27.6">27.6 MPa (4000 psi) — Grado 1/2</option>
+          <option value="34.5" selected>34.5 MPa (5000 psi) — Grado 3</option>
+          <option value="41.4">41.4 MPa (6000 psi) — Grado 4</option>
+        </select>
+      </div>
+
+      <!-- Datos de instalación -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title">🏗️ Datos de Instalación</div>
+
+        <label class="inp-lbl">Longitud de jacking L (m)</label>
+        <input type="number" id="m10-L" value="50" min="5" max="500" step="5" oninput="calcM10()"
+          style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+
+        <label class="inp-lbl" style="margin-top:8px">Altura de relleno H (m) <span style="font-size:.7rem;color:#888">— sobre coronamiento del tubo</span></label>
+        <input type="number" id="m10-H" value="5" min="1" max="30" step="0.5" oninput="calcM10()"
+          style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+
+        <label class="inp-lbl" style="margin-top:8px">Ancho máx. de excavación Bt (m) <span style="font-size:.7rem;color:#888">= Do + sobreexcavación</span></label>
+        <input type="number" id="m10-Bt" value="1.0" min="0.3" max="5" step="0.05" oninput="calcM10()"
+          style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+        <div id="m10-bt-hint" style="font-size:.7rem;color:#888;margin-top:2px"></div>
+
+        <label class="inp-lbl" style="margin-top:8px">Método de excavación</label>
+        <select id="m10-metodo" onchange="calcM10()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+          <option value="micro">Microtunneling (DN &lt; 914 mm = 36")</option>
+          <option value="tbm">TBM / Escudo (DN ≥ 914 mm = 36")</option>
+        </select>
+      </div>
+
+      <!-- Parámetros del suelo -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title">🌍 Parámetros del Suelo</div>
+
+        <label class="inp-lbl">Tipo de suelo</label>
+        <select id="m10-suelo" onchange="m10UpdateSuelo();calcM10()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+          <option value="arena-grava">Arena y Grava</option>
+          <option value="suelo-saturado" selected>Suelo Saturado (Top Soil)</option>
+          <option value="arcilla-ordinaria">Arcilla Ordinaria</option>
+          <option value="arcilla-saturada">Arcilla Saturada</option>
+        </select>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <div style="flex:1">
+            <label class="inp-lbl">Peso unitario w (kN/m³)</label>
+            <input type="number" id="m10-w" value="19.6" min="14" max="22" step="0.1" oninput="calcM10()"
+              style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+          </div>
+          <div style="flex:1">
+            <label class="inp-lbl">Cohesión c (kPa)</label>
+            <input type="number" id="m10-c" value="4.8" min="0" max="50" step="0.5" oninput="calcM10()"
+              style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+          </div>
+        </div>
+        <div id="m10-suelo-hint" style="font-size:.7rem;color:#01696f;margin-top:4px;padding:4px 8px;background:#f0fdf4;border-radius:4px;border:1px solid #86efac"></div>
+
+        <label class="inp-lbl" style="margin-top:8px">Coeficiente K·μ' (fricción lateral Marston)</label>
+        <input type="number" id="m10-kmu" value="0.165" min="0.05" max="0.5" step="0.005" oninput="calcM10()"
+          style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+        <div style="font-size:.7rem;color:#888;margin-top:2px">Arena: 0.165 · Arcilla suave: 0.110 · Arcilla dura: 0.130</div>
+      </div>
+
+      <!-- Diseño y método -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title">⚙️ Parámetros de Diseño</div>
+
+        <label class="inp-lbl">Encamado / lubricación</label>
+        <select id="m10-bf" onchange="m10UpdateBf();calcM10()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+          <option value="3.0">Bf = 3.0 — Con lechada anular (grouting) — ACPA DD4 recomendado</option>
+          <option value="1.9" selected>Bf = 1.9 — Sin lechada anular (conservador)</option>
+        </select>
+        <div id="m10-bf-hint" style="font-size:.7rem;margin-top:3px;padding:4px 8px;border-radius:4px;background:#fef9c3;border:1px solid #fde68a;color:#78350f"></div>
+
+        <label class="inp-lbl" style="margin-top:8px">Factor de seguridad FS</label>
+        <select id="m10-fs" onchange="calcM10()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+          <option value="1.0" selected>FS = 1.0 — 0.01" crack (ACPA DD4 ejemplo)</option>
+          <option value="1.25">FS = 1.25 — Intermedio</option>
+          <option value="1.5">FS = 1.5 — Conservador NMX-C-402</option>
+        </select>
+
+        <label class="inp-lbl" style="margin-top:8px">Inclusión de cohesión del suelo</label>
+        <select id="m10-cohesion-mode" onchange="calcM10()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+          <option value="no">Conservador — Ignorar cohesión (ASCE recomendado)</option>
+          <option value="si">Incluir cohesión (requiere pruebas geotécnicas)</option>
+        </select>
+        <div style="font-size:.7rem;color:#6b7280;margin-top:2px">ASCE 27-00 desaconseja incluir cohesión sin datos geotécnicos verificados</div>
+      </div>
+
+      <button onclick="calcM10()" style="width:100%;padding:12px;background:linear-gradient(135deg,#1a4a6b,#2563eb);color:#fff;font-weight:700;font-size:.9rem;border:none;border-radius:8px;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 8px rgba(37,99,235,.3)">🔩 Calcular Jacking — ACPA DD4</button>
+    </div>
+
+    <!-- COLUMNA DERECHA — RESULTADOS -->
+    <div class="right-col">
+      <div id="res-m10" style="display:none">
+
+        <!-- Tarjetas de resultados -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div class="kpi-card" style="border-left:4px solid #2563eb">
+            <div class="kpi-label">Carga transversal Wt</div>
+            <div class="kpi-value" id="m10-res-wt">—</div>
+            <div class="kpi-unit">kN/m</div>
+          </div>
+          <div class="kpi-card" style="border-left:4px solid #7c3aed">
+            <div class="kpi-label">D-load requerido</div>
+            <div class="kpi-value" id="m10-res-dload">—</div>
+            <div class="kpi-unit">lb/ft/ft</div>
+          </div>
+          <div class="kpi-card" style="border-left:4px solid #059669">
+            <div class="kpi-label">Empuje axial máx. P</div>
+            <div class="kpi-value" id="m10-res-pmax">—</div>
+            <div class="kpi-unit">kN</div>
+          </div>
+          <div class="kpi-card" style="border-left:4px solid #dc2626">
+            <div class="kpi-label">Esfuerzo allowable fJ</div>
+            <div class="kpi-value" id="m10-res-fj">—</div>
+            <div class="kpi-unit">MPa</div>
+          </div>
+        </div>
+
+        <!-- Badge clase ASTM / Grado NMX -->
+        <div id="m10-clase-badge" style="margin-bottom:10px;text-align:center"></div>
+
+        <!-- Panel D-load -->
+        <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:.78rem;font-weight:700;color:#1d4ed8;margin-bottom:6px">D-load — Marston Indirecto (DD4 Ec.3 y Ec.4)</div>
+          <table style="width:100%;font-size:.75rem;border-collapse:collapse">
+            <tr style="background:#dbeafe">
+              <td style="padding:4px 6px;font-weight:700">Parámetro</td>
+              <td style="padding:4px 6px;font-weight:700;text-align:right">Valor</td>
+            </tr>
+            <tr><td style="padding:3px 6px">Coef. Ct (Marston jacking)</td><td style="text-align:right;font-family:monospace" id="m10-ct">—</td></tr>
+            <tr style="background:#eff6ff"><td style="padding:3px 6px">Término zanja CtwBt²</td><td style="text-align:right;font-family:monospace" id="m10-trench-term">—</td></tr>
+            <tr><td style="padding:3px 6px">Término cohesión 2c·Ct·Bt</td><td style="text-align:right;font-family:monospace" id="m10-cohesion-term">—</td></tr>
+            <tr style="background:#dbeafe;font-weight:700"><td style="padding:3px 6px">Wt total (Ec.3)</td><td style="text-align:right;font-family:monospace" id="m10-wt-detail">—</td></tr>
+            <tr><td style="padding:3px 6px">Bedding factor Bf</td><td style="text-align:right;font-family:monospace" id="m10-bf-val">—</td></tr>
+            <tr style="background:#dbeafe;font-weight:700"><td style="padding:3px 6px">D-load (Ec.4)</td><td style="text-align:right;font-family:monospace" id="m10-dload-detail">—</td></tr>
+          </table>
+        </div>
+
+        <!-- Panel Axial -->
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:.78rem;font-weight:700;color:#166534;margin-bottom:6px">Cargas Axiales — ASCE 27-00 (Ec.1 y Ec.2)</div>
+          <table style="width:100%;font-size:.75rem;border-collapse:collapse">
+            <tr style="background:#dcfce7">
+              <td style="padding:4px 6px;font-weight:700">Parámetro</td>
+              <td style="padding:4px 6px;font-weight:700;text-align:right">Valor</td>
+            </tr>
+            <tr><td style="padding:3px 6px">Área junta Ap</td><td style="text-align:right;font-family:monospace" id="m10-ap">—</td></tr>
+            <tr style="background:#f0fdf4"><td style="padding:3px 6px">fJ allowable (Ec.1, φ=0.9, LF=1.2)</td><td style="text-align:right;font-family:monospace" id="m10-fj-detail">—</td></tr>
+            <tr><td style="padding:3px 6px">P_max (Ec.2, 0.5·f'c·Ap)</td><td style="text-align:right;font-family:monospace" id="m10-pmax-detail">—</td></tr>
+            <tr style="background:#dcfce7"><td style="padding:3px 6px">Método excavación</td><td style="text-align:right" id="m10-metodo-val">—</td></tr>
+            <tr><td style="padding:3px 6px">Tipo junta recomendado</td><td style="text-align:right;font-size:.7rem" id="m10-junta">—</td></tr>
+          </table>
+        </div>
+
+        <!-- Proceso paso a paso -->
+        <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:.78rem;font-weight:700;color:#334155;margin-bottom:6px">📋 Proceso de Cálculo</div>
+          <div id="m10-proc" style="font-size:.73rem;line-height:1.8;color:#374151;font-family:monospace"></div>
+        </div>
+
+        <!-- Notas técnicas -->
+        <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-size:.75rem;font-weight:700;color:#9a3412;margin-bottom:4px">⚠ Consideraciones Técnicas (ACPA DD4)</div>
+          <ul id="m10-notas" style="font-size:.72rem;color:#7c2d12;margin:0;padding-left:16px;line-height:1.7"></ul>
+        </div>
+
+        <div style="margin-top:6px;text-align:center;font-size:.72rem;color:#888">
+          Cálculos: ACPA DD4 (11/12) · ASCE 27-00 · ASTM C76M-22A · NMX-C-402-ONNCCE-2020
+        </div>
+      </div>
+
+      <div id="m10-placeholder" style="text-align:center;padding:40px 20px;color:#9ca3af">
+        <div style="font-size:2.5rem;margin-bottom:8px">🔩</div>
+        <div style="font-weight:600;margin-bottom:4px">Módulo Jacking ACPA DD4</div>
+        <div style="font-size:.8rem">Ingresa los datos y presiona Calcular</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /MÓDULO 10 -->
+
 
 <div id="sec-reporte" class="section">
   <div class="report-header">
@@ -6172,6 +6396,285 @@ document.addEventListener('DOMContentLoaded', function() {
   if(typeof m9SyncClaseSCT === 'function')    m9SyncClaseSCT();
   if(typeof calcM9 === 'function')            calcM9();
 });
+
+// =====================================================================
+// M10 — JACKING (ACPA DD4 / ASCE 27-00)
+// Método: Marston Indirecto (DD4 Ec.3 + Ec.4) + Cargas Axiales ASCE 27-00
+// Unidades trabajo: SI (kN, m, MPa) → conversión a lb/ft/ft para D-load
+// =====================================================================
+
+// Parámetros por defecto por tipo de suelo (DD4 Tabla 1 + valores estándar Marston)
+var M10_SUELO = {
+  'arena-grava':      { w: 19.2, c: 0,    kmu: 0.165, label: 'Arena y Grava — c=0, K·μ\'=0.165 (Marston)', w_pcf: 120 },
+  'suelo-saturado':   { w: 19.6, c: 4.79, kmu: 0.150, label: 'Suelo Saturado — c=4.8 kPa, K·μ\'=0.150',   w_pcf: 125 },
+  'arcilla-ordinaria':{ w: 18.9, c: 24.0, kmu: 0.130, label: 'Arcilla Ordinaria — c=24 kPa, K·μ\'=0.130', w_pcf: 120 },
+  'arcilla-saturada': { w: 20.1, c: 47.9, kmu: 0.110, label: 'Arcilla Saturada — c=47.9 kPa, K·μ\'=0.110',w_pcf: 128 }
+};
+
+// Espesor de pared estándar por DN (mm) — NMX-C-402 Tabla 1 (igual que M9)
+var M10_PARED = {
+  300:47, 375:57, 450:63, 525:70, 600:76, 675:82, 750:89, 825:95,
+  900:102, 1050:114, 1200:127, 1350:140, 1500:152, 1650:165, 1800:178
+};
+
+// Clases ASTM C76M-22A → D-load límites (lb/ft/ft)
+var M10_ASTM_CLASES = [
+  { clase: 'I',   dload_max: 800,  label: 'Clase I  (D-load ≤ 800 lb/ft/ft)'  },
+  { clase: 'II',  dload_max: 1000, label: 'Clase II (D-load ≤ 1000 lb/ft/ft)' },
+  { clase: 'III', dload_max: 1350, label: 'Clase III (D-load ≤ 1350 lb/ft/ft)'},
+  { clase: 'IV',  dload_max: 2000, label: 'Clase IV (D-load ≤ 2000 lb/ft/ft)' },
+  { clase: 'V',   dload_max: 3000, label: 'Clase V  (D-load ≤ 3000 lb/ft/ft)' }
+];
+
+// Grados NMX-C-402 (M_grieta en N/m/mm) para referencia cruzada
+var M10_GRADOS_NMX = [
+  { g:'1', Mg:50 }, { g:'2', Mg:65 }, { g:'3', Mg:100 }, { g:'4', Mg:140 }
+];
+
+function m10UpdateDo() {
+  var DN = parseFloat(document.getElementById('m10-dn').value) || 600;
+  var e  = M10_PARED[DN] || Math.round(DN * 0.095);
+  var eEl = document.getElementById('m10-e');
+  if(eEl) eEl.value = e;
+  // Actualizar Bt sugerido = Do + 0.15m de holgura
+  var Do = (DN + 2*e) / 1000;
+  var Bt_sug = (Do + 0.15).toFixed(2);
+  var btHint = document.getElementById('m10-bt-hint');
+  if(btHint) btHint.textContent = 'Do = ' + Do.toFixed(3) + ' m → Bt mín. sugerido ≈ ' + Bt_sug + ' m (Do + 0.15 m)';
+  var btEl = document.getElementById('m10-Bt');
+  if(btEl && parseFloat(btEl.value) < Do) btEl.value = Bt_sug;
+}
+
+function m10UpdateSuelo() {
+  var tipo = document.getElementById('m10-suelo').value;
+  var s = M10_SUELO[tipo];
+  if(!s) return;
+  document.getElementById('m10-w').value   = s.w;
+  document.getElementById('m10-c').value   = s.c;
+  document.getElementById('m10-kmu').value = s.kmu;
+  var hint = document.getElementById('m10-suelo-hint');
+  if(hint) hint.textContent = s.label;
+}
+
+function m10UpdateBf() {
+  var bf  = parseFloat(document.getElementById('m10-bf').value) || 1.9;
+  var hint = document.getElementById('m10-bf-hint');
+  if(!hint) return;
+  if(bf >= 3.0) {
+    hint.textContent = 'Bf=3.0: Espacio anular LECHADO con inyección de lechada de cemento/bentonita (ACPA DD4).';
+    hint.style.background = '#f0fdf4'; hint.style.borderColor = '#86efac'; hint.style.color = '#166534';
+  } else {
+    hint.textContent = 'Bf=1.9: Sin lechada anular — solo lubricación exterior (conservador, ACPA DD4).';
+    hint.style.background = '#fef9c3'; hint.style.borderColor = '#fde68a'; hint.style.color = '#78350f';
+  }
+}
+
+function calcM10() {
+  // ── Leer inputs ────────────────────────────────────────────────────
+  var DN    = parseFloat(document.getElementById('m10-dn').value)   || 600;   // mm
+  var e_mm  = parseFloat(document.getElementById('m10-e').value)    || 76;    // mm
+  var fc_MPa= parseFloat(document.getElementById('m10-fc').value)   || 34.5;  // MPa
+  var L     = parseFloat(document.getElementById('m10-L').value)    || 50;    // m
+  var H     = parseFloat(document.getElementById('m10-H').value)    || 5;     // m
+  var Bt    = parseFloat(document.getElementById('m10-Bt').value)   || 1.0;   // m
+  var w_kNm3= parseFloat(document.getElementById('m10-w').value)    || 19.6;  // kN/m³
+  var c_kPa = parseFloat(document.getElementById('m10-c').value)    || 4.8;   // kPa
+  var kmu   = parseFloat(document.getElementById('m10-kmu').value)  || 0.165;
+  var Bf    = parseFloat(document.getElementById('m10-bf').value)   || 1.9;
+  var FS    = parseFloat(document.getElementById('m10-fs').value)   || 1.0;
+  var useCoh= document.getElementById('m10-cohesion-mode').value === 'si';
+  var metodo= document.getElementById('m10-metodo').value;
+  var fcMode= document.getElementById('m10-fc').value;
+
+  // ── Geometría ──────────────────────────────────────────────────────
+  var Do_m  = (DN + 2 * e_mm) / 1000;   // diámetro exterior en metros
+  var D_in  = DN / 25.4;                 // diámetro interior en pulgadas (para D-load)
+  var Do_in = Do_m * 39.3701;            // diámetro exterior en pulgadas
+  // Área de contacto junta Ap (in²) — anillo de contacto entre tubos (in²)
+  // Ap = π/4 × (OD² - ID²)  [en pulgadas]
+  var Ap_in2= Math.PI / 4 * (Do_in * Do_in - D_in * D_in);
+  // Conversión Ap a m²
+  var Ap_m2 = Ap_in2 * 0.000645160;
+
+  // ── Conversiones a sistema imperial (DD4 trabaja en lb, ft, in) ────
+  var w_pcf = w_kNm3 * 6.36587;   // kN/m³ → lb/ft³  (1 kN/m³ = 6.366 pcf)
+  var H_ft  = H * 3.28084;
+  var Bt_ft = Bt * 3.28084;
+  var c_psf = c_kPa * 20.8854;    // kPa → lb/ft²  (1 kPa = 20.885 psf)
+  var fc_psi= fc_MPa * 145.038;   // MPa → psi
+
+  // ── PASO 1: Coeficiente Ct de Marston para jacking ─────────────────
+  // Fórmula: Ct = [1 - e^(-2Kμ'H/Bt)] / (2Kμ'H/Bt)
+  // Igual al Cz de M9 pero con Bt en lugar de b (ancho de zanja)
+  var expo_ct = -2 * kmu * H_ft / Bt_ft;
+  var Ct;
+  if(Math.abs(expo_ct) < 1e-8) {
+    Ct = 1.0; // límite cuando H→0
+  } else {
+    Ct = (1 - Math.exp(expo_ct)) / (-expo_ct);
+  }
+
+  // ── PASO 2: Carga de tierra — DD4 Ec.3 ────────────────────────────
+  // Wt = Ct·w·Bt² - 2c·Ct·Bt  [lb/ft]
+  var trench_term   = Ct * w_pcf * Bt_ft * Bt_ft;       // lb/ft
+  var cohesion_term = useCoh ? 2 * c_psf * Ct * Bt_ft : 0; // lb/ft (solo si se incluye)
+  var Wt_lbft       = Math.max(0, trench_term - cohesion_term);
+
+  // Conversión a kN/m: 1 lb/ft = 0.014594 kN/m
+  var Wt_kNm = Wt_lbft * 0.014594;
+
+  // ── PASO 3: D-load — DD4 Ec.4 ─────────────────────────────────────
+  // D-load = (WE / (Bf × D)) × FS   [lb/ft/ft]
+  // WE = Wt (Ec.3), D = diámetro interior en pies
+  var D_ft   = D_in / 12;
+  var Dload  = (Wt_lbft / (Bf * D_ft)) * FS;           // lb/ft/ft
+
+  // ── PASO 4: Cargas Axiales — ASCE 27-00 Ec.1 y Ec.2 ──────────────
+  // Ec.1: fJ = (0.85 × φ × f'c) / LF_J  [psi]
+  //        φ = 0.9, LF_J = 1.2
+  var phi  = 0.9;
+  var LF_J = 1.2;
+  var fJ_psi = (0.85 * phi * fc_psi) / LF_J;           // psi
+  var fJ_MPa = fJ_psi / 145.038;                        // MPa
+
+  // Ec.2: P_max = 0.5 × f'c × Ap  [lb]
+  var Pmax_lb = 0.5 * fc_psi * Ap_in2;                 // lb
+  var Pmax_kN = Pmax_lb * 0.004448;                     // kN
+
+  // ── PASO 5: Selección clase ASTM C76M-22A ─────────────────────────
+  var claseASTM = null;
+  for(var i = 0; i < M10_ASTM_CLASES.length; i++) {
+    if(Dload <= M10_ASTM_CLASES[i].dload_max) { claseASTM = M10_ASTM_CLASES[i]; break; }
+  }
+
+  // ── PASO 6: Referencia cruzada Grado NMX-C-402 ────────────────────
+  // D-load (lb/ft/ft) → q_calc (N/m/mm): 1 lb/ft/ft = 0.04788 N/m/mm
+  var qCalc_nmx = Dload * 0.04788;
+  var gradoNMX = null;
+  for(var j = 0; j < M10_GRADOS_NMX.length; j++) {
+    if(M10_GRADOS_NMX[j].Mg >= qCalc_nmx) { gradoNMX = M10_GRADOS_NMX[j]; break; }
+  }
+
+  // ── PASO 7: Proceso de cálculo (texto) ────────────────────────────
+  var proc = [];
+  proc.push('━━ GEOMETRÍA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  proc.push('DN = ' + DN + ' mm  |  e_pared = ' + e_mm + ' mm');
+  proc.push('Do = DN + 2e = ' + DN + ' + ' + (2*e_mm) + ' = ' + (DN+2*e_mm) + ' mm = <b>' + Do_m.toFixed(3) + ' m</b>');
+  proc.push('D  = ' + D_in.toFixed(2) + '"  |  Do = ' + Do_in.toFixed(2) + '"');
+  proc.push('Ap = π/4·(Do²-D²) = π/4·(' + Do_in.toFixed(2) + '²-' + D_in.toFixed(2) + '²) = <b>' + Ap_in2.toFixed(1) + ' in²</b> = ' + Ap_m2.toFixed(5) + ' m²');
+  proc.push('');
+  proc.push('━━ PASO 1 — Ct MARSTON JACKING ━━━━━━━━━━━━━━━━━━━━━');
+  proc.push('Ct = [1 - e^(-2·K·μ\'·H/Bt)] / (2·K·μ\'·H/Bt)');
+  proc.push('K·μ\' = ' + kmu + '  |  H = ' + H + ' m = ' + H_ft.toFixed(2) + ' ft  |  Bt = ' + Bt + ' m = ' + Bt_ft.toFixed(2) + ' ft');
+  var arg_ct = (2*kmu*H_ft/Bt_ft);
+  proc.push('2·K·μ\'·H/Bt = 2 × ' + kmu + ' × ' + H_ft.toFixed(2) + ' / ' + Bt_ft.toFixed(2) + ' = ' + arg_ct.toFixed(4));
+  proc.push('Ct = [1 - e^(-' + arg_ct.toFixed(4) + ')] / ' + arg_ct.toFixed(4) + ' = <b>' + Ct.toFixed(4) + '</b>');
+  proc.push('');
+  proc.push('━━ PASO 2 — CARGA TIERRA (DD4 Ec.3) ━━━━━━━━━━━━━━━━');
+  proc.push('Wt = Ct·w·Bt² - 2c·Ct·Bt  [lb/ft]');
+  proc.push('w = ' + w_kNm3 + ' kN/m³ = ' + w_pcf.toFixed(1) + ' pcf');
+  proc.push('Término zanja Ct·w·Bt² = ' + Ct.toFixed(4) + ' × ' + w_pcf.toFixed(1) + ' × ' + Bt_ft.toFixed(2) + '² = <b>' + trench_term.toFixed(0) + ' lb/ft</b>');
+  if(useCoh && c_kPa > 0) {
+    proc.push('c = ' + c_kPa + ' kPa = ' + c_psf.toFixed(1) + ' psf');
+    proc.push('Término cohesión 2c·Ct·Bt = 2 × ' + c_psf.toFixed(1) + ' × ' + Ct.toFixed(4) + ' × ' + Bt_ft.toFixed(2) + ' = <b>' + cohesion_term.toFixed(0) + ' lb/ft</b>');
+  } else {
+    proc.push('Cohesión: IGNORADA (modo conservador — ASCE 27-00 recomienda verificar geotécnicamente)');
+  }
+  proc.push('Wt = ' + trench_term.toFixed(0) + ' - ' + cohesion_term.toFixed(0) + ' = <b>' + Wt_lbft.toFixed(0) + ' lb/ft</b> = ' + Wt_kNm.toFixed(2) + ' kN/m');
+  proc.push('');
+  proc.push('━━ PASO 3 — D-LOAD (DD4 Ec.4) ━━━━━━━━━━━━━━━━━━━━━');
+  proc.push('D-load = (WE / (Bf × D)) × FS');
+  proc.push('       = (' + Wt_lbft.toFixed(0) + ' / (' + Bf + ' × ' + D_ft.toFixed(3) + ')) × ' + FS);
+  proc.push('       = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b>');
+  proc.push('');
+  proc.push('━━ PASO 4 — CARGAS AXIALES (ASCE 27-00) ━━━━━━━━━━━');
+  proc.push('Ec.1: fJ = (0.85 × φ × f\'c) / LF_J');
+  proc.push('     = (0.85 × 0.9 × ' + fc_psi.toFixed(0) + ' psi) / 1.2 = <b>' + fJ_psi.toFixed(0) + ' psi = ' + fJ_MPa.toFixed(2) + ' MPa</b>');
+  proc.push('Ec.2: P_max = 0.5 × f\'c × Ap');
+  proc.push('     = 0.5 × ' + fc_psi.toFixed(0) + ' × ' + Ap_in2.toFixed(1) + ' = <b>' + Pmax_lb.toFixed(0) + ' lb = ' + Pmax_kN.toFixed(1) + ' kN</b>');
+
+  // ── Notas técnicas ─────────────────────────────────────────────────
+  var notas = [];
+  notas.push('Método: Marston Indirecto (DD4 Ec.3+4) — conservador y sin PIPECAR.');
+  notas.push('El Bf=3.0 aplica SOLO con inyección de lechada anular verificada en campo.');
+  notas.push('ASCE 27-00 desaconseja incluir cohesión sin geotécnica verificada.');
+  notas.push('Jacking pipe: off-axis ≤ 50% del tolerado en ASTM C76 (misalignment).');
+  notas.push('Juntas: cushion de madera ≥ 3/4" (19mm) para distribuir carga axial.');
+  if(DN < 914) {
+    notas.push('DN=' + DN + 'mm < 914mm → Microtunneling aplica (sin acceso interior para personal).');
+  } else {
+    notas.push('DN=' + DN + 'mm ≥ 914mm → TBM/Escudo — acceso interior de personal posible.');
+  }
+  if(H < 1.5) {
+    notas.push('⚠ H=' + H + 'm es bajo — considerar efectos de futura perturbación del suelo.');
+  }
+  if(!useCoh && c_kPa > 0) {
+    notas.push('Se ignoró cohesión c=' + c_kPa + ' kPa por ser modo conservador.');
+  }
+
+  // ── Renderizar ─────────────────────────────────────────────────────
+  var $ = function(id) { return document.getElementById(id); };
+  var setEl = function(id, v) { var el = $(id); if(el) el.innerHTML = v; };
+
+  setEl('m10-res-wt',    Wt_kNm.toFixed(2));
+  setEl('m10-res-dload', Dload.toFixed(0));
+  setEl('m10-res-pmax',  Pmax_kN.toFixed(1));
+  setEl('m10-res-fj',    fJ_MPa.toFixed(2));
+
+  // Detalle tabla D-load
+  setEl('m10-ct',            Ct.toFixed(4));
+  setEl('m10-trench-term',   trench_term.toFixed(0) + ' lb/ft');
+  setEl('m10-cohesion-term', useCoh ? cohesion_term.toFixed(0) + ' lb/ft' : '— (ignorada)');
+  setEl('m10-wt-detail',     Wt_lbft.toFixed(0) + ' lb/ft = ' + Wt_kNm.toFixed(2) + ' kN/m');
+  setEl('m10-bf-val',        Bf);
+  setEl('m10-dload-detail',  Dload.toFixed(0) + ' lb/ft/ft');
+
+  // Detalle tabla axial
+  setEl('m10-ap',          Ap_in2.toFixed(1) + ' in² (' + Ap_m2.toFixed(5) + ' m²)');
+  setEl('m10-fj-detail',   fJ_psi.toFixed(0) + ' psi = ' + fJ_MPa.toFixed(2) + ' MPa');
+  setEl('m10-pmax-detail', Pmax_lb.toFixed(0) + ' lb = ' + Pmax_kN.toFixed(1) + ' kN');
+  setEl('m10-metodo-val',  metodo === 'micro' ? 'Microtunneling (DN&lt;36")' : 'TBM / Escudo (DN≥36")');
+  setEl('m10-junta',       'Bell &amp; spigot con junta de hule + cushion madera 19mm mín.');
+
+  // Badge clase ASTM + Grado NMX
+  var badgeHtml = '';
+  if(claseASTM) {
+    var colors = {I:'#059669',II:'#0891b2',III:'#7c3aed',IV:'#d97706',V:'#dc2626'};
+    var col = colors[claseASTM.clase] || '#374151';
+    badgeHtml += '<span style="display:inline-block;padding:4px 14px;border-radius:14px;font-weight:800;font-size:.85rem;color:#fff;background:' + col + ';margin-right:8px">' +
+      'ASTM C76M-22A ' + claseASTM.label.split('(')[0].trim() + '</span>';
+  } else {
+    badgeHtml += '<span style="display:inline-block;padding:4px 14px;border-radius:14px;font-weight:800;font-size:.85rem;color:#fff;background:#991b1b">D-load > 3000 — Diseño Especial</span>';
+  }
+  if(gradoNMX) {
+    badgeHtml += '<span style="display:inline-block;padding:4px 12px;border-radius:14px;font-weight:700;font-size:.8rem;background:#f0fdf4;color:#166534;border:1.5px solid #86efac">Grado NMX ' + gradoNMX.g + ' (M_g=' + gradoNMX.Mg + ' N/m/mm)</span>';
+  } else {
+    badgeHtml += '<span style="display:inline-block;padding:4px 12px;border-radius:14px;font-weight:700;font-size:.8rem;background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5">Grado NMX > 4 — Diseño Especial</span>';
+  }
+  setEl('m10-clase-badge', badgeHtml);
+
+  // Proceso
+  setEl('m10-proc', proc.join('<br>'));
+
+  // Notas
+  var notasHtml = notas.map(function(n) { return '<li>' + n + '</li>'; }).join('');
+  setEl('m10-notas', notasHtml);
+
+  // Mostrar resultados
+  var resEl = $('res-m10');
+  var phEl  = $('m10-placeholder');
+  if(resEl) resEl.style.display = 'block';
+  if(phEl)  phEl.style.display  = 'none';
+}
+
+// ── Inicialización M10 ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  if(typeof m10UpdateDo    === 'function') m10UpdateDo();
+  if(typeof m10UpdateSuelo === 'function') m10UpdateSuelo();
+  if(typeof m10UpdateBf    === 'function') m10UpdateBf();
+  if(typeof calcM10        === 'function') calcM10();
+});
+
 </script>
 </body>
 </html>
