@@ -1709,6 +1709,19 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <div style="font-size:.68rem;color:#64748b;margin-top:3px">SICT/IMT Clase A-D ≡ ATHA Tipo A-E · NMX-C-401 · M-PRY-CAR-4-01-003-16</div>
           </div>
 
+          <!-- ══ Standard Installation ACPA (SIDD) ══ -->
+          <div style="margin-bottom:10px">
+            <label>Instalación estándar ACPA — SIDD <span style="font-size:.68rem;color:#64748b;font-weight:400">(ACPA Concrete Pipe Design Manual Illus. 4.4 · para D-load)</span></label>
+            <select id="m9-acpa-tipo" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="none" selected>— No aplicar (solo NMX-SCT) —</option>
+              <option value="1">Tipo 1 — Grava compactada haunch 95% Cat.I · B&#7753;=4.4→2.3 | VAF=1.35 (máx. capacidad)</option>
+              <option value="2">Tipo 2 — Grava haunch 90% Cat.I ó 95% Cat.II · B&#7753;=3.2→1.9 | VAF=1.40</option>
+              <option value="3">Tipo 3 — Arena compactada haunch · B&#7753;=2.5→1.7 | VAF=1.40</option>
+              <option value="4">Tipo 4 — Sin compactación haunch · B&#7753;=1.7 | VAF=1.45 (mín. recomendado)</option>
+            </select>
+            <div id="m9-acpa-badge" style="display:none;margin-top:4px;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700;background:#fef3c7;color:#92400e;display:inline-block"></div>
+          </div>
+
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div>
               <label>Peso específico γ<sub>r</sub> (kN/m³)</label>
@@ -1891,6 +1904,30 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <!-- Indicador de cumplimiento -->
           <div id="m9-semaforo" style="border-radius:8px;padding:10px 14px;font-size:.82rem;font-weight:700;text-align:center;background:rgba(255,255,255,.15)">
             ⏳ Ingresa los datos y presiona Calcular
+          </div>
+
+          <!-- ══ Panel ACPA D-load (visible solo si se selecciona Standard Installation) ══ -->
+          <div id="m9-acpa-result" style="display:none;margin-top:12px;background:rgba(255,255,255,.12);border:1.5px solid rgba(252,211,77,.5);border-radius:8px;padding:12px">
+            <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fcd34d;margin-bottom:8px">D-load ACPA (Método Indirecto · ASTM C76)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">
+                <div style="font-size:1.15rem;font-weight:800;font-family:monospace;color:#fde68a" id="m9-acpa-dload">—</div>
+                <div style="font-size:.65rem;opacity:.8;margin-top:2px">D-load <span style="font-size:.6rem">(lb/ft/ft · Eq.4.24)</span></div>
+              </div>
+              <div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">
+                <div style="font-size:1.15rem;font-weight:800;font-family:monospace;color:#6ee7b7" id="m9-acpa-class">—</div>
+                <div style="font-size:.65rem;opacity:.8;margin-top:2px">Clase ASTM C76</div>
+              </div>
+              <div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">
+                <div style="font-size:.95rem;font-weight:700;font-family:monospace;color:#c4b5fd" id="m9-acpa-bf">—</div>
+                <div style="font-size:.65rem;opacity:.8;margin-top:2px">B&#7753; embankment/trench</div>
+              </div>
+              <div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">
+                <div style="font-size:.95rem;font-weight:700;font-family:monospace;color:#93c5fd" id="m9-acpa-vaf">—</div>
+                <div style="font-size:.65rem;opacity:.8;margin-top:2px">VAF × PL (carga prisma)</div>
+              </div>
+            </div>
+            <div id="m9-acpa-info" style="font-size:.68rem;color:rgba(255,255,255,.7);margin-top:6px;line-height:1.6"></div>
           </div>
         </div>
 
@@ -5609,6 +5646,146 @@ function calcM9() {
         '<td style="padding:5px 8px;text-align:center;border-bottom:1px solid #e2e8f0">' + g.astm + '</td>';
       tbody.appendChild(row);
     });
+  }
+
+  // ══ Cálculo ACPA Standard Installation — D-load (Eq. 4.24) ════════════════════
+  var acpaTipo = (document.getElementById('m9-acpa-tipo') || {}).value || 'none';
+  var acpaPanel  = document.getElementById('m9-acpa-result');
+  var acpaBadge  = document.getElementById('m9-acpa-badge');
+
+  // — Tablas ACPA Ill. 4.22 (Bfe embankment) — interpolación lineal por DN [pulgadas]
+  var BFE_TABLE = [
+    [12,  4.4, 3.2, 2.5, 1.7],
+    [24,  4.2, 3.0, 2.4, 1.7],
+    [36,  4.0, 2.9, 2.3, 1.7],
+    [72,  3.8, 2.8, 2.2, 1.7],
+    [144, 3.6, 2.8, 2.2, 1.7]
+  ];
+  // Trench minimum Bfo (Ill. 4.23) — constante para todos los DN
+  var BFO_TABLE = {1: 2.3, 2: 1.9, 3: 1.7, 4: 1.5};
+  // VAF por tipo (Ill. 4.6)
+  var VAF_TABLE = {1: 1.35, 2: 1.40, 3: 1.40, 4: 1.45};
+  // Clase ASTM C76 por D-load (D0.01 crack lb/ft/ft)
+  var ASTM_CLASSES = [
+    {cls:'I',   D001:800,  Dult:1200},
+    {cls:'II',  D001:1000, Dult:1500},
+    {cls:'III', D001:1350, Dult:2000},
+    {cls:'IV',  D001:2000, Dult:3000},
+    {cls:'V',   D001:3000, Dult:3750}
+  ];
+  // BfLL tabla Ill. 4.25 [filas=H_ft][cols=DN_in]
+  var BFLL_H    = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0];
+  var BFLL_DN   = [12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 144];
+  var BFLL_DATA = [
+    [2.2, 1.7, 1.4, 1.3, 1.3, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1],
+    [2.2, 2.2, 1.7, 1.5, 1.4, 1.3, 1.3, 1.3, 1.1, 1.1, 1.1],
+    [2.2, 2.2, 2.1, 1.8, 1.5, 1.4, 1.4, 1.3, 1.3, 1.3, 1.1],
+    [2.2, 2.2, 2.2, 2.0, 1.8, 1.5, 1.5, 1.4, 1.4, 1.3, 1.3],
+    [2.2, 2.2, 2.2, 2.2, 2.0, 1.8, 1.7, 1.5, 1.4, 1.4, 1.3],
+    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 1.8, 1.7, 1.5, 1.5, 1.4],
+    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 1.9, 1.8, 1.7, 1.5, 1.4],
+    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.1, 1.9, 1.8, 1.7, 1.5],
+    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8, 1.7],
+    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8]
+  ];
+
+  if(acpaTipo !== 'none') {
+    var acpaT = parseInt(acpaTipo, 10);
+    var DN_in = DN / 25.4;
+
+    // Interpolar Bfe por DN
+    var bfeIdx2 = acpaT - 1;
+    var bfe = BFE_TABLE[BFE_TABLE.length-1][bfeIdx2+1];
+    for(var ri2 = 0; ri2 < BFE_TABLE.length - 1; ri2++) {
+      if(DN_in <= BFE_TABLE[ri2][0]) { bfe = BFE_TABLE[ri2][bfeIdx2+1]; break; }
+      if(DN_in < BFE_TABLE[ri2+1][0]) {
+        var tt = (DN_in - BFE_TABLE[ri2][0]) / (BFE_TABLE[ri2+1][0] - BFE_TABLE[ri2][0]);
+        bfe = BFE_TABLE[ri2][bfeIdx2+1] + tt * (BFE_TABLE[ri2+1][bfeIdx2+1] - BFE_TABLE[ri2][bfeIdx2+1]);
+        break;
+      }
+    }
+    var bfo   = BFO_TABLE[acpaT];
+    var vaf   = VAF_TABLE[acpaT];
+    // Bf efectivo: zanja → Bfo; terraplén → Bfe
+    var bf_earth = (tipo === 'terraplen') ? bfe : bfo;
+
+    // BfLL: interpolar Ill. 4.25
+    var H_ft_acpa2 = hr * 3.28084;
+    var bfll = 2.2;
+    var hIdx2 = BFLL_H.length - 1;
+    for(var hi3 = 0; hi3 < BFLL_H.length; hi3++) {
+      if(H_ft_acpa2 <= BFLL_H[hi3]) { hIdx2 = hi3; break; }
+    }
+    var dnIdx2 = BFLL_DN.length - 1;
+    for(var di2 = 0; di2 < BFLL_DN.length; di2++) {
+      if(DN_in <= BFLL_DN[di2]) { dnIdx2 = di2; break; }
+    }
+    bfll = BFLL_DATA[hIdx2][dnIdx2];
+    // BfLL efectivo: solo aplica cuando hay carga viva y H < 2m (6.5ft)
+    var bfll_efectivo = (qTrafEfectiva > 0 && H_ft_acpa2 < 6.5) ? bfll : bf_earth;
+    var bf_live = Math.min(bf_earth, bfll_efectivo);
+
+    // Convertir cargas a lb/ft
+    var kN_lbft = 68.5218;  // 1 kN/m = 68.5218 lb/ft
+    var WE_lb = qr * kN_lbft;
+    var WL_lb = qTrafEfectiva * kN_lbft;
+
+    // Prism load PL (Eq. 4.2) en lb/ft
+    var gamma_pcf2 = gamma * 6.36587;  // kN/m³ → lb/ft³
+    var Do_ft2    = Bc * 3.28084;       // m → ft
+    var H_ft2     = hr * 3.28084;
+    var PL_lb     = gamma_pcf2 * (H_ft2 + Do_ft2 * (4 - Math.PI) / 8) * Do_ft2;
+    var W_vaf_lb  = vaf * PL_lb;        // W = VAF × PL (Eq. 4.1)
+
+    // D-load (Eq. 4.24)
+    var D_ft2  = DN / 304.8;
+    var FS_a   = 1.5;
+    var Dload  = ((WE_lb / bf_earth) + (WL_lb / bf_live)) * FS_a / D_ft2;
+
+    // Clase ASTM C76
+    var astmCls = null;
+    for(var ai2 = 0; ai2 < ASTM_CLASSES.length; ai2++) {
+      if(Dload <= ASTM_CLASSES[ai2].D001) { astmCls = ASTM_CLASSES[ai2]; break; }
+    }
+
+    // Renderizar panel ACPA
+    if(acpaPanel) {
+      acpaPanel.style.display = '';
+      setEl('m9-acpa-dload', Dload.toFixed(0) + ' lb/ft/ft');
+      setEl('m9-acpa-class', astmCls ?
+        'Clase ' + astmCls.cls + ' (D<sub>0.01</sub>≤' + astmCls.D001 + ')' :
+        '&gt; Clase V — Especial');
+      setEl('m9-acpa-bf',
+        'B<sub>fe</sub>=' + bfe.toFixed(2) + ' | B<sub>fo</sub>=' + bfo.toFixed(1) +
+        ' | B<sub>f</sub>=' + bf_earth.toFixed(2));
+      setEl('m9-acpa-vaf',
+        'VAF=' + vaf + ' | W=' + (W_vaf_lb/kN_lbft).toFixed(1) + ' kN/m');
+      var infoTxt = [
+        'Tipo ' + acpaT + ' SIDD &nbsp;·&nbsp; DN=' + DN + 'mm (' + DN_in.toFixed(0) + '&quot;) &nbsp;·&nbsp; H=' + hr + 'm (' + H_ft2.toFixed(1) + 'ft)',
+        'W<sub>E</sub>=' + WE_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; W<sub>L</sub>=' + WL_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; B<sub>fLL</sub>=' + bfll_efectivo.toFixed(1) + ' (Illus.4.25)',
+        'PL=' + PL_lb.toFixed(0) + 'lb/ft &nbsp;·&nbsp; W<sub>VAF×PL</sub>=' + W_vaf_lb.toFixed(0) + 'lb/ft [Eq.4.1]',
+        'D-load = [(' + WE_lb.toFixed(0) + '/' + bf_earth.toFixed(2) + ')+(' + WL_lb.toFixed(0) + '/' + bf_live.toFixed(1) + ')]×' + FS_a + '/' + D_ft2.toFixed(3) + ' = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b>'
+      ];
+      setEl('m9-acpa-info', infoTxt.join('<br>'));
+    }
+    if(acpaBadge) {
+      acpaBadge.style.display = 'inline-block';
+      acpaBadge.textContent = 'ACPA Tipo ' + acpaT + ' · Bₓ=' + bf_earth.toFixed(2) + ' · VAF=' + vaf;
+    }
+    // Agregar al proceso
+    proc.push('');
+    proc.push('=== ACPA Standard Installation Tipo ' + acpaT + ' (Illus. 4.4 / Eq. 4.24) ===');
+    proc.push('  B<sub>fe</sub>=' + bfe.toFixed(2) + ' (Illus.4.22) &nbsp;|&nbsp; B<sub>fo</sub>=' + bfo + ' (Illus.4.23) &nbsp;|&nbsp; VAF=' + vaf + ' (Illus.4.6)');
+    proc.push('  B<sub>f</sub>usado=' + bf_earth.toFixed(2) + ' (' + (tipo==='terraplen'?'terraplén=B<sub>fe</sub>':'zanja=B<sub>fo</sub>') + ') &nbsp;|&nbsp; B<sub>fLL</sub>=' + bfll_efectivo.toFixed(1) + ' (Illus.4.25)');
+    proc.push('  PL (Eq.4.2)=' + (PL_lb/kN_lbft).toFixed(2) + ' kN/m &nbsp;|&nbsp; W=VAF×PL=' + (W_vaf_lb/kN_lbft).toFixed(2) + ' kN/m (Eq.4.1)');
+    proc.push('  D-load requerido = <b>' + Dload.toFixed(0) + ' lb/ft/ft</b> → ' + (astmCls ? 'Clase ' + astmCls.cls + ' ASTM C76' : '⚠️ Especial (>Clase V)'));
+    // Re-render proceso con datos ACPA
+    var proEl2 = document.getElementById('m9-proceso');
+    if(proEl2) proEl2.innerHTML = proc.join('<br>');
+
+  } else {
+    if(acpaPanel) acpaPanel.style.display = 'none';
+    if(acpaBadge) { acpaBadge.style.display = 'none'; acpaBadge.textContent = ''; }
   }
 }
 
