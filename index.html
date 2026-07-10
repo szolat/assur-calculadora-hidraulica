@@ -3903,6 +3903,10 @@ function generarPDF() {
   document.getElementById('pdf-error').style.display = 'none';
   cerrarModal();
 
+  // ── LOG de reporte a Google Sheets ────────────────────────────────────────
+  assurLogReporte(nombre, tel, correo);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
   const W = 210, M = 15;
@@ -5101,6 +5105,63 @@ function m9LogDiseno(DN, carga_tipo, qTraf, qCalc, Bf, tipo, hr) {
     tipo:       tipo,
     hr:         hr,
     session_id: window._assurSessId
+  };
+  fetch(ASSUR_M9_LOG_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    mode: 'no-cors'   // Apps Script no envía CORS headers, no-cors ignora la respuesta
+  }).catch(function() {}); // silencioso — nunca bloquea la UI
+}
+
+// =====================================================================
+// ASSUR Reporte Log — Captura datos de contacto + módulos usados
+// Se llama al generar el PDF con nombre, teléfono y correo del usuario
+// =====================================================================
+function assurLogReporte(nombre, tel, correo) {
+  if (!ASSUR_M9_LOG_URL || ASSUR_M9_LOG_URL === 'PENDIENTE_URL_APPS_SCRIPT') return;
+  if (!window._assurSessId) {
+    window._assurSessId = 'sess_' + Math.random().toString(36).substr(2, 9);
+  }
+  // Determinar módulos usados en esta sesión
+  var modulos = [];
+  if (STATE.caudal)  modulos.push('M1-Caudal');
+  if (STATE.canal)   modulos.push('M3-Canal');
+  if (STATE.manning) modulos.push('M4-Manning');
+  if (STATE.pozos)   modulos.push('M5-Pozos');
+  if (STATE.agua)    modulos.push('M7-Agua');
+
+  var payload = {
+    sheet:         'reportes',
+    ts:            new Date().toISOString(),
+    nombre:        nombre || '',
+    telefono:      tel    || '',
+    correo:        correo || '',
+    session_id:    window._assurSessId,
+    modulos_usados: modulos.join(','),
+    // M1 — Caudal
+    caudal_Q_ls:      STATE.caudal ? STATE.caudal.Q.toFixed(2)        : '',
+    caudal_estado:    STATE.caudal ? STATE.caudal.estado               : '',
+    caudal_Tr_anios:  STATE.caudal ? ([2,5,10,25,50][STATE.caudal.trIdx] || '') : '',
+    // M3 — Canal
+    canal_modelo:     STATE.canal  ? (STATE.canal.sel ? STATE.canal.sel.s : '') : '',
+    canal_Q_dis_ls:   STATE.canal  ? (STATE.canal.Q_dis !== undefined ? parseFloat(STATE.canal.Q_dis).toFixed(2) : '') : '',
+    canal_S_pct:      STATE.canal  ? (STATE.canal.S_pct !== undefined ? parseFloat(STATE.canal.S_pct).toFixed(3) : '') : '',
+    // M4 — Manning
+    manning_DN_mm:    STATE.manning ? (STATE.manning.DN   || '') : '',
+    manning_Di_mm:    STATE.manning ? (STATE.manning.Di_mm !== undefined ? STATE.manning.Di_mm.toFixed(0) : '') : '',
+    manning_Smin_pct: STATE.manning ? (STATE.manning.S_min_pct !== undefined ? STATE.manning.S_min_pct.toFixed(3) : '') : '',
+    manning_vel_ms:   STATE.manning ? (STATE.manning.v_proy !== undefined ? STATE.manning.v_proy.toFixed(3) : '') : '',
+    // M5 — Pozos
+    pozos_nPV:        STATE.pozos  ? (STATE.pozos.nPV   || '') : '',
+    pozos_Ltot_m:     STATE.pozos  ? (STATE.pozos.Ltot  !== undefined ? parseFloat(STATE.pozos.Ltot).toFixed(1) : '') : '',
+    pozos_profMax_m:  STATE.pozos  ? (STATE.pozos.profMax !== undefined ? parseFloat(STATE.pozos.profMax).toFixed(2) : '') : '',
+    pozos_DN_mm:      STATE.pozos  ? (STATE.pozos.DN    || '') : '',
+    // M7 — Agua a Presión
+    agua_Di_mm:       STATE.agua   ? (STATE.agua.Di_mm  || '') : '',
+    agua_PN:          STATE.agua   ? (STATE.agua.PN     || '') : '',
+    agua_Q_ls:        STATE.agua   ? (STATE.agua.Q_ls !== undefined ? STATE.agua.Q_ls.toFixed(2) : '') : '',
+    agua_vel_ms:      STATE.agua   ? (STATE.agua.v !== undefined ? STATE.agua.v.toFixed(3) : '') : ''
   };
   fetch(ASSUR_M9_LOG_URL, {
     method: 'POST',
