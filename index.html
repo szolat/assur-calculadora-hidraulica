@@ -5125,11 +5125,15 @@ function assurLogReporte(nombre, tel, correo) {
   }
   // Determinar módulos usados en esta sesión
   var modulos = [];
-  if (STATE.caudal)  modulos.push('M1-Caudal');
-  if (STATE.canal)   modulos.push('M3-Canal');
-  if (STATE.manning) modulos.push('M4-Manning');
-  if (STATE.pozos)   modulos.push('M5-Pozos');
-  if (STATE.agua)    modulos.push('M7-Agua');
+  if (STATE.caudal)      modulos.push('M1-Caudal');
+  if (STATE.canal)        modulos.push('M2-Canal');
+  if (STATE.manning)      modulos.push('M3-Manning');
+  if (STATE.pozos)        modulos.push('M4-Pozos');
+  if (STATE.perfilData)   modulos.push('M5-Perfil');
+  if (STATE.agua)         modulos.push('M6-Agua');
+  if (STATE.instalacion)  modulos.push('M8-Instalacion');
+  if (STATE.sanitario)    modulos.push('M9-Sanitario');
+  if (STATE.m10)          modulos.push('M10-Jacking');
 
   var payload = {
     sheet:         'reportes',
@@ -5161,7 +5165,27 @@ function assurLogReporte(nombre, tel, correo) {
     agua_Di_mm:       STATE.agua   ? (STATE.agua.Di_mm  || '') : '',
     agua_PN:          STATE.agua   ? (STATE.agua.PN     || '') : '',
     agua_Q_ls:        STATE.agua   ? (STATE.agua.Q_ls !== undefined ? STATE.agua.Q_ls.toFixed(2) : '') : '',
-    agua_vel_ms:      STATE.agua   ? (STATE.agua.v !== undefined ? STATE.agua.v.toFixed(3) : '') : ''
+    agua_vel_ms:      STATE.agua   ? (STATE.agua.v !== undefined ? STATE.agua.v.toFixed(3) : '') : '',
+    // M5 — Perfil Hidráulico
+    perfil_DN_mm:     STATE.perfilData ? (STATE.perfilData.DN || '') : '',
+    perfil_S_dis_pct: STATE.perfilData ? (STATE.perfilData.S_dis !== undefined ? (STATE.perfilData.S_dis * 100).toFixed(3) : '') : '',
+    perfil_profExcav: STATE.perfilData ? (STATE.perfilData.profExcav !== undefined ? parseFloat(STATE.perfilData.profExcav).toFixed(2) : '') : '',
+    // M8 — Verificación Instalación
+    inst_DN_mm:       STATE.instalacion ? (STATE.instalacion.diametro || '') : '',
+    inst_prof_m:      STATE.instalacion ? (STATE.instalacion.prof !== undefined ? parseFloat(STATE.instalacion.prof).toFixed(2) : '') : '',
+    inst_clase:       STATE.instalacion ? (STATE.instalacion.clase || '') : '',
+    inst_defl_pct:    STATE.instalacion ? (STATE.instalacion.defl !== undefined ? parseFloat(STATE.instalacion.defl).toFixed(2) : '') : '',
+    // M10 — Jacking
+    m10_DN_mm:        STATE.m10 ? (STATE.m10.DN || '') : '',
+    m10_H_m:          STATE.m10 ? (STATE.m10.H !== undefined ? parseFloat(STATE.m10.H).toFixed(2) : '') : '',
+    m10_Wt_kNm:       STATE.m10 ? (STATE.m10.Wt_kNm !== undefined ? parseFloat(STATE.m10.Wt_kNm).toFixed(2) : '') : '',
+    m10_Dload:        STATE.m10 ? (STATE.m10.Dload !== undefined ? parseFloat(STATE.m10.Dload).toFixed(1) : '') : '',
+    m10_Pmax_kN:      STATE.m10 ? (STATE.m10.Pmax_kN !== undefined ? parseFloat(STATE.m10.Pmax_kN).toFixed(1) : '') : '',
+    // Sanitario
+    san_DN_mm:        STATE.sanitario ? (STATE.sanitario.dn || '') : '',
+    san_Qmed_ls:      STATE.sanitario ? (STATE.sanitario.Qmed !== undefined ? parseFloat(STATE.sanitario.Qmed).toFixed(3) : '') : '',
+    san_vel_ms:       STATE.sanitario ? (STATE.sanitario.v !== undefined ? parseFloat(STATE.sanitario.v).toFixed(3) : '') : '',
+    san_Smin_pct:     STATE.sanitario ? (STATE.sanitario.Smin !== undefined ? parseFloat(STATE.sanitario.Smin).toFixed(3) : '') : ''
   };
   fetch(ASSUR_M9_LOG_URL, {
     method: 'POST',
