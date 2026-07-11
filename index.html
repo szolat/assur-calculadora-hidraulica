@@ -698,6 +698,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           </div>
         </div>
         <div id="pv-vel-semaforo"></div>
+        <div id="pv-alerta-sediment" style="margin-top:8px"></div>
       </div>
       <!-- FLOTACIÓN DD-41 / ACPA -->
       <div id="pv-flotacion-section" style="margin-top:14px">
@@ -3173,6 +3174,28 @@ function calcPozos() {
   }
   document.getElementById('pv-vel-semaforo').innerHTML =
     `<span class="semaforo ${velCls}">${velMsg}</span>`;
+
+  // Alerta sedimentacion M4 Pozos de Visita
+  (function() {
+    var sedEl = document.getElementById('pv-alerta-sediment');
+    if (!sedEl) return;
+    var html = '';
+    if (v_agua < 0.60) {
+      html = '<div style="background:#fff0f0;border:2px solid #d32f2f;border-radius:8px;padding:10px 14px;margin-top:4px">' +
+             '<span style="color:#d32f2f;font-weight:700;font-size:1.05rem">\uD83D\uDD34 RIESGO DE SEDIMENTACI&Oacute;N</span>' +
+             '<br><span style="color:#b71c1c;font-size:.92rem">' +
+             'Velocidad calculada con S_m&iacute;n: <strong>v=' + v_agua.toFixed(3) + ' m/s</strong> ' +
+             '&mdash; inferior a 0.60 m/s de autolimpieza (NMX-C-401 / SGAPDS-29).<br>' +
+             'Pendiente m&iacute;nima aplicada: <strong>S_m&iacute;n=' + (S_min * 100).toFixed(3) + '%</strong> ' +
+             '&mdash; colector DN' + DN + ' mm no alcanza velocidad de arrastre.<br>' +
+             '<strong>Riesgo de azolve progresivo entre pozos de visita.</strong><br>' +
+             'Soluciones: reducir di&aacute;metro, aumentar pendiente real, o aumentar caudal.</span></div>';
+    } else {
+      html = '<div style="background:#f0fff4;border:2px solid #2e7d32;border-radius:8px;padding:8px 14px;margin-top:4px">' +
+             '<span style="color:#2e7d32;font-weight:700">&#x2705; Sin riesgo de sedimentaci&oacute;n &mdash; v=' + v_agua.toFixed(3) + ' m/s &ge; 0.60 m/s (S_m&iacute;n=' + (S_min * 100).toFixed(3) + '%)</span></div>';
+    }
+    sedEl.innerHTML = html;
+  })();
 
   // ---- AN\u00c1LISIS DE POZOS DE CA\u00cdDA ----
   // Desnivel por tramo = esp * S_min (excepto el \u00faltimo tramo que puede ser menor)
