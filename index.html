@@ -2705,10 +2705,10 @@ function calcCanal() {
   const v = sel.hid.v;
   if(v < 0.3) {
     sedHtml = `<span class="semaforo sem-warn">⚠️ AMBAR: Velocidad muy baja (${v.toFixed(3)} m/s) — riesgo de sedimentación. Verifique pendiente o use sección menor.</span>`;
-  } else if(v < 0.6) {
-    sedHtml = `<span class="semaforo sem-warn">⚠️ Velocidad ${v.toFixed(3)} m/s — por debajo de 0.6 m/s. Considere aumentar pendiente para evitar sedimentos.</span>`;
+  } else if(v < 0.5995) {
+    sedHtml = `<span class="semaforo sem-warn">⚠️ Velocidad ${v.toFixed(3)} m/s — por debajo de 0.60 m/s. Considere aumentar pendiente para evitar sedimentos.</span>`;
   } else {
-    sedHtml = `<span class="semaforo sem-ok">✅ Velocidad ${v.toFixed(3)} m/s ≥ 0.6 m/s — adecuada para arrastre de sedimentos.</span>`;
+    sedHtml = `<span class="semaforo sem-ok">✅ Velocidad ${v.toFixed(3)} m/s ≥ 0.60 m/s — adecuada para arrastre de sedimentos.</span>`;
   }
   document.getElementById('can-sediment').innerHTML = sedHtml;
 
@@ -3761,7 +3761,7 @@ function actualizarReporte() {
   const velVal = vel || 0;
   if(chartVel) { chartVel.destroy(); chartVel = null; }
   const ctx1 = document.getElementById('chart-vel').getContext('2d');
-  const velColor = velVal === 0 ? '#ccc' : (velVal < 0.6 ? '#d19900' : velVal > 3.0 ? '#d64545' : '#1f9d55');
+  const velColor = velVal === 0 ? '#ccc' : (velVal < 0.5995 ? '#d19900' : velVal > 3.0 ? '#d64545' : '#1f9d55');
   chartVel = new Chart(ctx1, {
     type:'bar',
     data:{
@@ -3841,12 +3841,12 @@ function actualizarReporte() {
     if(vels.length === 0) {
       el.innerHTML = '<span style="color:#888">— No se ha calculado ningún módulo con velocidad.</span>';
     } else {
-      const bajas = vels.filter(x => x.v < 0.6);
+      const bajas = vels.filter(x => x.v < 0.5995);
       if(bajas.length === 0) {
-        el.innerHTML = `<span class="semaforo sem-ok">✅ Sin riesgo de sedimentación — velocidades ≥ 0.6 m/s en los tramos calculados (${vels.map(x=>x.modulo+': '+x.v.toFixed(3)+' m/s').join(' | ')})</span>`;
+        el.innerHTML = `<span class="semaforo sem-ok">✅ Sin riesgo de sedimentación — velocidades ≥ 0.60 m/s en los tramos calculados (${vels.map(x=>x.modulo+': '+x.v.toFixed(3)+' m/s').join(' | ')})</span>`;
       } else {
         const detalle = bajas.map(x => x.modulo + ': ' + x.v.toFixed(3) + ' m/s').join(' | ');
-        el.innerHTML = `<span class="semaforo sem-warn">⚠️ Riesgo de sedimentación — hay tramos con velocidad < 0.6 m/s (${detalle}). Aumentar pendiente.</span>`;
+        el.innerHTML = `<span class="semaforo sem-warn">⚠️ Riesgo de sedimentación — hay tramos con velocidad < 0.60 m/s (${detalle}). Aumentar pendiente.</span>`;
       }
     }
   })();
@@ -4475,7 +4475,7 @@ function notaContextualManning(v_proy, S_pct) {
   if(v_proy === undefined || v_proy === null) {
     return 'Introduce la <strong>pendiente del proyecto S%</strong> en el campo opcional para obtener el semáforo de velocidad y la recomendación contextual.';
   }
-  if(v_proy < 0.6) {
+  if(v_proy < 0.5995) {
     return `🟡 <strong>ÁMBAR — Velocidad baja (${v_proy.toFixed(3)} m/s):</strong> Riesgo de sedimentación / azolve. <strong>Aumenta la pendiente</strong> hasta superar S_mín o elige un diámetro menor para acelerar el flujo.`;
   } else if(v_proy > 3.0) {
     return `🔴 <strong>ROJO — Velocidad excesiva (${v_proy.toFixed(3)} m/s):</strong> Riesgo de erosión interna. Reduce la pendiente, aumenta el diámetro o instala <strong>estructuras de caída</strong> para disipar energía.`;
