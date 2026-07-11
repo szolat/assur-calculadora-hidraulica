@@ -3159,7 +3159,7 @@ function calcPozos() {
   document.getElementById('pv-vel-ri').textContent   = R.toFixed(4);
 
   let velCls, velMsg;
-  if(v_agua < 0.60) {
+  if(v_agua < 0.5995) {
     velCls = 'sem-warn';
     velMsg = '\u26a0\ufe0f \u00c1MBAR: Velocidad baja (' + v_agua.toFixed(3) + ' m/s) \u2014 riesgo de sedimentaci\u00f3n/azolve. Aumentar pendiente.';
   } else if(v_agua <= 3.0) {
@@ -3180,7 +3180,7 @@ function calcPozos() {
     var sedEl = document.getElementById('pv-alerta-sediment');
     if (!sedEl) return;
     var html = '';
-    if (v_agua < 0.60) {
+    if (v_agua < 0.5995) {
       html = '<div style="background:#fff0f0;border:2px solid #d32f2f;border-radius:8px;padding:10px 14px;margin-top:4px">' +
              '<span style="color:#d32f2f;font-weight:700;font-size:1.05rem">\uD83D\uDD34 RIESGO DE SEDIMENTACI&Oacute;N</span>' +
              '<br><span style="color:#b71c1c;font-size:.92rem">' +
