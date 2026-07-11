@@ -2960,8 +2960,8 @@ function calcManning() {
       STATE.manning.S_proy = S_proy;
       document.getElementById('mn-vel').textContent = v.toFixed(3);
       document.getElementById('mn-vel-box').style.display = 'block';
-      const cls = v < 0.6 ? 'sem-warn' : v > 3.0 ? 'sem-bad' : 'sem-ok';
-      const msg = v < 0.6 ? '⚠️ Velocidad baja — riesgo de sedimentación' :
+      const cls = v < 0.5995 ? 'sem-warn' : v > 3.0 ? 'sem-bad' : 'sem-ok';
+      const msg = v < 0.5995 ? '⚠️ Velocidad baja — riesgo de sedimentación' :
                   v > 3.0 ? '🔴 Velocidad alta — riesgo de erosión' :
                             '✅ Velocidad correcta dentro del rango normativo';
       semHtml = `<span class="semaforo ${cls}">${msg} (${v.toFixed(3)} m/s)</span>`;
@@ -2990,7 +2990,7 @@ function calcManning() {
              'es menor a la pendiente mínima de autolimpieza <strong>S_mín=' + sMin.toFixed(3) + '%</strong> (v=0.60 m/s).<br>' +
              'El flujo no tendrá velocidad suficiente para arrastrar sólidos — <strong>riesgo de azolve y taponamiento.</strong><br>' +
              'Incremente la pendiente a ≥ ' + sMin.toFixed(3) + '% o reduzca el diámetro.</span></div>';
-    } else if (vCheck !== null && vCheck < 0.6) {
+    } else if (vCheck !== null && vCheck < 0.5995) {
       html = '<div style="background:#fff0f0;border:2px solid #d32f2f;border-radius:8px;padding:10px 14px;margin-top:4px">' +
              '<span style="color:#d32f2f;font-weight:700;font-size:1.05rem">🔴 RIESGO DE SEDIMENTACIÓN</span>' +
              '<br><span style="color:#b71c1c;font-size:.92rem">Velocidad calculada <strong>v=' + vCheck.toFixed(3) + ' m/s</strong> ' +
@@ -6512,9 +6512,9 @@ function calcSanitario() {
   if (v < 0.3) {
     semCls = 'sem-alert';
     semMsg = '🔴 ROJO — Velocidad < 0.3 m/s. Riesgo de azolve severo. Aumentar pendiente o reducir diámetro.';
-  } else if (v < 0.6) {
+  } else if (v < 0.5995) {
     semCls = 'sem-warn';
-    semMsg = '⚠️ AMBAR — Velocidad < 0.6 m/s (Qmax.ext). Revise pendiente para garantizar autolimpieza.';
+    semMsg = '⚠️ AMBAR — Velocidad < 0.60 m/s (Qmax.ext). Revise pendiente para garantizar autolimpieza.';
   } else if (v > 5.0) {
     semCls = 'sem-warn';
     semMsg = '⚠️ AMBAR — Velocidad > 5.0 m/s. Riesgo de erosión. Usar caídas o cambiar material.';
@@ -6591,7 +6591,7 @@ function calcSanitario() {
     var sedEl  = document.getElementById('san-alerta-sediment');
     var sInput = parseFloat(document.getElementById('san-s').value) || 0;
     var html   = '';
-    if (v < 0.6) {
+    if (v < 0.5995) {
       html = '<div style="background:#fff0f0;border:2px solid #d32f2f;border-radius:8px;padding:10px 14px;margin-top:4px">' +
              '<span style="color:#d32f2f;font-weight:700;font-size:1.05rem">🔴 RIESGO DE SEDIMENTACIÓN</span>' +
              '<br><span style="color:#b71c1c;font-size:.92rem">' +
