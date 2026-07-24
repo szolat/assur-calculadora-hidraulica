@@ -2044,6 +2044,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <li><strong>ASTM C76M-22A (sept. 2022)</strong> — Especificación tubería concreto reforzado, sistema métrico — 5 clases D-load (N/m/mm)</li>
             <li><strong>ATHA 2013 (UNE-127916)</strong> — Fichas de cálculo mecánico tubos hormigón</li>
             <li><strong>N·CTR·CAR·1·03·002/20 SICT/IMT</strong> — Norma de construcción de alcantarillas tubulares de concreto: excavación, plantilla, relleno, juntas, chaflán, suelo-cemento, muros de cabeza y criterios de aceptación SCT (09/12/2020)</li>
+            <li><strong>N·CTR·CAR·1·01·011/20 SICT/IMT</strong> — Norma de rellenos de excavaciones y terracerías: compactación ≥ 90% AASHTO estándar, capas simétricas, rellenos de filtro, control de calidad por calas (09/12/2020)</li>
           </ul>
         </div>
 
@@ -2094,8 +2095,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             </tr>
             <tr style="background:#e0f2fe">
               <td style="padding:5px 8px;font-weight:600">Relleno / Acostillado (G.5)</td>
-              <td style="padding:5px 8px">Compactación simétrica en capas de <strong>15 cm</strong> a mano o equipo manual, ambos lados simultáneamente. Terraplén de protección: base = <strong>3 × DN</strong>, colchón mínimo <strong>1 m</strong>.</td>
-              <td style="padding:5px 8px;color:#0369a1">G.5.1 – G.5.2</td>
+              <td style="padding:5px 8px">Compactación simétrica en capas de <strong>15 cm</strong> a mano o equipo manual, ambos lados simultáneamente. Terraplén de protección: base = <strong>3 × DN</strong>, colchón mínimo <strong>1 m</strong>.<br><span style="font-size:.68rem;color:#0369a1">Ver también: N·CTR·CAR·1·01·011/20 § G.2 (grado compactación ≥ 90 % AASHTO estándar)</span></td>
+              <td style="padding:5px 8px;color:#0369a1">G.5.1 – G.5.2<br><span style="font-size:.68rem">+ 1·01·011 G.2</span></td>
             </tr>
             <tr style="background:#f0f9ff">
               <td style="padding:5px 8px;font-weight:600">Protección suelo-cemento (G.6)</td>
@@ -2134,13 +2135,80 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         </div>
 
         <!-- Alerta colchón mínimo -->
+        <div id="m9-ctr011-compact-alert" style="display:none;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:6px;padding:7px 12px;font-size:.72rem;color:#0c4a6e;margin-bottom:4px">
+          📋 <strong>N·CTR·CAR·1·01·011/20 § G.2.4:</strong> El relleno lateral de la alcantarilla debe compactarse al <strong>90 % mínimo</strong> de la masa volumétrica seca máxima (prueba AASHTO estándar). Verificar con calas: <strong>c = A / 100</strong> por día de trabajo (M·CAL·1·02).
+        </div>
         <div id="m9-ctr-colchon-alert" style="display:none;background:#fef9c3;border:1px solid #eab308;border-radius:6px;padding:7px 12px;font-size:.72rem;color:#713f12">
           ⚠️ <strong>N·CTR·CAR·1·03·002/20 § G.5.2:</strong> El colchón de relleno ingresado es menor a 1.0 m. La norma SCT exige colchón mínimo de <strong>1.0 m</strong> sobre el tubo para terraplén de protección.
         </div>
 
+        <!-- SUB-SECCIÓN N·CTR·CAR·1·01·011/20 — RELLENOS -->
+        <details style="margin-top:10px;border:1px solid #bae6fd;border-radius:6px;padding:0" open>
+          <summary style="font-weight:700;font-size:.78rem;color:#0c4a6e;cursor:pointer;user-select:none;padding:7px 12px;background:#e0f2fe;border-radius:6px">
+            🪨 Rellenos SCT — N·CTR·CAR·1·01·011/20 SICT/IMT
+            <span style="font-weight:400;font-size:.71rem;color:#475569"> (click para colapsar)</span>
+          </summary>
+          <div style="padding:8px 12px 10px">
+            <div style="font-size:.72rem;color:#0c4a6e;margin-bottom:7px;line-height:1.5">
+              Norma de <strong>ejecución de rellenos</strong> para excavaciones de obras de drenaje y terracerías. Referenciada por N·CTR·CAR·1·03·002/20 § G.5.
+            </div>
+
+            <table style="width:100%;border-collapse:collapse;font-size:.71rem;margin-bottom:8px">
+              <thead>
+                <tr style="background:#0284c7;color:#fff">
+                  <th style="padding:4px 7px;text-align:left">Tema (Cláusula)</th>
+                  <th style="padding:4px 7px;text-align:left">Especificación</th>
+                  <th style="padding:4px 7px;text-align:left">Cláusula</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:#f0f9ff">
+                  <td style="padding:4px 7px;font-weight:600">Materiales</td>
+                  <td style="padding:4px 7px">Conformes a N·CMT·1·01 (Terraplén), N·CMT·1·04 (Cal) y N·CMT·3·04·001 (Filtros). Material de bancos indicados en proyecto o aprobados por la SCT.</td>
+                  <td style="padding:4px 7px;color:#0369a1">D.1</td>
+                </tr>
+                <tr style="background:#e0f2fe">
+                  <td style="padding:4px 7px;font-weight:600">Grado de compactación</td>
+                  <td style="padding:4px 7px">Mínimo <strong>90 %</strong> de la masa volumétrica seca máxima, prueba <strong>AASHTO estándar</strong>, salvo que el proyecto indique otra cosa.</td>
+                  <td style="padding:4px 7px;color:#0369a1">G.2.4</td>
+                </tr>
+                <tr style="background:#f0f9ff">
+                  <td style="padding:4px 7px;font-weight:600">Relleno de alcantarillas (arco)</td>
+                  <td style="padding:4px 7px">Material en capas <strong>simétricas</strong> respecto al eje transversal y longitudinal; compactación simultánea ambos costados, a mano o equipo manual.</td>
+                  <td style="padding:4px 7px;color:#0369a1">G.2.5</td>
+                </tr>
+                <tr style="background:#e0f2fe">
+                  <td style="padding:4px 7px;font-weight:600">Secuencia de relleno</td>
+                  <td style="padding:4px 7px">Los rellenos de drenaje y colchones de protección se ejecutan <strong>previamente</strong> a la construcción de terraplenes.</td>
+                  <td style="padding:4px 7px;color:#0369a1">G.2.6</td>
+                </tr>
+                <tr style="background:#f0f9ff">
+                  <td style="padding:4px 7px;font-weight:600">Rellenos de filtro</td>
+                  <td style="padding:4px 7px">Capas apisonadas. No dañar paredes de excavación, tubos ni geosintéticos durante la colocación.</td>
+                  <td style="padding:4px 7px;color:#0369a1">G.4.1 – G.4.2</td>
+                </tr>
+                <tr style="background:#e0f2fe">
+                  <td style="padding:4px 7px;font-weight:600">Control de calidad</td>
+                  <td style="padding:4px 7px">Número de calas de compactación por día: <strong>c = A / 100</strong> (m²/día), ubicadas al azar (M·CAL·1·02). Tolerancias según proyecto SCT.</td>
+                  <td style="padding:4px 7px;color:#0369a1">H.3.1 – H.3.2</td>
+                </tr>
+                <tr style="background:#f0f9ff">
+                  <td style="padding:4px 7px;font-weight:600">Medición</td>
+                  <td style="padding:4px 7px">Por <strong>m³ de relleno terminado</strong>, aprox. 0.1 m³; según tipo de relleno y banco. Relleno con material de la propia excavación = parte del concepto excavación.</td>
+                  <td style="padding:4px 7px;color:#0369a1">I.1 – I.2</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style="font-size:.68rem;color:#64748b">
+              Fuente: <strong>N·CTR·CAR·1·01·011/20 SICT/IMT</strong> — SCT / IMT (09/12/2020) ·
+              Complementa: N·CMT·1·01, N·CMT·1·04, N·CMT·3·04·001, N·CTR·CAR·1·01·013 (Acarreos), M·CAL·1·02
+            </div>
+          </div>
+        </details>
+
         <div style="font-size:.68rem;color:#64748b;margin-top:6px">
-          Fuente: <strong>N·CTR·CAR·1·03·002/20 SICT/IMT</strong> — SCT / Instituto Mexicano del Transporte (09/12/2020) ·
-          Complementa: N·CMT·3·01, N·CMT·3·02, N·CTR·CAR·1·01·007 (Excavación), N·CTR·CAR·1·01·011 (Rellenos)
+          Fuentes: <strong>N·CTR·CAR·1·03·002/20 SICT/IMT</strong> · <strong>N·CTR·CAR·1·01·011/20 SICT/IMT</strong> — SCT / Instituto Mexicano del Transporte (09/12/2020)
         </div>
       </div>
     </details>
@@ -2162,7 +2230,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     </div>
 
     <div style="margin-top:10px;text-align:center;font-size:.72rem;color:#888">
-      Cálculos: Marston 1930 · ATHA 2013 · NMX-C-402-ONNCCE-2020 · N·CMT·3·02/04 SICT/IMT · M-PRY-CAR-4-01-003-16 · N·CTR·CAR·1·03·002/20 · AASHTO LRFD 7a ed. · FAA AC 150/5370 · AREMA Cooper E-80
+      Cálculos: Marston 1930 · ATHA 2013 · NMX-C-402-ONNCCE-2020 · N·CMT·3·02/04 SICT/IMT · M-PRY-CAR-4-01-003-16 · N·CTR·CAR·1·03·002/20 · N·CTR·CAR·1·01·011/20 · AASHTO LRFD 7a ed. · FAA AC 150/5370 · AREMA Cooper E-80
     </div>
   </div>
 </div>
