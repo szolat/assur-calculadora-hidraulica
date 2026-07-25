@@ -4729,7 +4729,7 @@ function generarPDF() {
       ['Condición de drenaje', instp.drenaje || '—'],
       ['Clase de suelo (relleno)', instp.clase],
       ["Módulo de reacción E'", instp.E + ' MPa'],
-      ['Deflexión calculada Δy/D', parseFloat(instp.defl).toFixed(2) + ' % (' + parseFloat(instp.deflMm).toFixed(1) + ' mm)'],
+      ['Deflexion calculada (dy/D)', parseFloat(instp.defl).toFixed(2) + ' % (' + parseFloat(instp.deflMm).toFixed(1) + ' mm)'],
       ['Límite normativo de deflexión', instp.limite + ' %'],
       ['Ancho mínimo de zanja', instp.anchoMin !== undefined ? instp.anchoMin.toFixed(2) + ' m' : '—'],
       ['Ancho óptimo de zanja', instp.anchoOpt !== undefined ? instp.anchoOpt.toFixed(2) + ' m' : '—'],
@@ -4748,9 +4748,9 @@ function generarPDF() {
       ['Diámetro nominal DN', m9p.DN + ' mm'],
       ['Altura de relleno hr', m9p.hr + ' m'],
       ['Tipo de instalación', m9p.tipo || '—'],
-      ['Factor de encamado Fa (Bₓ)', m9p.Fa],
+      ['Factor de encamado Fa (Bx)', m9p.Fa],
       ['Clase SCT de encamado', m9p.claseSCTEncamado || '—'],
-      ['Factor de seguridad γ', m9p.gamSeg],
+      ['Factor de seguridad (gamma)', m9p.gamSeg],
       ['Carga de relleno qr', m9p.qr.toFixed(2) + ' kN/m'],
       ['Carga total q_total', m9p.qTotal.toFixed(2) + ' kN/m'],
       ['Momento de diseño q_calc', m9p.qCalc.toFixed(2) + ' N/m/mm'],
@@ -4796,7 +4796,7 @@ function generarPDF() {
      nota: STATE.m9 ? (STATE.m9.disenioEspecial ? `q_calc=${STATE.m9.qCalc.toFixed(1)} N/m/mm > 140 — Diseño Especial` : `${STATE.m9.claseSCT}, f'c=${STATE.m9.fc} MPa`) : 'Sin calcular'},
     {norma:'NOM-001-CONAGUA (Instalación IOWA)', calculado: !!STATE.instalacion,
      ok: STATE.instalacion ? STATE.instalacion.ok : false,
-     nota: STATE.instalacion ? `Δy/D=${parseFloat(STATE.instalacion.defl).toFixed(2)}% ≤ ${STATE.instalacion.limite}%` : 'Sin calcular'}
+     nota: STATE.instalacion ? `dy/D=${parseFloat(STATE.instalacion.defl).toFixed(2)}% <= ${STATE.instalacion.limite}%` : 'Sin calcular'}
   ];
 
   // Table header
