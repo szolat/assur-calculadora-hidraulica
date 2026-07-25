@@ -2688,6 +2688,41 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     </div>
 
 
+    <!-- Módulo 9 Diseño Estructural Concreto en Reporte -->
+    <div style="margin-top:12px;padding:12px;background:#fef6ec;border-radius:8px;border:1.5px solid #f3c98a" id="rep-m9-wrap">
+      <div style="font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:8px">🧱 Diseño Estructural de Tubería de Concreto (NMX-C-402 / Marston)</div>
+      <div class="result-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
+        <div class="result-metric"><div class="val" id="rep-m9-dn">—</div><div class="lbl">DN (mm)</div></div>
+        <div class="result-metric"><div class="val" id="rep-m9-hr">—</div><div class="lbl">Altura relleno hr (m)</div></div>
+        <div class="result-metric"><div class="val" id="rep-m9-qtotal">—</div><div class="lbl">q_total (kN/m)</div></div>
+        <div class="result-metric"><div class="val" id="rep-m9-qcalc">—</div><div class="lbl">q_calc (N/m/mm)</div></div>
+        <div class="result-metric"><div class="val" id="rep-m9-grado">—</div><div class="lbl">Grado NMX-C-402</div></div>
+      </div>
+      <div id="rep-m9-badge" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Módulo 8 Verificación de Instalación en Reporte -->
+    <div style="margin-top:12px;padding:12px;background:#f5f3ff;border-radius:8px;border:1.5px solid #c4b5fd" id="rep-inst-wrap">
+      <div style="font-size:.82rem;font-weight:700;color:#5b21b6;margin-bottom:8px">🏗️ Verificación de Instalación (Deflexión IOWA — NOM-001-CONAGUA)</div>
+      <div class="result-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
+        <div class="result-metric"><div class="val" id="rep-inst-dn">—</div><div class="lbl">DN (mm)</div></div>
+        <div class="result-metric"><div class="val" id="rep-inst-prof">—</div><div class="lbl">Profundidad (m)</div></div>
+        <div class="result-metric"><div class="val" id="rep-inst-clase">—</div><div class="lbl">Clase de suelo</div></div>
+        <div class="result-metric"><div class="val" id="rep-inst-defl">—</div><div class="lbl">Deflexión Δy/D (%)</div></div>
+      </div>
+      <div id="rep-inst-sem" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Módulo 5 Perfil Hidráulico en Reporte -->
+    <div style="margin-top:12px;padding:12px;background:#ecfdf5;border-radius:8px;border:1.5px solid #6ee7b7" id="rep-perfil-wrap">
+      <div style="font-size:.82rem;font-weight:700;color:#065f46;margin-bottom:8px">📈 Perfil Hidráulico (Plantilla vs. Terreno)</div>
+      <div class="result-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
+        <div class="result-metric"><div class="val" id="rep-perfil-dn">—</div><div class="lbl">DN (mm)</div></div>
+        <div class="result-metric"><div class="val" id="rep-perfil-sdis">—</div><div class="lbl">S diseño (%)</div></div>
+        <div class="result-metric"><div class="val" id="rep-perfil-profmax">—</div><div class="lbl">Prof. máx. excavación (m)</div></div>
+      </div>
+    </div>
+
     <!-- M10 Jacking en Reporte -->
     <div style="margin-top:12px;padding:12px;background:#eff6ff;border-radius:8px;border:1.5px solid #93c5fd" id="rep-m10-wrap">
       <div style="font-size:.82rem;font-weight:700;color:#1d4ed8;margin-bottom:8px">🔩 Jacking — Instalación sin Zanja (ACPA DD4 / ASCE 27-00)</div>
@@ -2741,6 +2776,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <tr class="compliance-row"><td>NOM-001-CONAGUA-2011</td><td id="cn-nom">—</td><td>Espaciado ≤ máx. normativo</td><td id="cn-nom-nota">Sin calcular</td></tr>
           <tr class="compliance-row"><td>NMX-C-402 / ASTM C76M-22A</td><td id="cn-m10">—</td><td>D-load → Clase ASTM C76M-22A (I a V)</td><td id="cn-m10-nota">Sin calcular</td></tr>
           <tr class="compliance-row"><td>ISO 16422 / NMX-E-258</td><td id="cn-iso16422">—</td><td>Presión operación ≤ PN admisible · Velocidad 0.6–2.5 m/s</td><td id="cn-iso16422-nota">Sin calcular</td></tr>
+          <tr class="compliance-row"><td>NMX-C-402 / NMX-C-401</td><td id="cn-m9">—</td><td>q_calc ≤ 140 N/m/mm (Grado 4) o Diseño Especial</td><td id="cn-m9-nota">Sin calcular</td></tr>
+          <tr class="compliance-row"><td>NOM-001-CONAGUA (Instalación)</td><td id="cn-inst">—</td><td>Deflexión Δy/D ≤ límite normativo (IOWA)</td><td id="cn-inst-nota">Sin calcular</td></tr>
         </tbody>
       </table>
     </div>
@@ -4156,6 +4193,62 @@ function actualizarReporte() {
   });
 
 
+  // Módulo 9 — Diseño Estructural Concreto en Reporte
+  if (STATE.m9) {
+    var m9 = STATE.m9;
+    document.getElementById('rep-m9-dn').textContent     = m9.DN;
+    document.getElementById('rep-m9-hr').textContent     = m9.hr;
+    document.getElementById('rep-m9-qtotal').textContent = m9.qTotal.toFixed(2);
+    document.getElementById('rep-m9-qcalc').textContent  = m9.qCalc.toFixed(2);
+    document.getElementById('rep-m9-grado').textContent  = m9.disenioEspecial ? 'Diseño Especial' : ('Grado ' + m9.grado);
+    var m9BadgeEl = document.getElementById('rep-m9-badge');
+    if (m9.disenioEspecial) {
+      m9BadgeEl.innerHTML = '<span style="display:inline-block;padding:3px 12px;border-radius:12px;font-weight:800;font-size:.78rem;color:#fff;background:#991b1b">q_calc=' + m9.qCalc.toFixed(1) + ' N/m/mm &gt; Grado 4 — Diseño Especial (NMX-C-401 Sec.7)</span>';
+    } else {
+      m9BadgeEl.innerHTML = '<span style="display:inline-block;padding:3px 12px;border-radius:12px;font-weight:800;font-size:.78rem;color:#fff;background:#059669">' + m9.claseSCT + ' · f\'c=' + m9.fc + ' MPa · Clase ' + m9.claseASTM + ' ASTM</span>';
+    }
+  } else {
+    ['rep-m9-dn','rep-m9-hr','rep-m9-qtotal','rep-m9-qcalc','rep-m9-grado'].forEach(function(id){
+      document.getElementById(id).textContent = '—';
+    });
+    var m9BadgeElEmpty = document.getElementById('rep-m9-badge');
+    if (m9BadgeElEmpty) m9BadgeElEmpty.innerHTML = '';
+  }
+
+  // Módulo 8 — Verificación de Instalación en Reporte
+  if (STATE.instalacion) {
+    var inst = STATE.instalacion;
+    document.getElementById('rep-inst-dn').textContent    = inst.diametro;
+    document.getElementById('rep-inst-prof').textContent  = inst.prof !== undefined ? parseFloat(inst.prof).toFixed(2) : '—';
+    document.getElementById('rep-inst-clase').textContent = inst.clase || '—';
+    document.getElementById('rep-inst-defl').textContent  = inst.defl !== undefined ? parseFloat(inst.defl).toFixed(2) : '—';
+    var instSemEl = document.getElementById('rep-inst-sem');
+    if (instSemEl) {
+      instSemEl.innerHTML = inst.ok
+        ? '<span class="semaforo sem-ok">✅ Deflexión dentro del límite (≤ ' + inst.limite + '%)</span>'
+        : '<span class="semaforo sem-warn">⚠️ Deflexión excede el límite normativo</span>';
+    }
+  } else {
+    ['rep-inst-dn','rep-inst-prof','rep-inst-clase','rep-inst-defl'].forEach(function(id){
+      document.getElementById(id).textContent = '—';
+    });
+    var instSemElEmpty = document.getElementById('rep-inst-sem');
+    if (instSemElEmpty) instSemElEmpty.innerHTML = '';
+  }
+
+  // Módulo 5 — Perfil Hidráulico en Reporte
+  if (STATE.perfilData) {
+    var pf = STATE.perfilData;
+    document.getElementById('rep-perfil-dn').textContent     = pf.DN;
+    document.getElementById('rep-perfil-sdis').textContent   = (pf.S_dis * 100).toFixed(3);
+    var profMaxVal = (pf.profExcav && pf.profExcav.length) ? Math.max.apply(null, pf.profExcav) : undefined;
+    document.getElementById('rep-perfil-profmax').textContent = profMaxVal !== undefined ? profMaxVal.toFixed(2) : '—';
+  } else {
+    ['rep-perfil-dn','rep-perfil-sdis','rep-perfil-profmax'].forEach(function(id){
+      document.getElementById(id).textContent = '—';
+    });
+  }
+
   // Módulo M10 Jacking en Reporte
   if(STATE.m10) {
     var m = STATE.m10;
@@ -4257,6 +4350,22 @@ function updateCompliance() {
     if(a.presOk !== null) nota += `, P_op=${a.P_op} kg/cm² ${a.presOk ? '≤' : '>'} P_adm`;
     setCN('iso16422', ok, nota);
   } else { setCN('iso16422', null, 'Sin calcular'); }
+
+  // NMX-C-402 / NMX-C-401 (Diseño Estructural Concreto M9)
+  if(STATE.m9) {
+    const m9c = STATE.m9;
+    const okM9 = !m9c.disenioEspecial;
+    const notaM9 = okM9
+      ? `DN${m9c.DN}mm, q_calc=${m9c.qCalc.toFixed(1)} N/m/mm → ${m9c.claseSCT} (Clase ${m9c.claseASTM} ASTM)`
+      : `q_calc=${m9c.qCalc.toFixed(1)} N/m/mm > 140 — Diseño Especial requerido`;
+    setCN('m9', okM9, notaM9);
+  } else { setCN('m9', null, 'Sin calcular'); }
+
+  // NOM-001-CONAGUA (Verificación Instalación M8 — deflexión IOWA)
+  if(STATE.instalacion) {
+    const inst2 = STATE.instalacion;
+    setCN('inst', inst2.ok, `DN${inst2.diametro}mm, Δy/D=${parseFloat(inst2.defl).toFixed(2)}% ≤ ${inst2.limite}% (Clase ${inst2.clase})`);
+  } else { setCN('inst', null, 'Sin calcular'); }
 }
 
 function setCN(id, ok, nota) {
@@ -4589,6 +4698,73 @@ function generarPDF() {
     y += 4;
   }
 
+  // SECCIÓN PERFIL HIDRÁULICO (M5)
+  if (STATE.perfilData) {
+    var pfp = STATE.perfilData;
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = pdfSection(doc, '6. Perfil Hidráulico — Plantilla vs. Terreno (NMX-E-215)', y, W, M, TEAL, TEALD, INK);
+    var profMaxPdf = (pfp.profExcav && pfp.profExcav.length) ? Math.max.apply(null, pfp.profExcav) : undefined;
+    var rowsPerfil = [
+      ['Diámetro nominal DN', pfp.DN + ' mm'],
+      ['Diámetro interior Di', pfp.Di_m !== undefined ? (pfp.Di_m * 1000).toFixed(1) + ' mm' : '—'],
+      ['Pendiente mínima S_min', (pfp.S_min * 100).toFixed(3) + ' %'],
+      ['Pendiente de terreno S_ter', (pfp.S_ter * 100).toFixed(3) + ' %'],
+      ['Pendiente de diseño S_dis', (pfp.S_dis * 100).toFixed(3) + ' %'],
+      ['Profundidad máxima de excavación', profMaxPdf !== undefined ? profMaxPdf.toFixed(2) + ' m' : '—'],
+      ['Altura mínima de colchón Hmin', pfp.Hmin !== undefined ? pfp.Hmin.toFixed(2) + ' m' : '—']
+    ];
+    y = pdfTable(doc, rowsPerfil, y, W, M, INK);
+    y += 4;
+  }
+
+  // SECCIÓN VERIFICACIÓN DE INSTALACIÓN (M8)
+  if (STATE.instalacion) {
+    var instp = STATE.instalacion;
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = pdfSection(doc, '7. Verificación de Instalación — Deflexión IOWA (NOM-001-CONAGUA)', y, W, M, TEAL, TEALD, INK);
+    var rowsInst = [
+      ['Diámetro nominal DN', instp.diametro + ' mm'],
+      ['Tubería', instp.tubo || '—'],
+      ['Profundidad de instalación H', parseFloat(instp.prof).toFixed(2) + ' m'],
+      ['Condición de drenaje', instp.drenaje || '—'],
+      ['Clase de suelo (relleno)', instp.clase],
+      ["Módulo de reacción E'", instp.E + ' MPa'],
+      ['Deflexión calculada Δy/D', parseFloat(instp.defl).toFixed(2) + ' % (' + parseFloat(instp.deflMm).toFixed(1) + ' mm)'],
+      ['Límite normativo de deflexión', instp.limite + ' %'],
+      ['Ancho mínimo de zanja', instp.anchoMin !== undefined ? instp.anchoMin.toFixed(2) + ' m' : '—'],
+      ['Ancho óptimo de zanja', instp.anchoOpt !== undefined ? instp.anchoOpt.toFixed(2) + ' m' : '—'],
+      ['Verificación IOWA', instp.ok ? 'CUMPLE' : 'REVISAR — excede límite']
+    ];
+    y = pdfTable(doc, rowsInst, y, W, M, INK);
+    y += 4;
+  }
+
+  // SECCIÓN DISEÑO ESTRUCTURAL CONCRETO (M9)
+  if (STATE.m9) {
+    var m9p = STATE.m9;
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = pdfSection(doc, '8. Diseño Estructural de Tubería de Concreto — Método Marston (NMX-C-402 / NMX-C-401)', y, W, M, TEAL, TEALD, INK);
+    var rowsM9 = [
+      ['Diámetro nominal DN', m9p.DN + ' mm'],
+      ['Altura de relleno hr', m9p.hr + ' m'],
+      ['Tipo de instalación', m9p.tipo || '—'],
+      ['Factor de encamado Fa (Bₓ)', m9p.Fa],
+      ['Clase SCT de encamado', m9p.claseSCTEncamado || '—'],
+      ['Factor de seguridad γ', m9p.gamSeg],
+      ['Carga de relleno qr', m9p.qr.toFixed(2) + ' kN/m'],
+      ['Carga total q_total', m9p.qTotal.toFixed(2) + ' kN/m'],
+      ['Momento de diseño q_calc', m9p.qCalc.toFixed(2) + ' N/m/mm'],
+      ['Modo LRFD activo', m9p.useLRFD ? 'Sí' : 'No'],
+      ['Grado NMX-C-402', m9p.disenioEspecial ? 'Fuera de catálogo — DISEÑO ESPECIAL' : 'Grado ' + m9p.grado],
+      ['Equivalencia Clase SCT', m9p.claseSCT],
+      ['Clase ASTM C76M-22A', m9p.claseASTM ? 'Clase ' + m9p.claseASTM : '—'],
+      ["Resistencia f'c requerida", m9p.fc ? m9p.fc + ' MPa' : '—'],
+      ['Verificación NMX-C-402', m9p.disenioEspecial ? 'DISEÑO ESPECIAL (NMX-C-401 Sec.7)' : 'CUMPLE catálogo estándar']
+    ];
+    y = pdfTable(doc, rowsM9, y, W, M, INK);
+    y += 4;
+  }
+
   // TABLA CUMPLIMIENTO
   if(y > 240) { doc.addPage(); y = 20; }
   y = pdfSection(doc, 'Panel de Cumplimiento Normativo', y, W, M, TEAL, TEALD, INK);
@@ -4614,7 +4790,13 @@ function generarPDF() {
      nota: STATE.m10 ? (STATE.m10.claseASTM ? 'D-load=' + STATE.m10.Dload.toFixed(0) + ' lb/ft/ft → Clase ' + STATE.m10.claseASTM + ' (Grado NMX ' + (STATE.m10.gradoNMX || '—') + ')' : 'D-load > 3000 — Diseño Especial') : 'Sin calcular'},
     {norma:'SGAPDS-29 Sanitario (Harmon)', calculado: !!STATE.sanitario,
      ok: STATE.sanitario ? (STATE.sanitario.v>=0.6&&STATE.sanitario.v<=5.0) : false,
-     nota: STATE.sanitario ? `M=${STATE.sanitario.M.toFixed(3)}, Qext=${STATE.sanitario.Qext.toFixed(2)} l/s, v=${STATE.sanitario.v.toFixed(3)} m/s` : 'Sin calcular'}
+     nota: STATE.sanitario ? `M=${STATE.sanitario.M.toFixed(3)}, Qext=${STATE.sanitario.Qext.toFixed(2)} l/s, v=${STATE.sanitario.v.toFixed(3)} m/s` : 'Sin calcular'},
+    {norma:'NMX-C-402 / NMX-C-401', calculado: !!STATE.m9,
+     ok: STATE.m9 ? !STATE.m9.disenioEspecial : false,
+     nota: STATE.m9 ? (STATE.m9.disenioEspecial ? `q_calc=${STATE.m9.qCalc.toFixed(1)} N/m/mm > 140 — Diseño Especial` : `${STATE.m9.claseSCT}, f'c=${STATE.m9.fc} MPa`) : 'Sin calcular'},
+    {norma:'NOM-001-CONAGUA (Instalación IOWA)', calculado: !!STATE.instalacion,
+     ok: STATE.instalacion ? STATE.instalacion.ok : false,
+     nota: STATE.instalacion ? `Δy/D=${parseFloat(STATE.instalacion.defl).toFixed(2)}% ≤ ${STATE.instalacion.limite}%` : 'Sin calcular'}
   ];
 
   // Table header
@@ -6169,6 +6351,19 @@ function calcM9() {
                          'H25+';                   // H-25 = 120 kN/m
     m9LogDiseno(DN, cargaTipoLabel, qTraf, qCalc, Fa, tipo, hr);
   }
+
+  // ── Guardar resultado en STATE para integración con Reporte Global ──
+  STATE.m9 = {
+    DN: DN, hr: hr, tipo: tipo, Fa: Fa, gamSeg: gamSeg,
+    qr: qr, qTotal: qTotal, qCalc: qCalc,
+    grado: gradoSel ? gradoSel.g : null,
+    claseSCT: gradoSel ? (GRADO_CLASE_SCT[gradoSel.g] || '') : ('> Clase 4 SCT'),
+    claseASTM: gradoSel ? gradoSel.astm : null,
+    fc: gradoSel ? gradoSel.fc : null,
+    disenioEspecial: !gradoSel,
+    claseSCTEncamado: claseSCT_enc,
+    useLRFD: useLRFD
+  };
 
   // ── Renderizar panel LRFD (comparativa conservador vs LRFD) ─────
   var lrfdPanel = document.getElementById('m9-lrfd-result');
