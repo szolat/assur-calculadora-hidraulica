@@ -4787,7 +4787,7 @@ function generarPDF() {
      nota: STATE.agua ? `v=${STATE.agua.v.toFixed(3)} m/s, P_adm=${STATE.agua.P_adm_kgcm2.toFixed(2)} kg/cm²` : 'Sin calcular'},
 {norma:'NMX-C-402 / ASTM C76M-22A', calculado: !!STATE.m10,
      ok: STATE.m10 ? (STATE.m10.claseASTM !== null && STATE.m10.Dload <= 3000) : false,
-     nota: STATE.m10 ? (STATE.m10.claseASTM ? 'D-load=' + STATE.m10.Dload.toFixed(0) + ' lb/ft/ft → Clase ' + STATE.m10.claseASTM + ' (Grado NMX ' + (STATE.m10.gradoNMX || '—') + ')' : 'D-load > 3000 — Diseño Especial') : 'Sin calcular'},
+     nota: STATE.m10 ? (STATE.m10.claseASTM ? 'D-load=' + STATE.m10.Dload.toFixed(0) + ' lb/ft/ft -> Clase ' + STATE.m10.claseASTM + ' (Grado NMX ' + (STATE.m10.gradoNMX || '—') + ')' : 'D-load > 3000 — Diseño Especial') : 'Sin calcular'},
     {norma:'SGAPDS-29 Sanitario (Harmon)', calculado: !!STATE.sanitario,
      ok: STATE.sanitario ? (STATE.sanitario.v>=0.6&&STATE.sanitario.v<=5.0) : false,
      nota: STATE.sanitario ? `M=${STATE.sanitario.M.toFixed(3)}, Qext=${STATE.sanitario.Qext.toFixed(2)} l/s, v=${STATE.sanitario.v.toFixed(3)} m/s` : 'Sin calcular'},
