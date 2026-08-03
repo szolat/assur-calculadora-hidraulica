@@ -5658,8 +5658,11 @@ function m9SyncClaseSCT() {
   badge.style.color      = cd.text;
   // Actualizar SVG encamado al cambiar Bf/Clase SCT
   if(typeof m9UpdateInstalImg === 'function') m9UpdateInstalImg();
-  // Auto-sincronizar el Tipo SIDD ACPA al Bx SCT equivalente (salvo que el usuario haya anulado manualmente)
-  if(!window._m9AcpaOverridden) m9SyncAcpaFromSCT(bfKey);
+  // Cambiar el Bx SCT es una accion explicita sobre el selector "maestro" de la sincronizacion:
+  // siempre re-sincroniza el Tipo SIDD ACPA al nuevo equivalente y limpia cualquier anulacion previa.
+  // La anulacion manual del ACPA solo debe persistir mientras el usuario no vuelva a tocar el Bx SCT.
+  window._m9AcpaOverridden = false;
+  m9SyncAcpaFromSCT(bfKey);
 }
 
 // m9NormBfKey — normaliza el value crudo del <option> (string, ej. "3.0", "1.1") a la clave de
