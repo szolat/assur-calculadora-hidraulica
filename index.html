@@ -1582,7 +1582,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <!-- ══ Standard Installation ACPA (SIDD) ══ -->
           <div style="margin-bottom:10px">
             <label>Instalación estándar ACPA — SIDD <span style="font-size:.68rem;color:#64748b;font-weight:400">(ACPA Concrete Pipe Design Manual Illus. 4.4 · para D-load)</span></label>
-            <select id="m9-acpa-tipo" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+            <select id="m9-acpa-tipo" onchange="m9AcpaManualOverride();calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
               <option value="none" selected>— No aplicar (solo NMX-SCT) —</option>
               <option value="1">Tipo 1 — Grava compactada haunch 95% Cat.I · B&#7753;=4.4→2.3 | VAF=1.35 (máx. capacidad)</option>
               <option value="2">Tipo 2 — Grava haunch 90% Cat.I ó 95% Cat.II · B&#7753;=3.2→1.9 | VAF=1.40</option>
@@ -1590,6 +1590,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <option value="4">Tipo 4 — Sin compactación haunch · B&#7753;=1.7 | VAF=1.45 (mín. recomendado)</option>
             </select>
             <div id="m9-acpa-badge" style="display:none;margin-top:4px;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700;background:#fef3c7;color:#92400e;display:inline-block"></div>
+            <div id="m9-acpa-mismatch-warning" style="display:none;margin-top:6px;padding:8px 10px;border-radius:6px;font-size:.72rem;font-weight:600;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;line-height:1.4"></div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -5657,6 +5658,66 @@ function m9SyncClaseSCT() {
   badge.style.color      = cd.text;
   // Actualizar SVG encamado al cambiar Bf/Clase SCT
   if(typeof m9UpdateInstalImg === 'function') m9UpdateInstalImg();
+  // Auto-sincronizar el Tipo SIDD ACPA al Bx SCT equivalente (salvo que el usuario haya anulado manualmente)
+  if(!window._m9AcpaOverridden) m9SyncAcpaFromSCT(bf);
+}
+
+// Mapeo de equivalencia Bx SCT (M-PRY-CAR-4-01-003-16) -> Tipo SIDD ACPA (Concrete Pipe Design Manual)
+// Basado en calidad de compactación del riñón/haunch, criterio de equivalencia más cercano
+var M9_SCT_TO_SIDD = {
+  '1.1': '4',   // Clase D (sin preparación) -> Tipo 4 (sin compactación)
+  '1.5': '4',   // Clase C (apoyo natural)   -> Tipo 4 (sin compactación)
+  '1.9': '3',   // Clase B (granular compactado) -> Tipo 3 (arena compactada)
+  '2.3': '2',   // Clase A-min (concreto 120° sin compactar) -> Tipo 2
+  '3.0': '1',   // Clase A (concreto 120° + relleno compactado 90%) -> Tipo 1 (máx. capacidad)
+  '4.0': '1',   // Clase A+ (concreto 180° + 95%) -> Tipo 1
+  '4.8': '1'    // Clase A★ (envolvente total) -> Tipo 1
+};
+
+// m9SyncAcpaFromSCT — ajusta automáticamente el selector ACPA SIDD al equivalente del Bx SCT elegido
+function m9SyncAcpaFromSCT(bf) {
+  var acpaSel = document.getElementById('m9-acpa-tipo');
+  if(!acpaSel) return;
+  // Solo auto-sincronizar si el panel ACPA ya está activo (no en "none")
+  if(acpaSel.value === 'none') { m9CheckAcpaMismatch(); return; }
+  var equivalente = M9_SCT_TO_SIDD[bf.toString()] || '4';
+  window._m9AcpaSyncing = true;
+  acpaSel.value = equivalente;
+  window._m9AcpaSyncing = false;
+  m9CheckAcpaMismatch();
+}
+
+// m9AcpaManualOverride — detecta si el usuario cambió el selector ACPA manualmente (no por auto-sync)
+function m9AcpaManualOverride() {
+  if(window._m9AcpaSyncing) return; // cambio disparado por la sincronización automática, no es override
+  var acpaSel = document.getElementById('m9-acpa-tipo');
+  if(!acpaSel || acpaSel.value === 'none') { window._m9AcpaOverridden = false; m9CheckAcpaMismatch(); return; }
+  var faSel = document.getElementById('m9-fa');
+  var bf = faSel ? (parseFloat(faSel.value) || 2.3) : 2.3;
+  var equivalente = M9_SCT_TO_SIDD[bf.toString()] || '4';
+  window._m9AcpaOverridden = (acpaSel.value !== equivalente);
+  m9CheckAcpaMismatch();
+}
+
+// m9CheckAcpaMismatch — muestra aviso visible si el Tipo SIDD ACPA no corresponde al Bx SCT seleccionado
+function m9CheckAcpaMismatch() {
+  var warnDiv = document.getElementById('m9-acpa-mismatch-warning');
+  var acpaSel = document.getElementById('m9-acpa-tipo');
+  var faSel   = document.getElementById('m9-fa');
+  if(!warnDiv || !acpaSel || !faSel) return;
+  if(acpaSel.value === 'none') { warnDiv.style.display = 'none'; return; }
+  var bf = parseFloat(faSel.value) || 2.3;
+  var equivalente = M9_SCT_TO_SIDD[bf.toString()] || '4';
+  var claseOpt = faSel.options[faSel.selectedIndex];
+  var claseTxt = claseOpt ? claseOpt.getAttribute('data-clase') : '';
+  if(acpaSel.value !== equivalente) {
+    var tipoOpt = acpaSel.options[acpaSel.selectedIndex];
+    var tipoTxt = tipoOpt ? tipoOpt.textContent.split('—')[0].trim() : ('Tipo ' + acpaSel.value);
+    warnDiv.innerHTML = '⚠️ Encamado no coherente: el m\u00e9todo NMX usa Clase ' + (claseTxt||'') + ' SCT (B\u2093=' + bf + ') pero el ACPA usa ' + tipoTxt + ' manualmente seleccionado. El Grado NMX y la Clase ACPA D-load NO ser\u00e1n comparables entre s\u00ed con esta combinaci\u00f3n.';
+    warnDiv.style.display = 'block';
+  } else {
+    warnDiv.style.display = 'none';
+  }
 }
 
 function m9SyncTrafico() {
@@ -6154,6 +6215,7 @@ function m9AplicarEncamado(bf) {
 }
 
 function calcM9() {
+  if(typeof m9CheckAcpaMismatch === 'function') m9CheckAcpaMismatch();
   var DN     = parseFloat(document.getElementById('m9-dn').value)   || 610;
   var e      = parseFloat(document.getElementById('m9-espesor').value) || 75;
   var hr     = parseFloat(document.getElementById('m9-hr').value)   || 2.5;
