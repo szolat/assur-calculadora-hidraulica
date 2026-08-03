@@ -5642,6 +5642,7 @@ function m9SyncClaseSCT() {
   if(!sel || !badge) return;
   var opt = sel.options[sel.selectedIndex];
   var bf  = parseFloat(sel.value) || 2.3;
+  var bfKey = m9NormBfKey(sel.value);
   var claseData = {
     '1.1':  { label: 'Clase D',     color: '#fee2e2', text: '#b91c1c' },
     '1.5':  { label: 'Clase C',     color: '#fef3c7', text: '#92400e' },
@@ -5651,19 +5652,29 @@ function m9SyncClaseSCT() {
     '4.0':  { label: 'Clase A+',    color: '#ede9fe', text: '#5b21b6' },
     '4.8':  { label: 'Clase A★',   color: '#d1fae5', text: '#065f46' }
   };
-  var key = bf.toString();
-  var cd  = claseData[key] || { label: 'Clase A', color: '#e0f2fe', text: '#0369a1' };
+  var cd  = claseData[bfKey] || { label: 'Clase A', color: '#e0f2fe', text: '#0369a1' };
   badge.textContent = cd.label + ' (SCT) | Bₓ=' + bf;
   badge.style.background = cd.color;
   badge.style.color      = cd.text;
   // Actualizar SVG encamado al cambiar Bf/Clase SCT
   if(typeof m9UpdateInstalImg === 'function') m9UpdateInstalImg();
   // Auto-sincronizar el Tipo SIDD ACPA al Bx SCT equivalente (salvo que el usuario haya anulado manualmente)
-  if(!window._m9AcpaOverridden) m9SyncAcpaFromSCT(bf);
+  if(!window._m9AcpaOverridden) m9SyncAcpaFromSCT(bfKey);
+}
+
+// m9NormBfKey — normaliza el value crudo del <option> (string, ej. "3.0", "1.1") a la clave de
+// búsqueda usada en las tablas de mapeo. Usar SIEMPRE el string original del select, nunca
+// parseFloat(...).toString(), porque parseFloat('3.0').toString() === '3' (pierde el '.0' y
+// rompe el lookup contra claves como '3.0'/'4.0').
+function m9NormBfKey(rawValue) {
+  var n = parseFloat(rawValue);
+  if(isNaN(n)) return (2.3).toFixed(1);
+  return n.toFixed(1); // '3' -> '3.0', '1.1' -> '1.1', '4' -> '4.0'
 }
 
 // Mapeo de equivalencia Bx SCT (M-PRY-CAR-4-01-003-16) -> Tipo SIDD ACPA (Concrete Pipe Design Manual)
 // Basado en calidad de compactación del riñón/haunch, criterio de equivalencia más cercano
+// Claves normalizadas siempre con un decimal (ver m9NormBfKey) para evitar el bug de parseFloat().toString()
 var M9_SCT_TO_SIDD = {
   '1.1': '4',   // Clase D (sin preparación) -> Tipo 4 (sin compactación)
   '1.5': '4',   // Clase C (apoyo natural)   -> Tipo 4 (sin compactación)
@@ -5675,12 +5686,13 @@ var M9_SCT_TO_SIDD = {
 };
 
 // m9SyncAcpaFromSCT — ajusta automáticamente el selector ACPA SIDD al equivalente del Bx SCT elegido
-function m9SyncAcpaFromSCT(bf) {
+// Recibe bfKey ya normalizado (ej. '3.0'), NO el valor numérico crudo
+function m9SyncAcpaFromSCT(bfKey) {
   var acpaSel = document.getElementById('m9-acpa-tipo');
   if(!acpaSel) return;
   // Solo auto-sincronizar si el panel ACPA ya está activo (no en "none")
   if(acpaSel.value === 'none') { m9CheckAcpaMismatch(); return; }
-  var equivalente = M9_SCT_TO_SIDD[bf.toString()] || '4';
+  var equivalente = M9_SCT_TO_SIDD[bfKey] || '4';
   window._m9AcpaSyncing = true;
   acpaSel.value = equivalente;
   window._m9AcpaSyncing = false;
@@ -5693,8 +5705,8 @@ function m9AcpaManualOverride() {
   var acpaSel = document.getElementById('m9-acpa-tipo');
   if(!acpaSel || acpaSel.value === 'none') { window._m9AcpaOverridden = false; m9CheckAcpaMismatch(); return; }
   var faSel = document.getElementById('m9-fa');
-  var bf = faSel ? (parseFloat(faSel.value) || 2.3) : 2.3;
-  var equivalente = M9_SCT_TO_SIDD[bf.toString()] || '4';
+  var bfKey = faSel ? m9NormBfKey(faSel.value) : '2.3';
+  var equivalente = M9_SCT_TO_SIDD[bfKey] || '4';
   window._m9AcpaOverridden = (acpaSel.value !== equivalente);
   m9CheckAcpaMismatch();
 }
@@ -5707,7 +5719,8 @@ function m9CheckAcpaMismatch() {
   if(!warnDiv || !acpaSel || !faSel) return;
   if(acpaSel.value === 'none') { warnDiv.style.display = 'none'; return; }
   var bf = parseFloat(faSel.value) || 2.3;
-  var equivalente = M9_SCT_TO_SIDD[bf.toString()] || '4';
+  var bfKey = m9NormBfKey(faSel.value);
+  var equivalente = M9_SCT_TO_SIDD[bfKey] || '4';
   var claseOpt = faSel.options[faSel.selectedIndex];
   var claseTxt = claseOpt ? claseOpt.getAttribute('data-clase') : '';
   if(acpaSel.value !== equivalente) {
