@@ -1499,8 +1499,20 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <div style="font-weight:700;font-size:.88rem;color:var(--teal-d);margin-bottom:12px;padding-bottom:6px;border-bottom:1.5px solid var(--line)">📏 Geometría de la tubería</div>
 
           <div style="margin-bottom:10px">
-            <label>Diámetro nominal DN (mm) — NMX-C-402</label>
+            <label>Tipo de tubería de concreto</label>
+            <select id="m9-tipo-tubo" onchange="m9TipoTuboChange()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem;font-weight:600">
+              <option value="reforzado" selected>Reforzado — NMX-C-402 (Grados 1–4, D-load)</option>
+              <option value="simple">Simple sin refuerzo — NMX-C-401 (Grados I–III, 150–610mm)</option>
+            </select>
+            <div style="font-size:.68rem;color:#64748b;margin-top:3px">El tubo simple (sin acero de refuerzo) solo aplica a alcantarillado sanitario y drenaje pluvial sin presión, diámetros 150 a 610mm, clasificado por carga única de ruptura (sin criterio de primera grieta) — NMX-C-401-ONNCCE-2020.</div>
+          </div>
+
+          <div style="margin-bottom:10px">
+            <label id="m9-dn-label">Diámetro nominal DN (mm) — NMX-C-402</label>
             <select id="m9-dn" onchange="m9ParedB();calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+              <option value="150" class="m9-dn-simple-only" style="display:none">150 mm (solo NMX-C-401)</option>
+              <option value="200" class="m9-dn-simple-only" style="display:none">200 mm (solo NMX-C-401)</option>
+              <option value="250" class="m9-dn-simple-only" style="display:none">250 mm (solo NMX-C-401)</option>
               <option value="300">300 mm</option>
               <option value="380">380 mm</option>
               <option value="450">450 mm</option>
@@ -1520,7 +1532,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div>
+            <div id="m9-espesor-wrap">
               <label>Espesor de pared e (mm) — <span style="color:#92400e;font-weight:700">Pared B (NMX-C-402)</span></label>
               <input type="number" id="m9-espesor" value="76" min="30" max="400" step="1" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
               <div style="font-size:.68rem;color:#64748b;margin-top:2px">Auto-calculado según Pared B · NMX-C-402-ONNCCE-2020 Tablas 1–4</div>
@@ -1739,8 +1751,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div style="display:flex;flex-direction:column;gap:16px">
 
         <!-- Resultados principales -->
-        <div style="background:linear-gradient(135deg,#0f4c5c,#01696f);color:#fff;border-radius:var(--radius);padding:20px">
-          <div style="font-weight:800;font-size:.95rem;margin-bottom:14px;letter-spacing:.3px">📊 Resultados del diseño</div>
+        <div id="m9-reforzado-result" style="background:linear-gradient(135deg,#0f4c5c,#01696f);color:#fff;border-radius:var(--radius);padding:20px">
+          <div style="font-weight:800;font-size:.95rem;margin-bottom:14px;letter-spacing:.3px">📊 Resultados del diseño — Tubo Reforzado (NMX-C-402)</div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
             <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center">
@@ -1803,6 +1815,46 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               </div>
             </div>
             <div id="m9-acpa-info" style="font-size:.68rem;color:rgba(255,255,255,.7);margin-top:6px;line-height:1.6"></div>
+          </div>
+        </div>
+
+        <!-- ══ Resultados TUBO SIMPLE SIN REFUERZO — NMX-C-401-ONNCCE-2020 (solo si Tipo de tubería = simple) ══ -->
+        <div id="m9-simple-result" style="display:none;background:linear-gradient(135deg,#78350f,#92400e);color:#fff;border-radius:var(--radius);padding:20px">
+          <div style="font-weight:800;font-size:.95rem;margin-bottom:4px;letter-spacing:.3px">🧱 Resultados — Tubo Simple Sin Refuerzo (NMX-C-401)</div>
+          <div style="font-size:.7rem;opacity:.8;margin-bottom:14px">Clasificación por carga única de ruptura (Grados I–III) — aplica solo Dn 150–610mm, alcantarillado sanitario y drenaje pluvial sin presión</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:1.4rem;font-weight:800;font-family:monospace" id="m9s-res-qreq">— kN/m</div>
+              <div style="font-size:.7rem;opacity:.8;margin-top:2px">Carga requerida (Marston, sin dividir entre D)</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border:2px solid var(--gold);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:1.6rem;font-weight:900;font-family:monospace;color:var(--gold)" id="m9s-res-grado">—</div>
+              <div style="font-size:.72rem;opacity:.9;margin-top:2px">Grado NMX-C-401 requerido</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+            <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:1rem;font-weight:800;font-family:monospace" id="m9s-res-grado1">— kN/m</div>
+              <div style="font-size:.65rem;opacity:.8">Grado I (27.6 MPa)</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:1rem;font-weight:800;font-family:monospace" id="m9s-res-grado2">— kN/m</div>
+              <div style="font-size:.65rem;opacity:.8">Grado II (34.5 MPa)</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:1rem;font-weight:800;font-family:monospace" id="m9s-res-grado3">— kN/m</div>
+              <div style="font-size:.65rem;opacity:.8">Grado III (41.4 MPa)</div>
+            </div>
+          </div>
+
+          <div id="m9s-semaforo" style="border-radius:8px;padding:10px 14px;font-size:.82rem;font-weight:700;text-align:center;background:rgba(255,255,255,.15)">
+            ⏳ Ingresa los datos y presiona Calcular
+          </div>
+
+          <div style="font-size:.68rem;color:rgba(255,255,255,.75);margin-top:10px;line-height:1.6">
+            Espesor de pared recomendado: <b id="m9s-res-espesor">—</b> mm · Capacidad interpolada para D<sub>r</sub> real según Tabla 1, NMX-C-401-ONNCCE-2020. La carga de diseño usa el mismo método Marston/IMT (B<sub>f</sub>/B<sub>fLL</sub> independientes) que el tubo reforzado, pero se compara directamente contra la capacidad de ruptura en kN/m (no existe división por diámetro tipo D-load, porque el tubo simple no tiene criterio de primera grieta).
           </div>
         </div>
 
@@ -2042,7 +2094,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <summary style="font-weight:700;font-size:.8rem;color:#475569;cursor:pointer;user-select:none;padding:12px 14px">📎 Referencias normativas <span style="font-weight:400;font-size:.7rem;color:#94a3b8">(click para expandir)</span></summary>
           <ul style="font-size:.72rem;color:#64748b;line-height:1.7;margin:0;padding:0 14px 12px 30px">
             <li><strong>NMX-C-402-ONNCCE-2020</strong> — 4 Grados por resistencia carga externa (M grieta y rotura)</li>
-            <li><strong>NMX-C-401-ONNCCE-2020</strong> — Requisitos materiales, dimensiones y pruebas tubería concreto</li>
+            <li><strong>NMX-C-401-ONNCCE-2020</strong> — Tubo de concreto SIMPLE (sin refuerzo) con junta hermética, Dn 150–610mm, clasificado en Grados I–III por carga única de ruptura (sin criterio de primera grieta) — línea de producto independiente de NMX-C-402, seleccionable arriba como "Tipo de tubería"</li>
             <li><strong>Marston (1930)</strong> — Carga en zanja: W<sub>c</sub> = C<sub>d</sub>·γ·B<sub>d</sub>² <span style="font-size:.75em;color:#6b7280">(donde C<sub>d</sub> ya incluye la relación h<sub>r</sub>/B<sub>d</sub>)</span></li>
             <li><strong>AASHTO H-10/H-20/H-25</strong> — Cargas vehiculares de diseño, ejes 98–222 kN</li>
             <li><strong>FAA AC 150/5370</strong> — Carga aeroportuaria DC-9 = 900 kN</li>
@@ -6238,6 +6290,37 @@ function m9AplicarEncamado(bf) {
   }
 }
 
+function m9TipoTuboChange() {
+  var tipo = document.getElementById('m9-tipo-tubo').value;
+  var dnSelect = document.getElementById('m9-dn');
+  var simpleOpts = dnSelect.querySelectorAll('.m9-dn-simple-only');
+  var validSimpleDn = ['150','200','250','300','380','450','610'];
+  if (tipo === 'simple') {
+    // Mostrar solo los 7 diámetros válidos de NMX-C-401 (150-610mm)
+    for (var i=0; i<simpleOpts.length; i++) simpleOpts[i].style.display = '';
+    for (var j=0; j<dnSelect.options.length; j++) {
+      var opt = dnSelect.options[j];
+      opt.style.display = validSimpleDn.indexOf(opt.value) >= 0 ? '' : 'none';
+    }
+    // Si el valor actual no es válido para NMX-401, mover a 610mm (el mayor común)
+    if (validSimpleDn.indexOf(dnSelect.value) < 0) dnSelect.value = '610';
+    document.getElementById('m9-dn-label').textContent = 'Diámetro nominal DN (mm) — NMX-C-401';
+    document.getElementById('m9-espesor-wrap').style.display = 'none';
+    document.getElementById('m9-reforzado-result').style.display = 'none';
+    document.getElementById('m9-simple-result').style.display = '';
+  } else {
+    for (var i2=0; i2<simpleOpts.length; i2++) simpleOpts[i2].style.display = 'none';
+    for (var j2=0; j2<dnSelect.options.length; j2++) dnSelect.options[j2].style.display = '';
+    if (validSimpleDn.indexOf(dnSelect.value) >= 0 && ['150','200','250'].indexOf(dnSelect.value) >= 0) dnSelect.value = '610';
+    document.getElementById('m9-dn-label').textContent = 'Diámetro nominal DN (mm) — NMX-C-402';
+    document.getElementById('m9-espesor-wrap').style.display = '';
+    document.getElementById('m9-reforzado-result').style.display = '';
+    document.getElementById('m9-simple-result').style.display = 'none';
+  }
+  if (typeof m9ParedB === 'function') m9ParedB();
+  calcM9();
+}
+
 function calcM9() {
   if(typeof m9CheckAcpaMismatch === 'function') m9CheckAcpaMismatch();
   var DN     = parseFloat(document.getElementById('m9-dn').value)   || 610;
@@ -6370,6 +6453,53 @@ function calcM9() {
   proc.push('q_calc = (q_relleno/Bₓ + q_traf_efectiva/B_fLL) · γ_seg / D  [Bₓ=' + Fa + ' Clase ' + claseSCT_enc + ' SCT | B_fLL=' + BfLL + ']');
   proc.push('       = (' + qr.toFixed(2) + '/' + Fa + ' + ' + qTrafEfectiva.toFixed(2) + '/' + BfLL + ') × ' + gamSeg + ' / ' + D.toFixed(3));
   proc.push('       = <b>' + qCalc.toFixed(2) + ' N/m/mm</b>  ← M_grieta mínima requerida');
+
+  // ── 4b. TUBO SIMPLE SIN REFUERZO — NMX-C-401-ONNCCE-2020 (línea de producto alterna, 150–610mm) ──
+  //   Clasifica por CARGA única de ruptura (kN/m), sin criterio de primera grieta y sin dividir
+  //   entre diámetro (no es un sistema D-load). Reutiliza las mismas cargas Marston (qr, qTrafEfectiva)
+  //   y factores de encamado (Fa, BfLL) ya calculados arriba para el tubo reforzado.
+  var M9_NMX401_TABLA = {
+    150: {espesor:27, gradoI:22.0, gradoII:29.0, gradoIII:35.0},
+    200: {espesor:29, gradoI:22.0, gradoII:29.0, gradoIII:35.0},
+    250: {espesor:33, gradoI:23.5, gradoII:29.0, gradoIII:35.0},
+    300: {espesor:47, gradoI:26.5, gradoII:33.0, gradoIII:38.0},
+    380: {espesor:53, gradoI:29.0, gradoII:38.0, gradoIII:42.0},
+    450: {espesor:61, gradoI:32.0, gradoII:44.0, gradoIII:48.0},
+    610: {espesor:75, gradoI:38.0, gradoII:52.5, gradoIII:64.0}
+  };
+  var tipoTuboEl = document.getElementById('m9-tipo-tubo');
+  if (tipoTuboEl && tipoTuboEl.value === 'simple') {
+    var reqLoadSimple = (qr/Fa + qTrafEfectiva/BfLL) * gamSeg; // kN/m — carga requerida, SIN dividir entre D
+    var t401 = M9_NMX401_TABLA[DN];
+    var elQreq = document.getElementById('m9s-res-qreq');
+    if (elQreq) elQreq.textContent = reqLoadSimple.toFixed(2) + ' kN/m';
+    if (t401) {
+      document.getElementById('m9s-res-grado1').textContent = t401.gradoI.toFixed(1) + ' kN/m';
+      document.getElementById('m9s-res-grado2').textContent = t401.gradoII.toFixed(1) + ' kN/m';
+      document.getElementById('m9s-res-grado3').textContent = t401.gradoIII.toFixed(1) + ' kN/m';
+      document.getElementById('m9s-res-espesor').textContent = t401.espesor;
+      var gradoReqLabel, capacidadElegida, cumple;
+      if (reqLoadSimple <= t401.gradoI)      { gradoReqLabel = 'Grado I';   capacidadElegida = t401.gradoI;   cumple = true; }
+      else if (reqLoadSimple <= t401.gradoII) { gradoReqLabel = 'Grado II';  capacidadElegida = t401.gradoII;  cumple = true; }
+      else if (reqLoadSimple <= t401.gradoIII){ gradoReqLabel = 'Grado III'; capacidadElegida = t401.gradoIII; cumple = true; }
+      else { gradoReqLabel = 'Excede Grado III'; capacidadElegida = t401.gradoIII; cumple = false; }
+      document.getElementById('m9s-res-grado').textContent = gradoReqLabel;
+      var semaforoS = document.getElementById('m9s-semaforo');
+      if (semaforoS) {
+        if (cumple) {
+          semaforoS.style.background = 'rgba(134,239,172,.25)';
+          semaforoS.innerHTML = '✅ ' + gradoReqLabel + ' cumple — capacidad ' + capacidadElegida.toFixed(1) + ' kN/m ≥ carga requerida ' + reqLoadSimple.toFixed(2) + ' kN/m';
+        } else {
+          semaforoS.style.background = 'rgba(252,165,165,.3)';
+          semaforoS.innerHTML = '⚠️ La carga requerida (' + reqLoadSimple.toFixed(2) + ' kN/m) excede la capacidad máxima de NMX-C-401 (Grado III = ' + t401.gradoIII.toFixed(1) + ' kN/m). Se requiere tubo REFORZADO (NMX-C-402) para este diámetro y condición.';
+        }
+      }
+    }
+    proc.push('');
+    proc.push('── Verificación NMX-C-401 (tubo simple sin refuerzo) ──');
+    proc.push('Carga requerida = (q_relleno/Bₓ + q_traf_efectiva/B_fLL) · γ_seg = (' + qr.toFixed(2) + '/' + Fa + ' + ' + qTrafEfectiva.toFixed(2) + '/' + BfLL + ') × ' + gamSeg);
+    proc.push('              = <b>' + reqLoadSimple.toFixed(2) + ' kN/m</b>  ← comparar contra Tabla 1, NMX-C-401-ONNCCE-2020 (DN=' + DN + 'mm)');
+  }
 
   // ── 5. Selección de Grado NMX-C-402 ──────────────────────────────
   var grados = [
