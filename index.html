@@ -1579,6 +1579,12 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <div style="font-size:.68rem;color:#64748b;margin-top:3px">SICT/IMT Clase A-D ≡ ATHA Tipo A-E · NMX-C-401 · M-PRY-CAR-4-01-003-16</div>
           </div>
 
+          <div style="margin-bottom:10px">
+            <label>Factor de encamado carga viva B<sub>fLL</sub> <span style="font-size:.68rem;color:#64748b;font-weight:400">(Método Marston/IMT — independiente de Bₓ)</span></label>
+            <input type="number" id="m9-bfll" value="1.5" step="0.1" min="1.0" max="2.0" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+            <div style="font-size:.68rem;color:#64748b;margin-top:3px">La carga viva de tráfico se distribuye con su propio factor de encamado (típicamente 1.5), independiente del Bₓ elegido para la carga de relleno — así lo define el método Marston/IMT N·CMT·3·02/04.</div>
+          </div>
+
           <!-- ══ Standard Installation ACPA (SIDD) ══ -->
           <div style="margin-bottom:10px">
             <label>Instalación estándar ACPA — SIDD <span style="font-size:.68rem;color:#64748b;font-weight:400">(ACPA Concrete Pipe Design Manual Illus. 4.4 · para D-load)</span></label>
@@ -1842,12 +1848,14 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         </div>
 
         <!-- Proceso Marston detallado -->
-        <div style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px">
-          <div style="font-weight:700;font-size:.85rem;color:var(--teal-d);margin-bottom:10px">📐 Proceso Marston (paso a paso)</div>
-          <div id="m9-proceso" style="font-size:.76rem;line-height:1.8;color:#334155;font-family:monospace;background:#f8fafc;border-radius:6px;padding:12px;min-height:80px">
-            Presiona Calcular para ver el proceso detallado.
+        <details style="background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:0">
+          <summary style="font-weight:700;font-size:.85rem;color:var(--teal-d);cursor:pointer;user-select:none;padding:16px">📐 Ver desarrollo del cálculo (Proceso Marston paso a paso)</summary>
+          <div style="padding:0 16px 16px">
+            <div id="m9-proceso" style="font-size:.76rem;line-height:1.8;color:#334155;font-family:monospace;background:#f8fafc;border-radius:6px;padding:12px;min-height:80px">
+              Presiona Calcular para ver el proceso detallado.
+            </div>
           </div>
-        </div>
+        </details>
 
         <!-- ═══ Dimensiones de zanja recomendadas (M9) ═══ -->
         <div id="m9-dimzanja-wrap" style="display:none;background:#fff;border:1.5px solid #a7f3d0;border-radius:var(--radius);padding:16px">
@@ -2030,9 +2038,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         </div>
 
         <!-- Referencias técnicas -->
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px">
-          <div style="font-weight:700;font-size:.8rem;color:#475569;margin-bottom:6px">📎 Referencias normativas</div>
-          <ul style="font-size:.72rem;color:#64748b;line-height:1.7;margin:0;padding-left:16px">
+        <details style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0">
+          <summary style="font-weight:700;font-size:.8rem;color:#475569;cursor:pointer;user-select:none;padding:12px 14px">📎 Referencias normativas <span style="font-weight:400;font-size:.7rem;color:#94a3b8">(click para expandir)</span></summary>
+          <ul style="font-size:.72rem;color:#64748b;line-height:1.7;margin:0;padding:0 14px 12px 30px">
             <li><strong>NMX-C-402-ONNCCE-2020</strong> — 4 Grados por resistencia carga externa (M grieta y rotura)</li>
             <li><strong>NMX-C-401-ONNCCE-2020</strong> — Requisitos materiales, dimensiones y pruebas tubería concreto</li>
             <li><strong>Marston (1930)</strong> — Carga en zanja: W<sub>c</sub> = C<sub>d</sub>·γ·B<sub>d</sub>² <span style="font-size:.75em;color:#6b7280">(donde C<sub>d</sub> ya incluye la relación h<sub>r</sub>/B<sub>d</sub>)</span></li>
@@ -2049,16 +2057,16 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
             <li><strong>N·CTR·CAR·1·01·009/16 SICT/IMT</strong> — Norma de terraplenes con material de cortes o bancos: capas compactables (≤75 cm no compactable), escalones de liga en ampliaciones, grado de compactación por proyecto, tolerancias ±5 cm cuerpo / ±3 cm subrasante, medición m³ terminado (24/11/2016)</li>
             <li><strong>N·CTR·CAR·1·01·007/11 SICT/IMT</strong> — Norma de excavación para estructuras y obras de drenaje: trabajos previos, dimensiones y niveles de proyecto, protección vs inundaciones, tolerancia ±10 cm paredes-molde, firme de concreto pobre, criterios de aceptación SCT (08/12/2011)</li>
           </ul>
-        </div>
+        </details>
 
       </div><!-- /col derecha -->
     </div><!-- /grid -->
 
     <!-- ══ N·CTR·CAR·1·03·002/20 — ESPECIFICACIONES CONSTRUCTIVAS SCT ═══════ -->
-    <details style="margin-top:14px;background:#f0f9ff;border:1.5px solid #7dd3fc;border-radius:8px;padding:0" open>
+    <details style="margin-top:14px;background:#f0f9ff;border:1.5px solid #7dd3fc;border-radius:8px;padding:0">
       <summary style="font-weight:700;font-size:.85rem;color:#0369a1;cursor:pointer;user-select:none;padding:10px 14px">
         🏗️ Especificaciones Constructivas SCT — N·CTR·CAR·1·03·002/20 SICT/IMT
-        <span style="font-weight:400;font-size:.75rem;color:#475569"> (click para colapsar)</span>
+        <span style="font-weight:400;font-size:.75rem;color:#475569"> (click para expandir)</span>
       </summary>
       <div style="padding:10px 14px 14px">
         <div style="font-size:.74rem;color:#0c4a6e;margin-bottom:8px;line-height:1.5">
@@ -2146,10 +2154,10 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         </div>
 
         <!-- SUB-SECCIÓN N·CTR·CAR·1·01·007/11 — EXCAVACIÓN PARA ESTRUCTURAS -->
-        <details style="margin-top:10px;border:1px solid #bbf7d0;border-radius:6px;padding:0" open>
+        <details style="margin-top:10px;border:1px solid #bbf7d0;border-radius:6px;padding:0">
           <summary style="font-weight:700;font-size:.78rem;color:#14532d;cursor:pointer;user-select:none;padding:7px 12px;background:#dcfce7;border-radius:6px">
             ⛏️ Excavación para Estructuras — N·CTR·CAR·1·01·007/11 SICT/IMT
-            <span style="font-weight:400;font-size:.71rem;color:#475569"> (click para colapsar)</span>
+            <span style="font-weight:400;font-size:.71rem;color:#475569"> (click para expandir)</span>
           </summary>
           <div style="padding:8px 12px 10px">
             <div style="font-size:.72rem;color:#14532d;margin-bottom:7px;line-height:1.5">
@@ -2240,10 +2248,10 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         </details>
 
         <!-- SUB-SECCIÓN N·CTR·CAR·1·01·011/20 — RELLENOS -->
-        <details style="margin-top:10px;border:1px solid #bae6fd;border-radius:6px;padding:0" open>
+        <details style="margin-top:10px;border:1px solid #bae6fd;border-radius:6px;padding:0">
           <summary style="font-weight:700;font-size:.78rem;color:#0c4a6e;cursor:pointer;user-select:none;padding:7px 12px;background:#e0f2fe;border-radius:6px">
             🪨 Rellenos SCT — N·CTR·CAR·1·01·011/20 SICT/IMT
-            <span style="font-weight:400;font-size:.71rem;color:#475569"> (click para colapsar)</span>
+            <span style="font-weight:400;font-size:.71rem;color:#475569"> (click para expandir)</span>
           </summary>
           <div style="padding:8px 12px 10px">
             <div style="font-size:.72rem;color:#0c4a6e;margin-bottom:7px;line-height:1.5">
@@ -2305,9 +2313,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         </details>
 
         <!-- TERRAPLENES N·CTR·CAR·1·01·009/16 -->
-        <details open style="margin-top:8px;border:1px solid #d97706;border-radius:6px;overflow:hidden">
+        <details style="margin-top:8px;border:1px solid #d97706;border-radius:6px;overflow:hidden">
           <summary style="background:#b45309;color:#fff;padding:6px 12px;font-weight:700;font-size:.75rem;cursor:pointer;list-style:none">
-            🏔️ Terraplenes SCT — N·CTR·CAR·1·01·009/16 SICT/IMT <span style="font-weight:400;font-size:.68rem">(click para colapsar)</span>
+            🏔️ Terraplenes SCT — N·CTR·CAR·1·01·009/16 SICT/IMT <span style="font-weight:400;font-size:.68rem">(click para expandir)</span>
           </summary>
           <div style="padding:8px 10px;background:#fffbeb">
             <p style="margin:0 0 6px;font-size:.72rem;color:#78350f">
@@ -6242,6 +6250,7 @@ function calcM9() {
   var lamu   = parseFloat(document.getElementById('m9-lamu').value) || 0.165; // SCT default
   var qTraf  = parseFloat(document.getElementById('m9-q-traf').value)|| 0;
   var gamSeg = parseFloat(document.getElementById('m9-gamseg').value)|| 1.5;
+  var BfLL   = parseFloat(document.getElementById('m9-bfll').value)  || 1.5; // Factor de encamado independiente para carga viva (Método Marston/IMT)
 
   // ── Modo LRFD AASHTO 12.10.4.3 — carga viva atenuada ─────────────
   var useLRFD     = !!(document.getElementById('m9-lrfd-toggle') &&
@@ -6352,11 +6361,14 @@ function calcM9() {
     (useLRFD && lrfdData ? ' <span style="color:#01696f;font-size:.85em">[LRFD atenuado]</span>' : ' <span style="color:#7c3aed;font-size:.85em">[conservador NMX]</span>'));
 
   // ── 4. Carga de cálculo (resistencia mínima requerida) ────────────
-  //   q_calc = q_TOTAL · γ_seg / (Fa · D)   [kN/m² por m de diámetro ≡ N/m/mm]
-  var qCalc = qTotal * gamSeg / (Fa * D);
+  //   Método Marston/IMT (N·CMT·3·02/04): el relleno y la carga viva se distribuyen con
+  //   factores de encamado INDEPENDIENTES — el relleno usa Bₓ (Clase SCT/ACPA elegida),
+  //   la carga viva siempre usa B_fLL (típicamente 1.5) sin importar la clase de encamado.
+  //   q_calc = (q_relleno/Bₓ + q_traf_efectiva/B_fLL) · γ_seg / D   [≡ N/m/mm]
+  var qCalc = (qr/Fa + qTrafEfectiva/BfLL) * gamSeg / D;
   proc.push('');
-  proc.push('q_calc = q_TOTAL · γ_seg / (Bₓ · D)  [Bₓ=' + Fa + ' Clase ' + claseSCT_enc + ' SCT]');
-  proc.push('       = ' + qTotal.toFixed(2) + ' × ' + gamSeg + ' / (' + Fa + ' × ' + D.toFixed(3) + ')');
+  proc.push('q_calc = (q_relleno/Bₓ + q_traf_efectiva/B_fLL) · γ_seg / D  [Bₓ=' + Fa + ' Clase ' + claseSCT_enc + ' SCT | B_fLL=' + BfLL + ']');
+  proc.push('       = (' + qr.toFixed(2) + '/' + Fa + ' + ' + qTrafEfectiva.toFixed(2) + '/' + BfLL + ') × ' + gamSeg + ' / ' + D.toFixed(3));
   proc.push('       = <b>' + qCalc.toFixed(2) + ' N/m/mm</b>  ← M_grieta mínima requerida');
 
   // ── 5. Selección de Grado NMX-C-402 ──────────────────────────────
@@ -6449,10 +6461,11 @@ function calcM9() {
     lrfdPanel.style.display = '';  // siempre visible si hay datos LRFD
 
     // — Cálculos LRFD correctos (independientes del qTrafEfectiva) —
-    var qTotalLRFD  = qr + lrfdDataBase.qL;          // siempre usa q_L LRFD
-    var qCalcLRFD   = qTotalLRFD * gamSeg / (Fa * D);
-    var qTotalBase  = qr + qTraf;                     // conservador siempre fijo
-    var qCalcBase   = qTotalBase * gamSeg / (Fa * D);
+    // Misma corrección Marston/IMT: relleno/Bₓ + tráfico/B_fLL, factores independientes
+    var qTotalLRFD  = qr + lrfdDataBase.qL;          // siempre usa q_L LRFD (solo para mostrar el total)
+    var qCalcLRFD   = (qr/Fa + lrfdDataBase.qL/BfLL) * gamSeg / D;
+    var qTotalBase  = qr + qTraf;                     // conservador siempre fijo (solo para mostrar el total)
+    var qCalcBase   = (qr/Fa + qTraf/BfLL) * gamSeg / D;
 
     var gradoLRFD = null;
     var gradoBase = null;
@@ -6543,8 +6556,9 @@ function calcM9() {
     var colores = { '1':'#dcfce7','2':'#fef9c3','3':'#fed7aa','4':'#fee2e2' };
     var textC   = { '1':'#14532d','2':'#713f12','3':'#7c2d12','4':'#7f1d1d' };
     grados_tbl.forEach(function(gr) {
-      // q_max_relleno para este grado: M_g·Fa·D/γ_seg - qTraf
-      var qrMax = gr.M_g * Fa * D / gamSeg - qTraf;
+      // q_max_relleno para este grado (Marston/IMT, factores independientes):
+      // M_g ≥ (qrMax/Fa + qTraf/B_fLL)·γ_seg/D  →  qrMax = (M_g·D/γ_seg - qTraf/B_fLL)·Fa
+      var qrMax = (gr.M_g * D / gamSeg - qTraf / BfLL) * Fa;
       var bSug, nota;
       if(qrMax <= 0) {
         bSug = null; nota = '⚠️ Carga tráfico excede capacidad';
