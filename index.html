@@ -5808,8 +5808,24 @@ function m9ClasificarSimple(DN, reqLoadSimple) {
 }
 
 // ── m9ResolverAnchoBiseccion — cálculo PURO: resuelve por bisección el
-// ancho de zanja b tal que Cz·γ·hr·b ≤ qrMax (carga máxima de relleno
-// admisible para un Grado dado). Extraído de la tabla "b sugerido por grado".
+// ancho MÁXIMO de zanja b tal que Cz·γ·hr·b ≤ qrMax (carga máxima de
+// relleno admisible para un Grado dado). Extraído de la tabla "b sugerido
+// por grado".
+//
+// Cz·γ·hr·b es una función CRECIENTE de b (a mayor ancho de zanja, mayor
+// carga de relleno transmitida a la tubería, método Marston). Por lo tanto
+// buscamos el mayor b en [0.3, 10] que aún cumple q(b) ≤ qrMax: si q(bm) ≤
+// qrMax el límite puede estar más a la derecha (lo = bm), si q(bm) > qrMax
+// el límite está más a la izquierda (hi = bm).
+//
+// NOTA (corregido ago-2026): la versión original tenía las ramas de la
+// bisección invertidas (hi = bm cuando q ≤ qrMax, lo = bm en caso
+// contrario) — correcto para una función DECRECIENTE, pero q(b) aquí es
+// creciente. Eso hacía que, salvo en casos extremos, el resultado casi
+// siempre convergiera a `null` ("Imposible con b≤10m"), incluso cuando
+// existía un ancho b válido. El bug era preexistente a la extracción de
+// esta función (PR #3) — se copió la lógica original sin alterarla; se
+// corrige aquí en un PR dedicado tras confirmarlo con pruebas unitarias.
 function m9ResolverAnchoBiseccion(qrMax, lamu, hr, gamma) {
   if (qrMax <= 0) return null;
   var lo = 0.3, hi = 10, bFound = null;
@@ -5818,7 +5834,7 @@ function m9ResolverAnchoBiseccion(qrMax, lamu, hr, gamma) {
     var ex2 = -2 * lamu * hr / bm;
     var Cd2 = (1 - Math.exp(ex2)) / (2 * lamu * hr / bm);
     var q2  = Cd2 * gamma * hr * bm;
-    if (q2 <= qrMax) { bFound = bm; hi = bm; } else { lo = bm; }
+    if (q2 <= qrMax) { bFound = bm; lo = bm; } else { hi = bm; }
   }
   return bFound;
 }
