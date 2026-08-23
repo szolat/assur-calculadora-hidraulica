@@ -2987,6 +2987,7 @@ const STATE = {
   agua: null,
   sanitario: null,
   instalacion: null,
+  m9: null,
   m10: null
 };
 
@@ -5687,6 +5688,141 @@ var M9_PARED_B = {
   1070:114, 1220:127, 1370:140, 1520:152, 1830:178,
   2130:203, 2440:229, 2750:250, 3050:279
 };
+// =============================================================
+// MÓDULO 9 — Tablas normativas centralizadas (antes duplicadas/recreadas
+// en cada llamada a calcM9()). Refactor arquitectónico ago-2026: separar
+// datos estáticos y cálculo puro del renderizado de calcM9().
+// =============================================================
+var M9_GRADOS_402 = [
+  { g:'1', M_g:50,  M_r:75,  fc:27.6, astm:'Clase I/II'  },
+  { g:'2', M_g:65,  M_r:100, fc:27.6, astm:'Clase III'   },
+  { g:'3', M_g:100, M_r:150, fc:34.5, astm:'Clase IV'    },
+  { g:'4', M_g:140, M_r:175, fc:41.4, astm:'Clase V'     }
+];
+var M9_GRADO_CLASE_SCT = { '1':'Clase 1 SCT', '2':'Clase 2 SCT', '3':'Clase 3 SCT', '4':'Clase 4 SCT' };
+var M9_BF_CLASE_MAP = { 1.1: 'D', 1.5: 'C', 1.9: 'B', 2.3: 'A', 3.0: 'A+', 4.0: 'A+', 4.8: 'A★' };
+// Tabla 1, NMX-C-401-ONNCCE-2020 — tubo de concreto SIMPLE sin refuerzo (Dn 150–610mm)
+var M9_NMX401_TABLA = {
+  150: {espesor:27, gradoI:22.0, gradoII:29.0, gradoIII:35.0},
+  200: {espesor:29, gradoI:22.0, gradoII:29.0, gradoIII:35.0},
+  250: {espesor:33, gradoI:23.5, gradoII:29.0, gradoIII:35.0},
+  300: {espesor:47, gradoI:26.5, gradoII:33.0, gradoIII:38.0},
+  380: {espesor:53, gradoI:29.0, gradoII:38.0, gradoIII:42.0},
+  450: {espesor:61, gradoI:32.0, gradoII:44.0, gradoIII:48.0},
+  610: {espesor:75, gradoI:38.0, gradoII:52.5, gradoIII:64.0}
+};
+// Tablas ACPA (D-load Eq.4.24 — Standard Installations SIDD)
+var M9_PAXLE_MAP = { '48': 71.2, '96': 142.3, '120': 178.0 };
+var M9_BFE_TABLE = [
+  [12,  4.4, 3.2, 2.5, 1.7],
+  [24,  4.2, 3.0, 2.4, 1.7],
+  [36,  4.0, 2.9, 2.3, 1.7],
+  [72,  3.8, 2.8, 2.2, 1.7],
+  [144, 3.6, 2.8, 2.2, 1.7]
+];
+var M9_BFO_TABLE = {1: 2.3, 2: 1.9, 3: 1.7, 4: 1.5};
+var M9_VAF_TABLE = {1: 1.35, 2: 1.40, 3: 1.40, 4: 1.45};
+var M9_ASTM_CLASSES = [
+  {cls:'I',   D001:800,  Dult:1200},
+  {cls:'II',  D001:1000, Dult:1500},
+  {cls:'III', D001:1350, Dult:2000},
+  {cls:'IV',  D001:2000, Dult:3000},
+  {cls:'V',   D001:3000, Dult:3750}
+];
+var M9_BFLL_H    = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0];
+var M9_BFLL_DN   = [12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 144];
+var M9_BFLL_DATA = [
+  [2.2, 1.7, 1.4, 1.3, 1.3, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1],
+  [2.2, 2.2, 1.7, 1.5, 1.4, 1.3, 1.3, 1.3, 1.1, 1.1, 1.1],
+  [2.2, 2.2, 2.1, 1.8, 1.5, 1.4, 1.4, 1.3, 1.3, 1.3, 1.1],
+  [2.2, 2.2, 2.2, 2.0, 1.8, 1.5, 1.5, 1.4, 1.4, 1.3, 1.3],
+  [2.2, 2.2, 2.2, 2.2, 2.0, 1.8, 1.7, 1.5, 1.4, 1.4, 1.3],
+  [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 1.8, 1.7, 1.5, 1.5, 1.4],
+  [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 1.9, 1.8, 1.7, 1.5, 1.4],
+  [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.1, 1.9, 1.8, 1.7, 1.5],
+  [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8, 1.7],
+  [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8]
+];
+
+// ── m9CalcCargaRelleno — cálculo PURO (sin DOM) de la carga Marston de
+// relleno según el tipo de instalación. Extraído de calcM9() para permitir
+// pruebas/reuso independientes del renderizado.
+function m9CalcCargaRelleno(tipo, lamu, hr, b, gamma, Bc) {
+  var expo = -2 * lamu * hr / b;
+  var Cz   = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
+  var qr_zanja     = Cz * gamma * hr * b;
+  var qr_terraplen = gamma * hr * Bc;
+  var qr, proc = [];
+
+  if (tipo === 'zanja') {
+    qr = qr_zanja;
+    proc.push('Instalación en ZANJA:');
+    proc.push('  C_z = [1-e^(-2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ')] / (2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ') = <b>' + Cz.toFixed(3) + '</b>');
+    proc.push('  q_relleno = Cz · γ · hr · b = ' + Cz.toFixed(3) + ' × ' + gamma + ' × ' + hr + ' × ' + b.toFixed(2) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>  [SCT M-PRY-CAR-4-01-003-16]');
+  } else if (tipo === 'terraplen') {
+    qr = qr_terraplen;
+    proc.push('Instalación en TERRAPLÉN (Marston, B_c = diám. exterior):');
+    proc.push('  B_c = ' + Bc.toFixed(3) + ' m');
+    proc.push('  q_relleno = γ · hr · B_c = ' + gamma + ' × ' + hr + ' × ' + Bc.toFixed(3) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
+  } else if (tipo === 'zanja-inducida') {
+    var expo_ind = 2 * lamu * hr / Bc;
+    var Cc_ind   = (Math.exp(expo_ind) - 1) / expo_ind;
+    qr = Cc_ind * gamma * Bc * Bc;
+    proc.push('Instalación en ZANJA INDUCIDA (Marston — Imperfect Ditch):');
+    proc.push('  B_c = ' + Bc.toFixed(3) + ' m  |  expo = 2\u00b7\u03bb\u03bc\u0027\u00b7hr/B_c = ' + expo_ind.toFixed(3));
+    proc.push('  C_c = [e^('+expo_ind.toFixed(3)+')-1] / '+expo_ind.toFixed(3)+' = <b>' + Cc_ind.toFixed(3) + '</b>');
+    proc.push('  q_relleno = Cc · γ · B_c² = ' + Cc_ind.toFixed(3) + ' × ' + gamma + ' × ' + Bc.toFixed(3) + '² = <b>' + qr.toFixed(2) + ' kN/m</b>');
+    proc.push('  ⚠️ Zanja inducida genera mayor carga que terraplén (fricción descendente Marston)');
+  } else {
+    qr = Math.min(qr_zanja, qr_terraplen);
+    proc.push('Instalación en ZANJA TERRAPLENADA (B_c = diám. exterior):');
+    proc.push('  B_c = ' + Bc.toFixed(3) + ' m');
+    proc.push('  q_zanja (Cz·γ·hr·b) = ' + qr_zanja.toFixed(2) + ' kN/m');
+    proc.push('  q_terraplén = ' + qr_terraplen.toFixed(2) + ' kN/m  (γ·hr·B_c)');
+    proc.push('  q_relleno = min(zanja, terraplén) = <b>' + qr.toFixed(2) + ' kN/m</b> (criterio conservador ATHA)');
+  }
+  return { qr: qr, Cz: Cz, qr_zanja: qr_zanja, qr_terraplen: qr_terraplen, proc: proc };
+}
+
+// ── m9ClasificarReforzado — cálculo PURO: dado q_calc (N/m/mm), busca el
+// primer Grado NMX-C-402 (1-4) cuyo M_grieta cubre la carga requerida.
+function m9ClasificarReforzado(qCalc) {
+  for (var i = 0; i < M9_GRADOS_402.length; i++) {
+    if (M9_GRADOS_402[i].M_g >= qCalc) return M9_GRADOS_402[i];
+  }
+  return null; // Diseño Especial (fuera de catálogo)
+}
+
+// ── m9ClasificarSimple — cálculo PURO: dado DN y la carga requerida (kN/m,
+// SIN dividir entre diámetro), clasifica contra la Tabla 1 de NMX-C-401
+// (tubo de concreto simple sin refuerzo, Dn 150–610mm).
+function m9ClasificarSimple(DN, reqLoadSimple) {
+  var t401 = M9_NMX401_TABLA[DN];
+  if (!t401) return null;
+  var gradoReqLabel, capacidadElegida, cumple;
+  if (reqLoadSimple <= t401.gradoI)        { gradoReqLabel = 'Grado I';   capacidadElegida = t401.gradoI;   cumple = true; }
+  else if (reqLoadSimple <= t401.gradoII)  { gradoReqLabel = 'Grado II';  capacidadElegida = t401.gradoII;  cumple = true; }
+  else if (reqLoadSimple <= t401.gradoIII) { gradoReqLabel = 'Grado III'; capacidadElegida = t401.gradoIII; cumple = true; }
+  else { gradoReqLabel = 'Excede Grado III'; capacidadElegida = t401.gradoIII; cumple = false; }
+  return { t401: t401, gradoReqLabel: gradoReqLabel, capacidadElegida: capacidadElegida, cumple: cumple };
+}
+
+// ── m9ResolverAnchoBiseccion — cálculo PURO: resuelve por bisección el
+// ancho de zanja b tal que Cz·γ·hr·b ≤ qrMax (carga máxima de relleno
+// admisible para un Grado dado). Extraído de la tabla "b sugerido por grado".
+function m9ResolverAnchoBiseccion(qrMax, lamu, hr, gamma) {
+  if (qrMax <= 0) return null;
+  var lo = 0.3, hi = 10, bFound = null;
+  for (var it = 0; it < 60; it++) {
+    var bm  = (lo + hi) / 2;
+    var ex2 = -2 * lamu * hr / bm;
+    var Cd2 = (1 - Math.exp(ex2)) / (2 * lamu * hr / bm);
+    var q2  = Cd2 * gamma * hr * bm;
+    if (q2 <= qrMax) { bFound = bm; hi = bm; } else { lo = bm; }
+  }
+  return bFound;
+}
+
 function m9ParedB() {
   var dnEl = document.getElementById('m9-dn');
   var eEl  = document.getElementById('m9-espesor');
@@ -6349,18 +6485,14 @@ function calcM9() {
   var lrfdApply   = qTraf > 0 && esVehicular;  // siempre calcular si aplica
 
   // P_axle correspondiente (AASHTO HL-93)
-  var PAXLE_MAP = { '48': 71.2, '96': 142.3, '120': 178.0 };
-  var Paxle_lrfd = PAXLE_MAP[traficoTipo] ||
+  var Paxle_lrfd = M9_PAXLE_MAP[traficoTipo] ||
                    (qTraf <= 60 ? 71.2 : qTraf <= 108 ? 142.3 : 178.0);
 
   // Actualizar badge/hint del toggle según H
   m9UpdateLRFDBadge(hr, qTraf, traficoTipo);
 
   // Clase encamado SCT según Bf
-  var BF_CLASE_MAP = {
-    1.1: 'D', 1.5: 'C', 1.9: 'B', 2.3: 'A', 3.0: 'A+', 4.0: 'A+', 4.8: 'A★'
-  };
-  var claseSCT_enc = BF_CLASE_MAP[Fa] || 'A';
+  var claseSCT_enc = M9_BF_CLASE_MAP[Fa] || 'A';
 
   if(isNaN(hr)||hr<=0||isNaN(DN)||DN<=0) return;
 
@@ -6373,9 +6505,9 @@ function calcM9() {
   //   Ref: N·CMT·3·02/04 SICT/IMT; Marston 1930
   // Espesor de pared: prioridad campo visual m9-espesor (sincronizado por m9ParedB al cambiar DN)
   // Fallback al mapa NMX-C-402 si el campo no tiene valor válido
-  var M9_PARED_B_MAP = {300:51,380:57,450:63,610:76,760:89,910:101,1070:114,1220:127,1370:140,1520:152,1830:178,2130:203,2440:229,2750:250,3050:279};
+  // M9_PARED_B ya está declarada como constante global (usada también por m9ParedB())
   var _eField = parseFloat(document.getElementById('m9-espesor').value);
-  var e_pared = (!isNaN(_eField) && _eField > 0) ? Math.round(_eField) : (M9_PARED_B_MAP[DN] || Math.round(DN * 0.095));
+  var e_pared = (!isNaN(_eField) && _eField > 0) ? Math.round(_eField) : (M9_PARED_B[DN] || Math.round(DN * 0.095));
   var Bc = (DN + 2 * e_pared) / 1000;   // diámetro exterior en metros
 
   // ── Calcular q_L LRFD (siempre que aplique — para panel comparativo) ────
@@ -6384,47 +6516,15 @@ function calcM9() {
     if(useLRFD) lrfdData = lrfdDataBase;  // usar en cálculo solo si toggle ON
   }
 
-  // ── 1. Coeficiente de Marston Cz (zanja) ──────────────────────────
-  //   C_z = [1 - e^(-2λμ'·hr/b)] / (2λμ'·hr/b)
-  var expo   = -2 * lamu * hr / b;
-  var Cz     = (1 - Math.exp(expo)) / (2 * lamu * hr / b);
-
-  // ── 2. Carga debida al relleno según tipo ─────────────────────────
-  var qr_zanja     = Cz * gamma * hr * b;     // kN/m — Marston zanja: Wc = Cd·γ·hr·b  (SCT M-PRY-CAR-4-01-003-16 pg5)
-  var qr_terraplen = gamma * hr * Bc;         // kN/m — Marston terraplén (usa B_c exterior, no D nominal)
-  var qr;
-  if(tipo === 'zanja') {
-    qr = qr_zanja;
-    proc.push('Instalación en ZANJA:');
-    proc.push('  C_z = [1-e^(-2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ')] / (2·' + lamu + '·' + hr + '/' + b.toFixed(2) + ') = <b>' + Cz.toFixed(3) + '</b>');
-    proc.push('  q_relleno = Cz · γ · hr · b = ' + Cz.toFixed(3) + ' × ' + gamma + ' × ' + hr + ' × ' + b.toFixed(2) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>  [SCT M-PRY-CAR-4-01-003-16]');
-  } else if(tipo === 'terraplen') {
-    qr = qr_terraplen;
-    proc.push('Instalación en TERRAPLÉN (Marston, B_c = diám. exterior):');
-    proc.push('  B_c = DN + 2×e = ' + DN + ' + 2×' + e_pared + ' = ' + (DN+2*e_pared) + ' mm = ' + Bc.toFixed(3) + ' m');
-    proc.push('  q_relleno = γ · hr · B_c = ' + gamma + ' × ' + hr + ' × ' + Bc.toFixed(3) + ' = <b>' + qr.toFixed(2) + ' kN/m</b>');
-  } else if(tipo === 'zanja-inducida') {
-    // Zanja inducida (Imperfect Ditch / Proyección Negativa — Marston 1930)
-    // We = Cc · γ · Bc²  donde Cc = [e^(+2λμ'·hr/Bc) - 1] / (2λμ'·hr/Bc)
-    // El suelo proyectado sobre el tubo transfiere fricción DESCENDENTE → carga mayor que terraplén
-    var expo_ind = 2 * lamu * hr / Bc;
-    var Cc_ind   = (Math.exp(expo_ind) - 1) / expo_ind;
-    var qr_inducida = Cc_ind * gamma * Bc * Bc;
-    qr = qr_inducida;
-    proc.push('Instalación en ZANJA INDUCIDA (Marston — Imperfect Ditch):');
-    proc.push('  B_c = ' + Bc.toFixed(3) + ' m  |  expo = 2\u00b7\u03bb\u03bc\u0027\u00b7hr/B_c = ' + expo_ind.toFixed(3));
-    proc.push('  C_c = [e^('+expo_ind.toFixed(3)+')-1] / '+expo_ind.toFixed(3)+' = <b>' + Cc_ind.toFixed(3) + '</b>');
-    proc.push('  q_relleno = Cc · γ · B_c² = ' + Cc_ind.toFixed(3) + ' × ' + gamma + ' × ' + Bc.toFixed(3) + '² = <b>' + qr.toFixed(2) + ' kN/m</b>');
-    proc.push('  ⚠️ Zanja inducida genera mayor carga que terraplén (fricción descendente Marston)');
-  } else {
-    // Zanja terraplenada: tomar el menor entre zanja y terraplén (ATHA conservador)
-    qr = Math.min(qr_zanja, qr_terraplen);
-    proc.push('Instalación en ZANJA TERRAPLENADA (B_c = diám. exterior):');
-    proc.push('  B_c = ' + Bc.toFixed(3) + ' m  |  e_pared = ' + e_pared + ' mm');
-    proc.push('  q_zanja (Cz·γ·hr·b) = ' + qr_zanja.toFixed(2) + ' kN/m');
-    proc.push('  q_terraplén = ' + qr_terraplen.toFixed(2) + ' kN/m  (γ·hr·B_c)');
-    proc.push('  q_relleno = min(zanja, terraplén) = <b>' + qr.toFixed(2) + ' kN/m</b> (criterio conservador ATHA)');
-  }
+  // ── 1-2. Coeficiente de Marston Cz y carga de relleno según tipo ──
+  //   Cálculo puro extraído a m9CalcCargaRelleno() (refactor ago-2026,
+  //   ver PR "Separar cálculo puro de renderizado en Módulo 9")
+  var cargaRelleno = m9CalcCargaRelleno(tipo, lamu, hr, b, gamma, Bc);
+  var qr           = cargaRelleno.qr;
+  var Cz           = cargaRelleno.Cz;
+  var qr_zanja     = cargaRelleno.qr_zanja;
+  var qr_terraplen = cargaRelleno.qr_terraplen;
+  proc = proc.concat(cargaRelleno.proc);
 
   // ── 3. Carga total ─────────────────────────────────────────────────
   // Carga viva efectiva: LRFD atenuada (si toggle) o fija (conservador)
@@ -6458,37 +6558,25 @@ function calcM9() {
   //   Clasifica por CARGA única de ruptura (kN/m), sin criterio de primera grieta y sin dividir
   //   entre diámetro (no es un sistema D-load). Reutiliza las mismas cargas Marston (qr, qTrafEfectiva)
   //   y factores de encamado (Fa, BfLL) ya calculados arriba para el tubo reforzado.
-  var M9_NMX401_TABLA = {
-    150: {espesor:27, gradoI:22.0, gradoII:29.0, gradoIII:35.0},
-    200: {espesor:29, gradoI:22.0, gradoII:29.0, gradoIII:35.0},
-    250: {espesor:33, gradoI:23.5, gradoII:29.0, gradoIII:35.0},
-    300: {espesor:47, gradoI:26.5, gradoII:33.0, gradoIII:38.0},
-    380: {espesor:53, gradoI:29.0, gradoII:38.0, gradoIII:42.0},
-    450: {espesor:61, gradoI:32.0, gradoII:44.0, gradoIII:48.0},
-    610: {espesor:75, gradoI:38.0, gradoII:52.5, gradoIII:64.0}
-  };
   var tipoTuboEl = document.getElementById('m9-tipo-tubo');
+  var m9SimpleResult = null; // se guarda en STATE.m9 más abajo, para el Reporte Global
   if (tipoTuboEl && tipoTuboEl.value === 'simple') {
     var reqLoadSimple = (qr/Fa + qTrafEfectiva/BfLL) * gamSeg; // kN/m — carga requerida, SIN dividir entre D
-    var t401 = M9_NMX401_TABLA[DN];
+    m9SimpleResult = m9ClasificarSimple(DN, reqLoadSimple);
     var elQreq = document.getElementById('m9s-res-qreq');
     if (elQreq) elQreq.textContent = reqLoadSimple.toFixed(2) + ' kN/m';
-    if (t401) {
+    if (m9SimpleResult) {
+      var t401 = m9SimpleResult.t401;
       document.getElementById('m9s-res-grado1').textContent = t401.gradoI.toFixed(1) + ' kN/m';
       document.getElementById('m9s-res-grado2').textContent = t401.gradoII.toFixed(1) + ' kN/m';
       document.getElementById('m9s-res-grado3').textContent = t401.gradoIII.toFixed(1) + ' kN/m';
       document.getElementById('m9s-res-espesor').textContent = t401.espesor;
-      var gradoReqLabel, capacidadElegida, cumple;
-      if (reqLoadSimple <= t401.gradoI)      { gradoReqLabel = 'Grado I';   capacidadElegida = t401.gradoI;   cumple = true; }
-      else if (reqLoadSimple <= t401.gradoII) { gradoReqLabel = 'Grado II';  capacidadElegida = t401.gradoII;  cumple = true; }
-      else if (reqLoadSimple <= t401.gradoIII){ gradoReqLabel = 'Grado III'; capacidadElegida = t401.gradoIII; cumple = true; }
-      else { gradoReqLabel = 'Excede Grado III'; capacidadElegida = t401.gradoIII; cumple = false; }
-      document.getElementById('m9s-res-grado').textContent = gradoReqLabel;
+      document.getElementById('m9s-res-grado').textContent = m9SimpleResult.gradoReqLabel;
       var semaforoS = document.getElementById('m9s-semaforo');
       if (semaforoS) {
-        if (cumple) {
+        if (m9SimpleResult.cumple) {
           semaforoS.style.background = 'rgba(134,239,172,.25)';
-          semaforoS.innerHTML = '✅ ' + gradoReqLabel + ' cumple — capacidad ' + capacidadElegida.toFixed(1) + ' kN/m ≥ carga requerida ' + reqLoadSimple.toFixed(2) + ' kN/m';
+          semaforoS.innerHTML = '✅ ' + m9SimpleResult.gradoReqLabel + ' cumple — capacidad ' + m9SimpleResult.capacidadElegida.toFixed(1) + ' kN/m ≥ carga requerida ' + reqLoadSimple.toFixed(2) + ' kN/m';
         } else {
           semaforoS.style.background = 'rgba(252,165,165,.3)';
           semaforoS.innerHTML = '⚠️ La carga requerida (' + reqLoadSimple.toFixed(2) + ' kN/m) excede la capacidad máxima de NMX-C-401 (Grado III = ' + t401.gradoIII.toFixed(1) + ' kN/m). Se requiere tubo REFORZADO (NMX-C-402) para este diámetro y condición.';
@@ -6501,18 +6589,9 @@ function calcM9() {
     proc.push('              = <b>' + reqLoadSimple.toFixed(2) + ' kN/m</b>  ← comparar contra Tabla 1, NMX-C-401-ONNCCE-2020 (DN=' + DN + 'mm)');
   }
 
-  // ── 5. Selección de Grado NMX-C-402 ──────────────────────────────
-  var grados = [
-    { g:'1', M_g:50,  M_r:75,  fc:27.6, astm:'Clase I/II'  },
-    { g:'2', M_g:65,  M_r:100, fc:27.6, astm:'Clase III'   },
-    { g:'3', M_g:100, M_r:150, fc:34.5, astm:'Clase IV'    },
-    { g:'4', M_g:140, M_r:175, fc:41.4, astm:'Clase V'     }
-  ];
-
-  var gradoSel = null;
-  for(var i = 0; i < grados.length; i++) {
-    if(grados[i].M_g >= qCalc) { gradoSel = grados[i]; break; }
-  }
+  // ── 5. Selección de Grado NMX-C-402 (cálculo puro: m9ClasificarReforzado) ──
+  var grados = M9_GRADOS_402;
+  var gradoSel = m9ClasificarReforzado(qCalc);
 
   proc.push('');
   if(gradoSel) {
@@ -6529,7 +6608,7 @@ function calcM9() {
   setEl('m9-res-qcalc',  qCalc.toFixed(2) + ' N/m/mm');
 
   // Equivalencia Clase SCT ↔ Grado NMX
-  var GRADO_CLASE_SCT = { '1':'Clase 1 SCT', '2':'Clase 2 SCT', '3':'Clase 3 SCT', '4':'Clase 4 SCT' };
+  var GRADO_CLASE_SCT = M9_GRADO_CLASE_SCT;
 
   var sem = document.getElementById('m9-semaforo');
   var gradoEl = document.getElementById('m9-res-grado');
@@ -6582,7 +6661,20 @@ function calcM9() {
     fc: gradoSel ? gradoSel.fc : null,
     disenioEspecial: !gradoSel,
     claseSCTEncamado: claseSCT_enc,
-    useLRFD: useLRFD
+    useLRFD: useLRFD,
+    // Tipo de tubería activo (reforzado NMX-402 / simple NMX-401) y su resultado —
+    // agregado en el refactor de ago-2026 para que el Reporte Global también
+    // pueda reflejar el resultado de tubo simple sin refuerzo (antes solo se
+    // mostraba en pantalla, sin conectarse al PDF/reporte).
+    tipoTubo: (tipoTuboEl ? tipoTuboEl.value : 'reforzado'),
+    tuboSimple: m9SimpleResult ? {
+      DN: DN,
+      cargaRequerida: reqLoadSimple,
+      grado: m9SimpleResult.gradoReqLabel,
+      cumple: m9SimpleResult.cumple,
+      capacidad: m9SimpleResult.capacidadElegida,
+      espesorRecomendado: m9SimpleResult.t401.espesor
+    } : null
   };
 
   // ── Renderizar panel LRFD (comparativa conservador vs LRFD) ─────
@@ -6693,16 +6785,8 @@ function calcM9() {
       if(qrMax <= 0) {
         bSug = null; nota = '⚠️ Carga tráfico excede capacidad';
       } else if(tipo === 'zanja' || tipo === 'zanja-inducida' || tipo === 'zanja-terraplenada') {
-        // Resolver Cz·γ·hr·b = qrMax → iterar b por bisección (Cz depende de b)
-        // Fórmula SCT M-PRY-CAR-4-01-003-16: q_zanja = Cz·γ·hr·b
-        var lo = 0.3, hi = 10, bFound = null;
-        for(var it = 0; it < 60; it++) {
-          var bm = (lo+hi)/2;
-          var ex2 = -2*lamu*hr/bm;
-          var Cd2 = (1-Math.exp(ex2))/(2*lamu*hr/bm);
-          var q2  = Cd2*gamma*hr*bm;   // Cz·γ·hr·b (no b²)
-          if(q2 <= qrMax) { bFound = bm; hi = bm; } else { lo = bm; }
-        }
+        // Resolver Cz·γ·hr·b = qrMax por bisección — extraído a m9ResolverAnchoBiseccion()
+        var bFound = m9ResolverAnchoBiseccion(qrMax, lamu, hr, gamma);
         if(bFound) {
           bSug = bFound;
           nota = bFound < Bc+0.40 ? ' ⚠️ menor que b_mín' : '';
@@ -6896,41 +6980,15 @@ function calcM9() {
   var acpaPanel  = document.getElementById('m9-acpa-result');
   var acpaBadge  = document.getElementById('m9-acpa-badge');
 
-  // — Tablas ACPA Ill. 4.22 (Bfe embankment) — interpolación lineal por DN [pulgadas]
-  var BFE_TABLE = [
-    [12,  4.4, 3.2, 2.5, 1.7],
-    [24,  4.2, 3.0, 2.4, 1.7],
-    [36,  4.0, 2.9, 2.3, 1.7],
-    [72,  3.8, 2.8, 2.2, 1.7],
-    [144, 3.6, 2.8, 2.2, 1.7]
-  ];
-  // Trench minimum Bfo (Ill. 4.23) — constante para todos los DN
-  var BFO_TABLE = {1: 2.3, 2: 1.9, 3: 1.7, 4: 1.5};
-  // VAF por tipo (Ill. 4.6)
-  var VAF_TABLE = {1: 1.35, 2: 1.40, 3: 1.40, 4: 1.45};
-  // Clase ASTM C76M-22A por D-load (D0.01 crack lb/ft/ft)
-  var ASTM_CLASSES = [
-    {cls:'I',   D001:800,  Dult:1200},
-    {cls:'II',  D001:1000, Dult:1500},
-    {cls:'III', D001:1350, Dult:2000},
-    {cls:'IV',  D001:2000, Dult:3000},
-    {cls:'V',   D001:3000, Dult:3750}
-  ];
-  // BfLL tabla Ill. 4.25 [filas=H_ft][cols=DN_in]
-  var BFLL_H    = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0];
-  var BFLL_DN   = [12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 144];
-  var BFLL_DATA = [
-    [2.2, 1.7, 1.4, 1.3, 1.3, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1],
-    [2.2, 2.2, 1.7, 1.5, 1.4, 1.3, 1.3, 1.3, 1.1, 1.1, 1.1],
-    [2.2, 2.2, 2.1, 1.8, 1.5, 1.4, 1.4, 1.3, 1.3, 1.3, 1.1],
-    [2.2, 2.2, 2.2, 2.0, 1.8, 1.5, 1.5, 1.4, 1.4, 1.3, 1.3],
-    [2.2, 2.2, 2.2, 2.2, 2.0, 1.8, 1.7, 1.5, 1.4, 1.4, 1.3],
-    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 1.8, 1.7, 1.5, 1.5, 1.4],
-    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 1.9, 1.8, 1.7, 1.5, 1.4],
-    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.1, 1.9, 1.8, 1.7, 1.5],
-    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8, 1.7],
-    [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8]
-  ];
+  // Tablas ACPA (D-load Eq.4.24) — centralizadas arriba como M9_BFE_TABLE,
+  // M9_BFO_TABLE, M9_VAF_TABLE, M9_ASTM_CLASSES, M9_BFLL_H/DN/DATA
+  var BFE_TABLE   = M9_BFE_TABLE;
+  var BFO_TABLE   = M9_BFO_TABLE;
+  var VAF_TABLE   = M9_VAF_TABLE;
+  var ASTM_CLASSES = M9_ASTM_CLASSES;
+  var BFLL_H      = M9_BFLL_H;
+  var BFLL_DN     = M9_BFLL_DN;
+  var BFLL_DATA   = M9_BFLL_DATA;
 
   if(acpaTipo !== 'none') {
     var acpaT = parseInt(acpaTipo, 10);
