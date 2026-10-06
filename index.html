@@ -1574,6 +1574,30 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <input type="number" id="m9-b" value="1.2" min="0.4" max="8" step="0.05" oninput="calcM9()" style="flex:1;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
               <button onclick="m9SuggestB()" title="Sugerir ancho mínimo" style="padding:0 10px;border:1.5px solid var(--line);border-radius:6px;font-size:.75rem;background:#f1f5f9;color:#334155;cursor:pointer;white-space:nowrap">📐 Sugerir b</button>
             </div>
+            <div id="m9-b-sct-hint" style="font-size:.68rem;color:#64748b;margin-top:3px"></div>
+          </div>
+
+          <!-- ══ Suelo de desplante — SUCS M·MMP·1·02/03 + capa de cimentación SICT ══ -->
+          <div style="margin-bottom:10px">
+            <label>Suelo de desplante (fondo de excavación) <span style="font-size:.68rem;color:#64748b;font-weight:400">(SUCS · M·MMP·1·02/03 SICT)</span></label>
+            <select id="m9-suelo-fondo" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="GW">GW — Grava bien graduada (Cu&gt;4, Cc 1–3, &lt;5% finos)</option>
+              <option value="GP">GP — Grava mal graduada (&lt;5% finos)</option>
+              <option value="GM">GM — Grava limosa (&gt;12% finos, fracción fina ML/MH)</option>
+              <option value="GC">GC — Grava arcillosa (&gt;12% finos, fracción fina CL/CH)</option>
+              <option value="SW">SW — Arena bien graduada (Cu&gt;6, Cc 1–3)</option>
+              <option value="SP">SP — Arena mal graduada</option>
+              <option value="SM">SM — Arena limosa</option>
+              <option value="SC" selected>SC — Arena arcillosa</option>
+              <option value="ML">ML — Limo de baja compresibilidad (zona I)</option>
+              <option value="CL">CL — Arcilla de baja compresibilidad (zona II)</option>
+              <option value="OL">OL — Limo orgánico de baja compresibilidad</option>
+              <option value="MH">MH — Limo de ALTA compresibilidad (ωL&gt;50%, zona III)</option>
+              <option value="CH">CH — Arcilla de ALTA compresibilidad (ωL&gt;50%, zona IV)</option>
+              <option value="OH">OH — Limo orgánico de ALTA compresibilidad</option>
+              <option value="Pt">Pt — Turba (suelo altamente orgánico)</option>
+            </select>
+            <div id="m9-suelo-info" style="font-size:.68rem;line-height:1.5;margin-top:4px;padding:5px 8px;border-radius:5px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569"></div>
           </div>
 
           <div style="margin-bottom:10px">
@@ -1647,10 +1671,14 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <option value="48">🚗 H-10 — vialidad ligera / autos (AASHTO H-10 · 98 kN/eje)</option>
               <option value="96" selected>🚛 H-20 — carretera estándar / camiones (AASHTO H-20 · 178 kN/eje)</option>
               <option value="120">🛣️ H-25 — carretera pesada / tráiler (AASHTO H-25 · 222 kN/eje)</option>
+              <option value="imt665">🇲🇽 IMT 66.5 — carretera ET/A/B (SICT N·PRY·CAR·6·01·003 · tridem 3×123 kN)</option>
+              <option value="imt665c">🇲🇽 IMT 66.5 Tipo C — factor 0,9 (SICT N·PRY·CAR·6·01·003 · tridem 3×110,7 kN)</option>
+              <option value="imt205">🇲🇽 IMT 20.5 — carretera tipo D / rural (SICT N·PRY·CAR·6·01·003 · tándem 2×88 kN)</option>
               <option value="50">✈️ Aeropuerto FAA — DC-9/B737 (900 kN · FAA AC 150)</option>
               <option value="80">🚂 Ferroviario Cooper E-80 (AREMA · 356 kN/eje)</option>
               <option value="custom">✏️ Personalizada</option>
             </select>
+            <div id="m9-imt-info" style="display:none;font-size:.68rem;line-height:1.5;margin-top:5px;padding:6px 9px;background:#ecfdf5;border-left:3px solid #059669;border-radius:0 5px 5px 0;color:#065f46"></div>
           </div>
 
           <div style="margin-bottom:10px">
@@ -1740,6 +1768,13 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <b>FS=1.5</b> eleva el D-load calculado +50% → clase más conservadora.<br>
               <b>FS=1.0</b> cumple ACPA Eq.4.24 estricto (D₀.₀₁); usar en proyectos AASHTO o exportación.
             </div>
+          </div>
+
+          <!-- ══ Verificación contractual de f'c del tubo — N·CMT·3·02/04 ══ -->
+          <div style="margin-top:12px">
+            <label style="font-weight:700">f'c máximo especificado en proyecto (kg/cm²) <span style="font-size:.68rem;color:#64748b;font-weight:400">(N·CMT·3·02/04 — calidad del tubo contratado)</span></label>
+            <input type="number" id="m9-fc-max" value="0" min="0" max="600" step="10" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+            <div style="font-size:.68rem;color:#64748b;margin-top:3px">Deja <b>0</b> para no verificar. Si el Grado NMX resultante exige un f'c mayor al especificado, el módulo lo marca como <b>no conforme</b> (requiere concepto extraordinario). Ejemplo: especificaciones particulares SICT que contratan tubo de f'c 280–350 kg/cm².</div>
           </div>
 
 
@@ -2468,6 +2503,15 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     </div>
 
     <!-- Advertencia automática DN<600mm + carga vehicular -->
+    <!-- ══ VERIFICACIÓN DE CUMPLIMIENTO NORMATIVO SICT ══ -->
+    <div id="m9-sict-check-wrap" style="margin-top:16px;background:#fff;border:1.5px solid #93c5fd;border-radius:8px;padding:12px 14px">
+      <div style="font-weight:800;font-size:.86rem;color:#1d4ed8;margin-bottom:9px">✅ Verificación de cumplimiento normativo SICT</div>
+      <div id="m9-sict-check-list" style="font-size:.76rem;line-height:1.55"></div>
+      <div style="font-size:.65rem;color:#64748b;margin-top:9px;padding-top:7px;border-top:1px solid #e2e8f0;line-height:1.5">
+        <b>Normas verificadas:</b> N·CTR·CAR·1·03·002/20 (alcantarillas de tubos de concreto) · N·CTR·CAR·1·01·007/11 (excavación para estructuras) · N·CTR·CAR·1·01·011/20 (rellenos) · N·CMT·4·02·001 (materiales para subbases) · N·CMT·1·03 (materiales para subrasante) · N·CMT·3·02/04 (calidad de tubos de concreto) · N·PRY·CAR·6·01·003 (cargas y acciones) · M·MMP·1·02/03 (clasificación de fragmentos de roca y suelos).
+      </div>
+    </div>
+
     <div id="m9-warn-dn" style="display:none;margin-top:12px;background:#fef9c3;border:1.5px solid #eab308;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#713f12;line-height:1.5"></div>
     <div id="m9-warn-b" style="display:none;margin-top:8px;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#78350f;line-height:1.5"></div>
     <div id="m9-bmin-info" style="margin-top:8px;font-size:.76rem;color:#475569;padding:6px 10px;background:#f1f5f9;border-radius:6px;display:none"></div>
@@ -5744,6 +5788,124 @@ var M9_BFLL_DATA = [
   [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8]
 ];
 
+// ══════════════════════════════════════════════════════════════
+// MÓDULO 9 — INTEGRACIÓN NORMATIVA SICT (ago-2026)
+// Normas incorporadas en este bloque:
+//   N·PRY·CAR·6·01·003  Cargas y Acciones (modelos IMT 66.5 / IMT 20.5)
+//   M·MMP·1·02/03       Clasificación de Fragmentos de Roca y Suelos (SUCS)
+//   N·CTR·CAR·1·03·002/20 Alcantarillas de Tubos de Concreto (G.2.2, G.3, G.4.3, G.5, G.6)
+//   N·CTR·CAR·1·01·011/20 Rellenos (G.2.3, G.2.4, G.2.5)
+//   N·CMT·4·02·001       Materiales para Subbases (plantilla de apoyo)
+//   N·CMT·1·03          Materiales para Subrasante (capa de cimentación)
+//   N·CMT·3·02/04       Calidad de Tubos de Concreto (f'c contratado)
+//   N·CTR·CAR·1·01·007/11 Excavación para Estructuras
+// ══════════════════════════════════════════════════════════════
+
+// ── Modelos de carga viva vehicular SICT — N·PRY·CAR·6·01·003, "Cargas y Acciones"
+// Son modelos VIRTUALES de análisis estructural; no representan un vehículo real.
+// Para claros MENORES de 30 m (caso de toda alcantarilla) la Norma divide los grupos:
+//   IMT 66.5: w=0 · P2 → 2 × 118 kN (12 t) @ 1,2 m · P3 → 3 × 123 kN (12,5 t) @ 1,2 m
+//   IMT 20.5: P5 → 2 × 88 kN (9 t) @ 1,2 m
+// El grupo P3 (tridem 3 × 123 kN) es el más desfavorable para tubería enterrada.
+// Carreteras tipo C: las cargas del IMT 66.5 se multiplican por 0,9 → 123 × 0,9 = 110,7 kN.
+var M9_IMT_MODELOS = {
+  'imt665':  { label:'IMT 66.5',          Peje:123.0, n:3, sep:1.2, carr:'ET, A y B',            grupo:'P3 = 3 × 123 kN (12,5 t) @ 1,2 m' },
+  'imt665c': { label:'IMT 66.5 (Tipo C)', Peje:110.7, n:3, sep:1.2, carr:'C (factor 0,9)',       grupo:'P3 × 0,9 = 3 × 110,7 kN @ 1,2 m' },
+  'imt205':  { label:'IMT 20.5',          Peje: 88.0, n:2, sep:1.2, carr:'D y caminos rurales',  grupo:'P5 = 2 × 88 kN (9 t) @ 1,2 m' }
+};
+// Cobertura de referencia del valor "conservador" de los presets IMT: el colchón
+// MÍNIMO normativo de 1 m (N·CTR·CAR·1·03·002/20 G.5.2). A esa profundidad q_L es
+// máxima, así que funciona como envolvente fija equivalente a los presets
+// H-10/H-20/H-25 (que también son envolventes de poca cobertura). El valor NO
+// está tabulado en la Norma: se calcula con las cargas reales de N·PRY·CAR·6·01·003.
+var M9_IMT_H_REF = 1.0;
+
+// ── Grupos SUCS — M·MMP·1·02/03 "Clasificación de Fragmentos de Roca y Suelos"
+// altaComp: suelo fino de ALTA compresibilidad (ωL > 50 %) → CH, MH, OH
+// org:      suelo orgánico → OL, OH, Pt
+var M9_SUCS = {
+  'GW':{n:'Grava bien graduada',                    altaComp:false, org:false, apto:'excelente'},
+  'GP':{n:'Grava mal graduada',                     altaComp:false, org:false, apto:'bueno'},
+  'GM':{n:'Grava limosa',                           altaComp:false, org:false, apto:'bueno'},
+  'GC':{n:'Grava arcillosa',                        altaComp:false, org:false, apto:'bueno'},
+  'SW':{n:'Arena bien graduada',                    altaComp:false, org:false, apto:'excelente'},
+  'SP':{n:'Arena mal graduada',                     altaComp:false, org:false, apto:'bueno'},
+  'SM':{n:'Arena limosa',                           altaComp:false, org:false, apto:'bueno'},
+  'SC':{n:'Arena arcillosa',                        altaComp:false, org:false, apto:'bueno'},
+  'ML':{n:'Limo de baja compresibilidad',           altaComp:false, org:false, apto:'regular'},
+  'CL':{n:'Arcilla de baja compresibilidad',        altaComp:false, org:false, apto:'regular'},
+  'OL':{n:'Limo orgánico de baja compresibilidad',  altaComp:false, org:true,  apto:'deficiente'},
+  'MH':{n:'Limo de alta compresibilidad',           altaComp:true,  org:false, apto:'deficiente'},
+  'CH':{n:'Arcilla de alta compresibilidad',        altaComp:true,  org:false, apto:'deficiente'},
+  'OH':{n:'Limo orgánico de alta compresibilidad',  altaComp:true,  org:true,  apto:'deficiente'},
+  'Pt':{n:'Turba (altamente orgánico)',             altaComp:true,  org:true,  apto:'no apto'}
+};
+
+// ── Requisitos numéricos SICT usados por m9VerificarSICT() ─────────────────
+var M9_SICT = {
+  holguraLado:   0.50,  // N·CTR·CAR·1·03·002/20 G.2.2 — 50 cm a cada lado de la alcantarilla
+  colchonMin:    1.00,  // G.5.2 — colchón mínimo de 1 m sobre el tubo
+  baseTerraplen: 3.0,   // G.5.2 — base superior del terraplén de protección = 3 × diámetro
+  chaflan:       0.20,  // G.4.3 — sección triangular 20 × 20 cm, mortero cemento-arena 1:3
+  sueloCemEsp:   0.40,  // G.6 — espesor de la protección de suelo-cemento
+  capaLateral:   0.15,  // G.5.1 — relleno lateral en capas de 15 cm
+  capaCiment:    0.20,  // Capa de cimentación en suelo CH/MH (20 cm, material subrasante)
+  relleCompact:  90,    // N·CTR·CAR·1·01·011/20 G.2.4 — 90 % mín. AASHTO estándar
+  tolExcav:      0.10   // N·CTR·CAR·1·01·007/11 — tolerancia ±10 cm en paredes-molde
+};
+
+// ── m9CalcLRFD_IMT — carga viva de los modelos SICT IMT 66.5 / IMT 20.5 sobre
+// tubería enterrada.
+//
+// N·PRY·CAR·6·01·003 define las MAGNITUDES y SEPARACIONES de los grupos de ejes,
+// pero no un método propio de distribución de la carga con la profundidad para
+// tubería enterrada. Por eso se conserva el procedimiento AASHTO LRFD 3.6.1.2.6 /
+// 12.10.4.3 ya implementado en calcLRFD_qL() y solo se sustituyen las cargas por
+// las del vehículo de proyecto mexicano. Esto queda explícito en el proceso de
+// cálculo para que el resultado sea auditable.
+//
+// Se evalúan DOS condiciones y se toma la MÁS DESFAVORABLE:
+//   (a) EJE AISLADO   — P_eje       , E_l = 0,61 + H·tan40°
+//   (b) GRUPO DE EJES — n · P_eje   , E_l = 0,61 + sep·(n−1) + H·tan40°
+// A poca cobertura gobierna (a); al crecer H las huellas se traslapan y gobierna (b).
+function m9CalcLRFD_IMT(H_m, DN_mm, ePared_mm, modeloKey) {
+  var m = M9_IMT_MODELOS[modeloKey];
+  if(!m) return null;
+  var eje  = calcLRFD_qL(H_m, DN_mm, ePared_mm, m.Peje);   // condición (a)
+  var H_ft = H_m * 3.28084;
+  var IM   = H_ft >= 8.0 ? 0.0 : Math.max(0, 33.0 * (1.0 - H_ft / 8.0));
+  var D_o  = (DN_mm + 2.0 * ePared_mm) / 1000.0;
+  var E_w  = 0.06 * H_m + D_o;
+  var E_lg = 0.61 + m.sep * (m.n - 1) + H_m * Math.tan(40.0 * Math.PI / 180.0);
+  var p_g  = (1.0 + IM / 100.0) * (m.n * m.Peje) / (E_w * E_lg);  // condición (b)
+  var q_g  = p_g * D_o;
+  var usaGrupo = (q_g >= eje.qL);
+  var out = usaGrupo
+    ? { qL:q_g, IM:IM, Ew:E_w, El:E_lg, pL:p_g, Do:D_o, H_ft:H_ft, Paxle:(m.n * m.Peje) }
+    : { qL:eje.qL, IM:eje.IM, Ew:eje.Ew, El:eje.El, pL:eje.pL, Do:eje.Do, H_ft:eje.H_ft, Paxle:eje.Paxle };
+  out.modelo    = m;
+  out.modeloKey = modeloKey;
+  out.gobierna  = usaGrupo ? 'grupo' : 'eje';
+  out.qL_eje    = eje.qL;
+  out.qL_grupo  = q_g;
+  return out;
+}
+
+// ── m9UpdateIMTInfo — muestra el detalle del modelo IMT elegido bajo el selector
+function m9UpdateIMTInfo() {
+  var sel  = document.getElementById('m9-trafico');
+  var info = document.getElementById('m9-imt-info');
+  if(!sel || !info) return;
+  var m = M9_IMT_MODELOS[sel.value];
+  if(!m) { info.style.display = 'none'; return; }
+  info.style.display = '';
+  info.innerHTML =
+    '<b>' + m.label + '</b> — N·PRY·CAR·6·01·003 "Cargas y Acciones", carreteras tipo <b>' + m.carr + '</b>.<br>' +
+    'Claro &lt; 30 m (toda alcantarilla): w = 0 y el grupo crítico es <b>' + m.grupo + '</b>.<br>' +
+    'q<sub>tráfico</sub> conservadora = envolvente del modelo al colchón mínimo de ' + M9_IMT_H_REF.toFixed(2) +
+    ' m (G.5.2). Activa el Modo LRFD para atenuarla a la profundidad real de proyecto.';
+}
+
 // ── m9CalcCargaRelleno — cálculo PURO (sin DOM) de la carga Marston de
 // relleno según el tipo de instalación. Extraído de calcM9() para permitir
 // pruebas/reuso independientes del renderizado.
@@ -5952,7 +6114,20 @@ function m9SyncTrafico() {
   var sel = document.getElementById('m9-trafico');
   var inp = document.getElementById('m9-q-traf');
   if(!sel || !inp) return;
-  if(sel.value !== 'custom') inp.value = sel.value;
+  var v = sel.value;
+  if(M9_IMT_MODELOS[v]) {
+    // Preset SICT: la Norma N·PRY·CAR·6·01·003 da CARGAS POR EJE, no una carga
+    // distribuida tabulada. El valor conservador se calcula como la envolvente
+    // del modelo al colchón mínimo normativo de 1 m (N·CTR·CAR·1·03·002/20 G.5.2).
+    var dn = parseFloat((document.getElementById('m9-dn') || {}).value) || 610;
+    var ep = parseFloat((document.getElementById('m9-espesor') || {}).value) ||
+             (M9_PARED_B[dn] || Math.round(dn * 0.095));
+    var env = m9CalcLRFD_IMT(M9_IMT_H_REF, dn, ep, v);
+    if(env) inp.value = env.qL.toFixed(1);
+  } else if(v !== 'custom') {
+    inp.value = v;
+  }
+  m9UpdateIMTInfo();
   calcM9();
 }
 
@@ -6321,7 +6496,8 @@ function m9UpdateLRFDBadge(hr, qTraf, traficoTipo) {
   var hint  = document.getElementById('m9-lrfd-hint');
   var cb    = document.getElementById('m9-lrfd-toggle');
   if(!badge) return;
-  var esHiway = (traficoTipo==='48'||traficoTipo==='96'||traficoTipo==='120');
+  var esHiway = (traficoTipo==='48'||traficoTipo==='96'||traficoTipo==='120'||
+                 !!M9_IMT_MODELOS[traficoTipo]);
   var esProf  = hr >= 5.0;
   // Mostrar badge recomendado si H>=5m con carga vehicular
   badge.style.display = (esProf && esHiway && qTraf > 0) ? '' : 'none';
@@ -6339,6 +6515,228 @@ function m9UpdateLRFDBadge(hr, qTraf, traficoTipo) {
       hint.style.color = '#0369a1';
     }
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// m9VerificarSICT — contrasta el diseño contra los requisitos numéricos de las
+// normas SICT aplicables y pinta un checklist con semáforo. NO modifica el
+// cálculo estructural: solo verifica y reporta.
+// ══════════════════════════════════════════════════════════════
+function m9VerificarSICT(ctx) {
+  var listEl = document.getElementById('m9-sict-check-list');
+  if(!listEl) return null;
+
+  var rows = [], nOk = 0, nWarn = 0, nBad = 0;
+
+  // add(estado, norma, clausula, texto)  estado: 'ok' | 'warn' | 'bad' | 'info'
+  function add(estado, norma, clausula, texto) {
+    if(estado === 'ok')   nOk++;
+    if(estado === 'warn') nWarn++;
+    if(estado === 'bad')  nBad++;
+    var ico = estado === 'ok' ? '\u2705' : estado === 'warn' ? '\u26a0\ufe0f' : estado === 'bad' ? '\u274c' : '\u2139\ufe0f';
+    var bg  = estado === 'ok' ? '#f0fdf4' : estado === 'warn' ? '#fef9c3' : estado === 'bad' ? '#fee2e2' : '#f8fafc';
+    var bd  = estado === 'ok' ? '#86efac' : estado === 'warn' ? '#fde68a' : estado === 'bad' ? '#fca5a5' : '#e2e8f0';
+    rows.push(
+      '<div style="display:flex;gap:8px;align-items:flex-start;background:' + bg +
+      ';border:1px solid ' + bd + ';border-radius:6px;padding:6px 9px;margin-bottom:5px">' +
+      '<span style="flex-shrink:0">' + ico + '</span><div style="flex:1">' + texto +
+      '<div style="font-size:.66rem;color:#64748b;margin-top:2px">' + norma +
+      (clausula ? ' \u00b7 ' + clausula : '') + '</div></div></div>');
+  }
+
+  var N002 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b703\u00b7002/20';
+  var N007 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b701\u00b7007/11';
+  var N011 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b701\u00b7011/20';
+  var C402 = 'N\u00b7CMT\u00b74\u00b702\u00b7001';
+  var C103 = 'N\u00b7CMT\u00b71\u00b703';
+  var C302 = 'N\u00b7CMT\u00b73\u00b702/04';
+  var PRY  = 'N\u00b7PRY\u00b7CAR\u00b76\u00b701\u00b7003';
+  var MMP  = 'M\u00b7MMP\u00b71\u00b702/03';
+
+  // ── 1. Colchón mínimo sobre el tubo — G.5.2
+  if(ctx.hr >= M9_SICT.colchonMin) {
+    add('ok', N002, 'G.5.2',
+      'Colch\u00f3n sobre el tubo <b>h = ' + ctx.hr.toFixed(2) + ' m \u2265 1,00 m</b> m\u00ednimo normativo.');
+  } else if(ctx.qTraf > 0) {
+    add('bad', N002, 'G.5.2',
+      'Colch\u00f3n <b>h = ' + ctx.hr.toFixed(2) + ' m &lt; 1,00 m</b> con carga vehicular activa. La Norma exige ' +
+      '<b>colch\u00f3n m\u00ednimo de un (1) metro</b> sobre el tubo; con menor cobertura el dise\u00f1o no es aceptable ' +
+      'sin losa de reparto o protecci\u00f3n especial.');
+  } else {
+    add('warn', N002, 'G.5.2',
+      'Colch\u00f3n <b>h = ' + ctx.hr.toFixed(2) + ' m &lt; 1,00 m</b>. Sin carga vehicular es admisible solo si el ' +
+      'proyecto lo justifica; la Norma pide 1 m como m\u00ednimo general.');
+  }
+
+  // ── 2. Terraplén de protección — G.5.2
+  var baseTerr = M9_SICT.baseTerraplen * (ctx.DN / 1000);
+  add('info', N002, 'G.5.2',
+    'Terrapl\u00e9n de protecci\u00f3n requerido: <b>base superior = 3 \u00d7 DN = ' + baseTerr.toFixed(2) + ' m</b> ' +
+    '(DN ' + ctx.DN + ' mm), compactado a mano o con equipo manual. Relleno lateral en capas de <b>15 cm</b> ' +
+    'sim\u00e9tricas a ambos lados.');
+
+  // ── 3. Holgura de excavación / ancho de zanja — G.2.2
+  var bMinSCT = ctx.Bc + 2 * M9_SICT.holguraLado;
+  var bMinNMX = ctx.Bc + 0.40;
+  if(ctx.esZanja) {
+    if(ctx.b >= bMinSCT) {
+      add('ok', N002, 'G.2.2',
+        'Ancho de zanja <b>b = ' + ctx.b.toFixed(2) + ' m \u2265 ' + bMinSCT.toFixed(2) + ' m</b> ' +
+        '(B<sub>c</sub> ' + ctx.Bc.toFixed(3) + ' m + holgura de 50 cm a cada lado).');
+    } else if(ctx.b >= bMinNMX) {
+      add('warn', N002, 'G.2.2',
+        'Ancho de zanja <b>b = ' + ctx.b.toFixed(2) + ' m</b> cumple el m\u00ednimo NMX-C-402 (' + bMinNMX.toFixed(2) +
+        ' m) pero <b>no la holgura SICT de 50 cm por lado</b> (requiere b \u2265 ' + bMinSCT.toFixed(2) + ' m). ' +
+        'En obra SICT ampl\u00eda la zanja: la carga Marston aumentar\u00e1 y puede subir el Grado.');
+    } else {
+      add('bad', N002, 'G.2.2',
+        'Ancho de zanja <b>b = ' + ctx.b.toFixed(2) + ' m</b> por debajo de ambos m\u00ednimos: NMX-C-402 ' +
+        bMinNMX.toFixed(2) + ' m y SICT ' + bMinSCT.toFixed(2) + ' m (holgura 50 cm/lado). No hay espacio para ' +
+        'compactar el acostillado.');
+    }
+  } else {
+    add('info', N002, 'G.2.2',
+      'Instalaci\u00f3n en terrapl\u00e9n: no aplica ancho de zanja. Si hubiera excavaci\u00f3n parcial, la holgura ' +
+      'normativa es de <b>50 cm a cada lado</b> (b \u2265 ' + bMinSCT.toFixed(2) + ' m).');
+  }
+
+  // ── 4. Excavación para estructuras — N·CTR·CAR·1·01·007/11
+  add('info', N007, 'G.4',
+    'Excavaci\u00f3n a las dimensiones y niveles de proyecto, con <b>tolerancia \u00b110 cm</b> en paredes que ' +
+    'sirvan de molde, fondo libre de ra\u00edces y piedras salientes, y protecci\u00f3n contra inundaciones ' +
+    'durante los trabajos.');
+
+  // ── 5. Suelo de desplante — M·MMP·1·02 + capa de cimentación
+  var s = M9_SUCS[ctx.suelo] || M9_SUCS['SC'];
+  if(ctx.suelo === 'Pt') {
+    add('bad', MMP, 'Turba',
+      'Suelo de desplante <b>Pt \u2014 ' + s.n + '</b>: <b>no apto</b> como apoyo. Debe removerse en todo el ancho ' +
+      'y sustituirse por material controlado antes de desplantar la plantilla; con turba el factor de ' +
+      'encamado B\u2093 real es indeterminado.');
+  } else if(s.altaComp) {
+    add('warn', MMP + ' + ' + N002, 'G.3',
+      'Suelo de desplante <b>' + ctx.suelo + ' \u2014 ' + s.n + '</b> (\u03c9<sub>L</sub> &gt; 50 %). Requiere ' +
+      '<b>profundizar 20 cm adicionales en todo el ancho</b> y colocar una <b>capa de cimentaci\u00f3n de 20 cm</b> ' +
+      'con material para subrasante, sobre la cual se desplanta la plantilla de apoyo.');
+    add('info', C103, 'Tabla 1',
+      'Material de la capa de cimentaci\u00f3n (subrasante): tama\u00f1o m\u00e1ximo <b>76 mm</b>, l\u00edmite l\u00edquido ' +
+      '<b>\u2264 40 %</b>, \u00edndice pl\u00e1stico <b>\u2264 12 %</b>, CBR <b>\u2265 20 %</b>, expansi\u00f3n <b>\u2264 2 %</b>, ' +
+      'compactado al <b>100 \u00b1 2 %</b> de la masa volum\u00e9trica seca m\u00e1xima AASHTO est\u00e1ndar.');
+  } else if(s.org) {
+    add('warn', MMP, 'Suelo org\u00e1nico',
+      'Suelo de desplante <b>' + ctx.suelo + ' \u2014 ' + s.n + '</b>: material org\u00e1nico, apoyo ' + s.apto +
+      '. Verifica con el laboratorio de obra si procede sustituirlo o interponer capa de cimentaci\u00f3n.');
+  } else {
+    add('ok', MMP, 'SUCS',
+      'Suelo de desplante <b>' + ctx.suelo + ' \u2014 ' + s.n + '</b>: apoyo ' + s.apto +
+      ', sin requisito de capa de cimentaci\u00f3n adicional. Compactar el fondo antes de la plantilla.');
+  }
+
+  // ── 6. Plantilla de apoyo — G.3 + N·CMT·4·02·001
+  add('info', N002 + ' + ' + C402, 'G.3 / Tabla 1\u20132',
+    'Plantilla de apoyo con geometr\u00eda similar al tubo, espesor y grado de compactaci\u00f3n de proyecto ' +
+    '(usual 15 cm). Material para subbase: <b>100 % de compactaci\u00f3n AASHTO modificada</b>, l\u00edmite l\u00edquido ' +
+    '<b>\u2264 30 %</b> (\u2264 25 % si \u03a3L &gt; 10\u2076), \u00edndice pl\u00e1stico <b>\u2264 10 %</b> (\u2264 6 %), ' +
+    'CBR <b>\u2265 50 %</b> (\u2265 60 %), equivalente de arena <b>\u2265 30 %</b> (\u2265 40 %), ' +
+    'desgaste Los \u00c1ngeles <b>\u2264 50 %</b> (\u2264 40 %) y tama\u00f1o m\u00e1ximo de part\u00edcula \u2264 25 % del espesor.');
+
+  // ── 7. Relleno — N·CTR·CAR·1·01·011/20
+  if(ctx.Fa >= 3.0) {
+    add('warn', N011, 'G.2.4 / G.2.5',
+      'El B\u2093 = ' + ctx.Fa + ' elegido supone <b>relleno compactado por encima del m\u00ednimo normativo</b>. ' +
+      'La Norma exige solo <b>90 % de la masa volum\u00e9trica seca m\u00e1xima AASHTO est\u00e1ndar</b>, compactado ' +
+      'sim\u00e9tricamente a mano o con equipo manual. Para sostener ese B\u2093 el proyecto debe especificar ' +
+      'expl\u00edcitamente el grado superior (90 % PN para B\u2093=3,0 \u00b7 95 % PN para B\u2093\u22654,0) y verificarlo con calas.');
+  } else {
+    add('ok', N011, 'G.2.4 / G.2.5',
+      'B\u2093 = ' + ctx.Fa + ' compatible con el relleno normativo m\u00ednimo: <b>90 % AASHTO est\u00e1ndar</b>, ' +
+      'capas del espesor compactable por el equipo, colocadas y compactadas <b>sim\u00e9tricamente</b> a ambos ' +
+      'lados del tubo. Control: c = A/100 calas.');
+  }
+
+  // ── 8. Carga viva — N·PRY·CAR·6·01·003
+  if(ctx.esIMT) {
+    var mm = M9_IMT_MODELOS[ctx.traficoTipo];
+    add('ok', PRY, 'Modelo ' + mm.label,
+      'Carga viva del <b>veh\u00edculo de proyecto mexicano ' + mm.label + '</b> (carreteras tipo ' + mm.carr + '), ' +
+      'grupo cr\u00edtico <b>' + mm.grupo + '</b> para claro &lt; 30 m.' +
+      (ctx.lrfd ? ' Gobierna la condici\u00f3n de <b>' + (ctx.lrfd.gobierna === 'grupo' ? 'grupo de ejes' : 'eje aislado') +
+        '</b>: q<sub>L</sub>(eje) = ' + ctx.lrfd.qL_eje.toFixed(2) + ' kN/m vs q<sub>L</sub>(grupo) = ' +
+        ctx.lrfd.qL_grupo.toFixed(2) + ' kN/m.' : ''));
+  } else if(ctx.qTraf > 0 && (ctx.traficoTipo === '48' || ctx.traficoTipo === '96' || ctx.traficoTipo === '120')) {
+    add('warn', PRY, 'Modelos IMT 66.5 / IMT 20.5',
+      'Est\u00e1s usando una carga <b>AASHTO H-' + (ctx.traficoTipo === '48' ? '10' : ctx.traficoTipo === '96' ? '20' : '25') +
+      '</b>. Para obra de la red carretera federal la Norma aplicable es el modelo <b>IMT 66.5</b> ' +
+      '(carreteras ET, A, B y C) o <b>IMT 20.5</b> (tipo D y caminos rurales). Selecci\u00f3nalo en el men\u00fa ' +
+      'de carga viva para verificar con el veh\u00edculo de proyecto correcto.');
+  } else if(ctx.qTraf > 0) {
+    add('info', PRY, 'Cargas y acciones',
+      'Carga viva no vehicular carretera (FAA / AREMA / personalizada). Si la obra pertenece a la red ' +
+      'carretera federal, verifica adem\u00e1s con el modelo IMT 66.5 o IMT 20.5.');
+  } else {
+    add('info', PRY, 'Cargas y acciones',
+      'Sin carga viva. Si la alcantarilla cruza un arroyo vial, debe verificarse con IMT 66.5 (tipos ET, A, B, C) ' +
+      'o IMT 20.5 (tipo D y caminos rurales).');
+  }
+
+  // ── 9. Calidad del tubo / f'c contratado — N·CMT·3·02/04
+  if(!ctx.grado) {
+    add('bad', C302, 'Clases 1\u20134',
+      'El dise\u00f1o excede el cat\u00e1logo: <b>ninguna Clase SCT (1\u20134) cubre q<sub>calc</sub> = ' +
+      ctx.qCalc.toFixed(1) + ' N/m/mm</b>. Requiere dise\u00f1o especial, mejorar el encamado o cambiar de ' +
+      'soluci\u00f3n estructural.');
+  } else {
+    var fcKg = ctx.fcMPa * 10.1972;
+    if(ctx.fcMax > 0) {
+      // Tolerancia del 2 %: la NMX-C-402 tabula f'c en MPa y las especificaciones
+      // mexicanas en kg/cm\u00b2. El Grado 3 (34,5 MPa = 351,8 kg/cm\u00b2) corresponde en la
+      // pr\u00e1ctica al tubo comercial de "350 kg/cm\u00b2", as\u00ed que una diferencia de redondeo
+      // entre sistemas de unidades no debe reportarse como incumplimiento contractual.
+      var tolFc = ctx.fcMax * 0.02;
+      if(fcKg <= ctx.fcMax + tolFc) {
+        add('ok', C302, 'Clase ' + ctx.grado,
+          'Clase ' + ctx.grado + ' SCT \u2261 Grado ' + ctx.grado + ' NMX-C-402 requiere <b>f\'c = ' +
+          ctx.fcMPa.toFixed(1) + ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>, dentro del f\'c ' +
+          'especificado en proyecto (' + ctx.fcMax.toFixed(0) + ' kg/cm\u00b2, tolerancia \u00b12 % por redondeo MPa\u2194kg/cm\u00b2). <b>Conforme al concepto contratado.</b>');
+      } else {
+        add('bad', C302, 'Clase ' + ctx.grado,
+          '<b>NO CONFORME:</b> Clase ' + ctx.grado + ' SCT requiere <b>f\'c = ' + ctx.fcMPa.toFixed(1) +
+          ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>, superior al <b>f\'c ' + ctx.fcMax.toFixed(0) +
+          ' kg/cm\u00b2</b> especificado en proyecto. Este tubo <b>no est\u00e1 cubierto por el precio unitario ' +
+          'contratado</b>: requiere concepto extraordinario, o mejorar el encamado (sube B\u2093) para bajar de Clase.');
+      }
+    } else {
+      add('info', C302, 'Clase ' + ctx.grado,
+        'Clase ' + ctx.grado + ' SCT \u2261 Grado ' + ctx.grado + ' NMX-C-402, <b>f\'c = ' + ctx.fcMPa.toFixed(1) +
+        ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>. Captura el f\'c m\u00e1ximo del proyecto para verificar ' +
+        'la conformidad con el concepto contratado.');
+    }
+  }
+
+  // ── 10. Colocación, chaflán y protecciones — G.4 / G.6 / G.7
+  add('info', N002, 'G.4.1\u2013G.4.3 / G.6 / G.7',
+    'Colocaci\u00f3n de <b>aguas abajo hacia aguas arriba</b> con la junta macho hacia aguas abajo y juntas ' +
+    'selladas con <b>mortero cemento-arena 1:3</b>. <b>Chafl\u00e1n</b> de secci\u00f3n triangular <b>20 \u00d7 20 cm</b> ' +
+    '(mortero 1:3) en ambos costados, en toda la longitud entre tubo y plantilla. Si se usa protecci\u00f3n de ' +
+    '<b>suelo-cemento</b>: base menor = di\u00e1metro exterior (' + ctx.Bc.toFixed(3) + ' m) y espesor <b>\u2265 40 cm</b> ' +
+    'desde el punto m\u00e1s alto del tubo. Muros de cabeza con canales de entrada y salida <b>\u2265 5 m</b> por extremo.');
+
+  // ── Encabezado con el resumen
+  var estadoGlobal = nBad > 0 ? 'bad' : nWarn > 0 ? 'warn' : 'ok';
+  var resumenBg  = estadoGlobal === 'bad' ? '#fee2e2' : estadoGlobal === 'warn' ? '#fef9c3' : '#f0fdf4';
+  var resumenCol = estadoGlobal === 'bad' ? '#7f1d1d' : estadoGlobal === 'warn' ? '#713f12' : '#14532d';
+  var resumenTxt = estadoGlobal === 'bad'
+      ? '\u274c ' + nBad + ' incumplimiento(s) normativo(s) detectado(s)'
+      : estadoGlobal === 'warn'
+      ? '\u26a0\ufe0f ' + nWarn + ' punto(s) por revisar antes de construir'
+      : '\u2705 Sin incumplimientos detectados en las verificaciones autom\u00e1ticas';
+  var header =
+    '<div style="background:' + resumenBg + ';color:' + resumenCol +
+    ';border-radius:6px;padding:7px 10px;margin-bottom:8px;font-weight:800;font-size:.79rem;text-align:center">' +
+    resumenTxt + '</div>';
+
+  listEl.innerHTML = header + rows.join('');
+  return { ok:nOk, warn:nWarn, bad:nBad, estado:estadoGlobal };
 }
 
 // ── ASISTENTE: sugiere encamado mínimo para Grado 1 ─────────────────────────
@@ -6495,14 +6893,17 @@ function calcM9() {
 
   // Tipo de tráfico desde el selector
   var traficoTipo = (document.getElementById('m9-trafico') || {}).value || '';
-  // LRFD aplica solo a cargas vehiculares H-xx (no FAA ni AREMA ni 0)
+  // LRFD aplica a cargas vehiculares H-xx (AASHTO) y a los modelos IMT 66.5 /
+  // IMT 20.5 de la Norma SICT N·PRY·CAR·6·01·003 — no a FAA, AREMA ni 0.
+  var esIMT       = !!M9_IMT_MODELOS[traficoTipo];
   var esVehicular = (traficoTipo === '48' || traficoTipo === '96' ||
-                     traficoTipo === '120' || traficoTipo === 'custom');
+                     traficoTipo === '120' || traficoTipo === 'custom' || esIMT);
   var lrfdApply   = qTraf > 0 && esVehicular;  // siempre calcular si aplica
 
-  // P_axle correspondiente (AASHTO HL-93)
-  var Paxle_lrfd = M9_PAXLE_MAP[traficoTipo] ||
-                   (qTraf <= 60 ? 71.2 : qTraf <= 108 ? 142.3 : 178.0);
+  // P_axle correspondiente: AASHTO HL-93, o el eje del modelo IMT (N·PRY·CAR·6·01·003)
+  var Paxle_lrfd = esIMT ? M9_IMT_MODELOS[traficoTipo].Peje :
+                   (M9_PAXLE_MAP[traficoTipo] ||
+                   (qTraf <= 60 ? 71.2 : qTraf <= 108 ? 142.3 : 178.0));
 
   // Actualizar badge/hint del toggle según H
   m9UpdateLRFDBadge(hr, qTraf, traficoTipo);
@@ -6528,7 +6929,9 @@ function calcM9() {
 
   // ── Calcular q_L LRFD (siempre que aplique — para panel comparativo) ────
   if(lrfdApply) {
-    lrfdDataBase = calcLRFD_qL(hr, DN, e_pared, Paxle_lrfd);
+    // Modelos IMT (SICT): evalúa eje aislado vs. grupo de ejes y toma el peor caso
+    lrfdDataBase = esIMT ? m9CalcLRFD_IMT(hr, DN, e_pared, traficoTipo)
+                         : calcLRFD_qL(hr, DN, e_pared, Paxle_lrfd);
     if(useLRFD) lrfdData = lrfdDataBase;  // usar en cálculo solo si toggle ON
   }
 
@@ -6551,6 +6954,11 @@ function calcM9() {
     proc.push('⚡ Modo LRFD AASHTO 12.10.4.3 activo:');
     proc.push('  H=' + hr + 'm → H_ft=' + (hr*3.28084).toFixed(2) + 'ft | IM=' + lrfdData.IM.toFixed(1) + '%');
     proc.push('  E_w=' + lrfdData.Ew.toFixed(3) + 'm | E_l=' + lrfdData.El.toFixed(3) + 'm');
+    if(lrfdData.modelo) {
+      proc.push('  Modelo SICT <b>' + lrfdData.modelo.label + '</b> (N\u00b7PRY\u00b7CAR\u00b76\u00b701\u00b7003) \u2014 ' + lrfdData.modelo.grupo);
+      proc.push('  Gobierna la condici\u00f3n de <b>' + (lrfdData.gobierna === 'grupo' ? 'GRUPO DE EJES' : 'EJE AISLADO') +
+                '</b>:  q_L(eje)=' + lrfdData.qL_eje.toFixed(2) + '  |  q_L(grupo)=' + lrfdData.qL_grupo.toFixed(2) + ' kN/m');
+    }
     proc.push('  q_L atenuada = <b>' + lrfdData.qL.toFixed(2) + ' kN/m</b>  (vs fijo conservador: ' + qTraf.toFixed(1) + ' kN/m)');
     proc.push('  Ahorro: ' + ((1 - lrfdData.qL/qTraf)*100).toFixed(0) + '% menos carga viva');
   } else {
@@ -6660,7 +7068,8 @@ function calcM9() {
     }
     if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = espMsg; }
     // ── Tracker: registrar evento Diseño Especial ──────────────────
-    var cargaTipoLabel = qTraf <= 0 ? 'sin_trafico' :
+    var cargaTipoLabel = esIMT ? traficoTipo :
+                         qTraf <= 0 ? 'sin_trafico' :
                          qTraf <= 60  ? 'H10' :   // H-10 ≈ 48 kN/m (umbral hasta H-20)
                          qTraf <= 108 ? 'H20' :   // H-20 ≈ 96 kN/m (umbral hasta H-25)
                          'H25+';                   // H-25 = 120 kN/m
@@ -6755,6 +7164,53 @@ function calcM9() {
 
   } else if(lrfdPanel) {
     lrfdPanel.style.display = 'none';
+  }
+
+  // ── Hint de ancho mínimo SCT vs NMX (holgura 50 cm/lado, G.2.2) ──
+  var bHintEl = document.getElementById('m9-b-sct-hint');
+  if(bHintEl) {
+    bHintEl.innerHTML = 'b<sub>mín</sub> NMX-C-402 = B<sub>c</sub> + 0.40 m = <b>' + (Bc + 0.40).toFixed(2) +
+      ' m</b> &nbsp;|&nbsp; b<sub>mín</sub> SICT = B<sub>c</sub> + 2\u00d70.50 m = <b>' + (Bc + 1.00).toFixed(2) +
+      ' m</b> (holgura de 50 cm a cada lado, N\u00b7CTR\u00b7CAR\u00b71\u00b703\u00b7002/20 G.2.2)';
+  }
+
+  // ── Info del suelo de desplante (M·MMP·1·02) ─────────────────────
+  var sueloEl  = document.getElementById('m9-suelo-fondo');
+  var sueloKey = sueloEl ? sueloEl.value : 'SC';
+  var sueloInf = document.getElementById('m9-suelo-info');
+  var sDat     = M9_SUCS[sueloKey] || M9_SUCS['SC'];
+  if(sueloInf) {
+    if(sueloKey === 'Pt') {
+      sueloInf.style.background = '#fee2e2'; sueloInf.style.borderColor = '#fca5a5'; sueloInf.style.color = '#7f1d1d';
+      sueloInf.innerHTML = '<b>' + sueloKey + ' \u2014 ' + sDat.n + '</b>: no apto como apoyo. Remover y sustituir en todo el ancho de la excavaci\u00f3n.';
+    } else if(sDat.altaComp) {
+      sueloInf.style.background = '#fef9c3'; sueloInf.style.borderColor = '#fde68a'; sueloInf.style.color = '#713f12';
+      sueloInf.innerHTML = '<b>' + sueloKey + ' \u2014 ' + sDat.n + '</b> (\u03c9<sub>L</sub> &gt; 50 %): profundizar <b>+20 cm</b> y colocar <b>capa de cimentaci\u00f3n de 20 cm</b> de material para subrasante (N\u00b7CMT\u00b71\u00b703) al 100 \u00b1 2 % AASHTO est\u00e1ndar, antes de la plantilla.';
+    } else {
+      sueloInf.style.background = '#f0fdf4'; sueloInf.style.borderColor = '#86efac'; sueloInf.style.color = '#14532d';
+      sueloInf.innerHTML = '<b>' + sueloKey + ' \u2014 ' + sDat.n + '</b>: apoyo ' + sDat.apto + '. Sin capa de cimentaci\u00f3n adicional; compactar el fondo al 95 % AASHTO est\u00e1ndar antes de la plantilla.';
+    }
+  }
+
+  // ── Verificación de cumplimiento normativo SICT ──────────────────
+  if(typeof m9UpdateIMTInfo === 'function') m9UpdateIMTInfo();
+  var sictRes = m9VerificarSICT({
+    DN: DN, hr: hr, b: b, Bc: Bc, Fa: Fa, qTraf: qTraf, qCalc: qCalc,
+    esZanja: (tipo === 'zanja' || tipo === 'zanja-terraplenada' || tipo === 'zanja-inducida'),
+    suelo: sueloKey,
+    traficoTipo: traficoTipo,
+    esIMT: esIMT,
+    lrfd: lrfdDataBase,
+    grado: gradoSel ? gradoSel.g : null,
+    fcMPa: gradoSel ? gradoSel.fc : 0,
+    fcMax: parseFloat((document.getElementById('m9-fc-max') || {}).value) || 0
+  });
+  if(STATE.m9) {
+    STATE.m9.suelo      = sueloKey;
+    STATE.m9.traficoTipo = traficoTipo;
+    STATE.m9.modeloIMT  = esIMT ? M9_IMT_MODELOS[traficoTipo].label : null;
+    STATE.m9.fcMax      = parseFloat((document.getElementById('m9-fc-max') || {}).value) || 0;
+    STATE.m9.sict       = sictRes;
   }
 
   // ── Asistente de optimización: sugerir encamado ──────────────────
