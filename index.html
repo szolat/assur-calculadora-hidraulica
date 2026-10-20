@@ -3157,12 +3157,15 @@ function calcCanal() {
   if(isNaN(S_pct) || S_pct <= 0) { alert('Ingrese una pendiente válida (%).'); return; }
 
   // Calcular capacidad de cada canal EVO a la pendiente dada
+  // Orden: ancho interior ascendente y, dentro de cada ancho, altura ascendente (S → H → HV).
+  // Se elige el canal más angosto que cubre Q y, en ese ancho, la serie más baja suficiente.
+  // (Antes las series H iban antes que las S y la serie baja nunca se recomendaba.)
   const canalesCalc = CANALES_EVO.map(c => {
     const hid = calcEvoQ(c.LN, c.Hi, S_pct);
     return Object.assign({}, c, { hid });
-  });
+  }).sort((a, b) => (a.LN - b.LN) || (a.Hi - b.Hi));
 
-  // Selección automática: primer canal cuya capacidad >= Q de diseño
+  // Selección automática: primer canal (en ese orden) cuya capacidad >= Q de diseño
   const sel = canalesCalc.find(c => c.hid.Q >= Q_dis) || canalesCalc[canalesCalc.length - 1];
   const llenado = (Q_dis / sel.hid.Q * 100).toFixed(1);
 
@@ -4947,8 +4950,8 @@ function generarPDF() {
      ok: STATE.caudal ? (STATE.caudal.C>=0.2&&STATE.caudal.C<=0.95) : false,
      nota: STATE.caudal ? `C=${STATE.caudal.C}, Q=${STATE.caudal.Q.toFixed(2)} l/s` : 'Sin calcular'},
     {norma:'EN 1433', calculado: !!STATE.canal,
-     ok: STATE.canal ? STATE.canal.sel.cap>=STATE.canal.Qm : false,
-     nota: STATE.canal ? `${STATE.canal.sel.s} cap=${STATE.canal.sel.cap} l/s/m` : 'Sin calcular'},
+     ok: STATE.canal ? STATE.canal.sel.hid.Q>=STATE.canal.Q_dis : false,
+     nota: STATE.canal ? `${STATE.canal.sel.s} cap=${STATE.canal.sel.hid.Q.toFixed(1)} l/s ${STATE.canal.sel.hid.Q>=STATE.canal.Q_dis?'>=':'<'} Q=${STATE.canal.Q_dis.toFixed(1)} l/s` : 'Sin calcular'},
     {norma:'NMX-E-215', calculado: !!STATE.manning,
      ok: STATE.manning ? ((STATE.manning.v_proy||0.6)>=0.6&&(STATE.manning.v_proy||0.6)<=3.0) : false,
      nota: STATE.manning ? `S_mín=${STATE.manning.S_min_pct.toFixed(3)}%` : 'Sin calcular'},
