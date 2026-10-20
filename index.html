@@ -406,6 +406,19 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <label>Pendiente del canal S (%)</label>
         <input type="number" id="can-s" value="0.5" min="0.001" step="0.01">
       </div>
+      <div>
+        <label>Clase de carga requerida (EN 1433)</label>
+        <select id="can-clase-req">
+          <option value="A15">A15 · peatonal, jardines, terrazas</option>
+          <option value="B125">B125 · banquetas, cocheras</option>
+          <option value="C250" selected>C250 · estacionamientos, orilla de vialidad</option>
+          <option value="D400">D400 · calles y accesos vehiculares</option>
+        </select>
+      </div>
+      <div>
+        <label>Longitud de la línea de canal (m)</label>
+        <input type="number" id="can-long" value="10" min="0.5" step="0.5">
+      </div>
     </div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
@@ -453,6 +466,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
           <tbody id="can-tbody"></tbody>
         </table>
       </div>
+      <!-- DATOS COMPLEMENTARIOS DE DISEÑO (EVO) -->
+      <div id="can-diseno" style="margin-top:18px"></div>
     </div>
   </div>
   <div class="legal">⚠️ Cálculo orientativo — No es un proyecto ejecutivo. Basado en SGAPDS-29 (CONAGUA 2009), EN 1433, NMX-E-215 y NOM-001-CONAGUA-2011. Para el diseño definitivo, consulte a un ingeniero civil o Director Responsable de Obra (DRO).</div>
@@ -2944,6 +2959,47 @@ const CANALES_EVO = [
 // Mantener alias CANALES para compatibilidad (ya no se usa en lógica)
 const CANALES = CANALES_EVO;
 
+// Datos complementarios de diseño EVO (no alteran la selección hidráulica).
+// Fuente: lista TECHNODRAIN 2013 y catálogo ASSUR TECHNODRAIN 2022 (tablas iguales).
+// Lext/Hext = medidas exteriores (mm); kg = canal sin rejilla, pieza de 1,000 mm;
+// D1 = salidas laterales; D2 = salida de fondo; pal = piezas por tarima.
+const M2_EVO_DATOS = {
+  'EVO 100S': {cod:'CA100ES11', Lext:150, Hext:133, kg:1.9,  D1:'2×Ø63',          D2:'1×Ø110',          pal:112, reg:'PZ100E (150×500×470 mm)', ifc:'ASSUR_TECHNODRAIN_EVO_100S.ifc'},
+  'EVO 100H': {cod:'CA100EH11', Lext:150, Hext:208, kg:2.6,  D1:'2×Ø110',         D2:'1×Ø110',          pal:70,  reg:'PZ100E (150×500×470 mm)', ifc:'ASSUR_TECHNODRAIN_EVO_100H.ifc'},
+  'EVO 150S': {cod:'CA150ES11', Lext:200, Hext:133, kg:2.25, D1:'2×Ø63',          D2:'1×Ø110 o 1×Ø160', pal:80,  reg:'PZ150E (200×500×470 mm)', ifc:'ASSUR_TECHNODRAIN_EVO_150S.ifc'},
+  'EVO 150H': {cod:'CA150EH11', Lext:200, Hext:208, kg:2.9,  D1:'2×Ø110',         D2:'1×Ø110 o 1×Ø160', pal:50,  reg:'PZ150E (200×500×470 mm)', ifc:'ASSUR_TECHNODRAIN_EVO_150H.ifc'},
+  'EVO 200S': {cod:'CA200ES11', Lext:250, Hext:133, kg:2.5,  D1:'2×Ø63',          D2:'1×Ø110 o 1×Ø160', pal:64,  reg:'PZ200E (250×500×470 mm)', ifc:'ASSUR_TECHNODRAIN_EVO_200S.ifc'},
+  'EVO 200H': {cod:'CA200EH11', Lext:250, Hext:208, kg:3.1,  D1:'2×Ø110',         D2:'1×Ø110 o 1×Ø160', pal:40,  reg:'PZ200E (250×500×470 mm)', ifc:'ASSUR_TECHNODRAIN_EVO_200H.ifc'},
+  'EVO 200HV':{cod:'CA200EHV',  Lext:250, Hext:308, kg:4.8,  D1:'2×Ø160 o 2×Ø200', D2:'1×Ø160 o 1×Ø200', pal:24,  reg:'PZ200E (250×500×470 mm)', ifc:'ASSUR_TECHNODRAIN_EVO_200HV.ifc'}
+};
+// Envolvente de concreto por clase — tabla oficial TECHNODRAIN (canal tipo M, EN 1433).
+// S = cama bajo el canal, R = falcado lateral por lado (mm). f'c = equivalente práctico (kg/cm²).
+const M2_INSTAL = {
+  A15:  {S:100, R:100, cls:'C20/25', fc:200, ref:false},
+  B125: {S:100, R:100, cls:'C25/30', fc:250, ref:false},
+  C250: {S:150, R:150, cls:'C25/30', fc:250, ref:false},
+  D400: {S:200, R:200, cls:'C30/37', fc:300, ref:true}
+};
+const M2_REJILLAS = {
+  A15:  'Ranura de acero galvanizado o inoxidable',
+  B125: 'Malla 30×30 o 30×10 de acero galvanizado/inoxidable, o malla de hierro dúctil',
+  C250: 'Malla C250 de acero, o hierro dúctil ranura 10 o 18 mm (ranura 6 mm antitacón en EVO 100)',
+  D400: 'Hierro dúctil ranura 18 mm + acero de refuerzo en la envolvente'
+};
+const M2_RANGO = {A15:1, B125:2, C250:3, D400:4};
+
+// Cálculo puro: zanja y concreto por metro (concreto hasta el borde superior del canal).
+function m2EnvolventeEVO(serie, clase, Lm) {
+  const d = M2_EVO_DATOS[serie], e = M2_INSTAL[clase];
+  if(!d || !e) return null;
+  const anchoZ = d.Lext + 2*e.R;            // mm
+  const profZ  = d.Hext + e.S;              // mm
+  const vol_m  = (anchoZ*profZ - d.Lext*d.Hext) / 1e6;   // m³/m
+  const piezas = Math.ceil(Lm);             // piezas de 1 m
+  return { d, e, clase, anchoZ, profZ, vol_m, vol_tot: vol_m*Lm, Lm, piezas,
+           kg_tot: piezas*d.kg, tarimas: Math.ceil(piezas/d.pal) };
+}
+
 // Función para calcular capacidad hidráulica EVO con Manning
 function calcEvoQ(LN_mm, Hi_mm, S_pct) {
   const n = 0.011; // HDPE/polipropileno
@@ -3111,6 +3167,7 @@ function calcCanal() {
   const llenado = (Q_dis / sel.hid.Q * 100).toFixed(1);
 
   STATE.canal = { Q_dis, S_pct, sel, canalesCalc };
+  m2RenderDiseno(sel);
 
   document.getElementById('can-serie').textContent  = sel.s;
   document.getElementById('can-area').textContent   = sel.hid.Acm2.toFixed(1);
@@ -3168,6 +3225,48 @@ function calcCanal() {
   // Generar diagrama SVG educativo
   dibujarCanalSVG(sel.LN, sel.Hi, parseFloat(llenado), sel.hid.v, S_pct, sel.s);
   mostrarAvisoReporte('aviso-canal');
+}
+
+// Panel de datos complementarios de diseño (EVO)
+function m2RenderDiseno(sel) {
+  const el = document.getElementById('can-diseno');
+  if(!el) return;
+  const clase = document.getElementById('can-clase-req').value;
+  let Lm = parseFloat(document.getElementById('can-long').value);
+  if(isNaN(Lm) || Lm <= 0) Lm = (STATE.caudal && STATE.caudal.Lm > 0) ? STATE.caudal.Lm : 10;
+  const r = m2EnvolventeEVO(sel.s, clase, Lm);
+  if(!r) { el.innerHTML = ''; return; }
+  STATE.canal.diseno = r;
+  const maxCls = (sel.clase.split('–')[1] || sel.clase).trim();
+  const excede = M2_RANGO[clase] > (M2_RANGO[maxCls] || 0);
+  const aviso = excede
+    ? `<div class="alert alert-warn" style="margin:8px 0">⚠️ ${sel.s} figura en el catálogo hasta <strong>${maxCls}</strong>. Para <strong>${clase}</strong> se requiere rejilla de hierro dúctil de ranura 18 mm: confirma disponibilidad con ASSUR o elige un canal de 200 mm.</div>` : '';
+  const f = (x,n=0)=>x.toLocaleString('es-MX',{minimumFractionDigits:n,maximumFractionDigits:n});
+  el.innerHTML = `
+    <h3 style="margin:0 0 6px">🧱 Datos complementarios de diseño — ${sel.s} · clase ${clase}</h3>
+    ${aviso}
+    <div class="table-wrap"><table>
+      <tbody>
+        <tr><td>Código fabricante</td><td><strong>${r.d.cod}</strong></td><td>Medida exterior (ancho × alto)</td><td>${r.d.Lext} × ${r.d.Hext} mm</td></tr>
+        <tr><td>Peso canal (sin rejilla)</td><td>${f(r.d.kg,2)} kg por pieza de 1 m</td><td>Piezas por tarima</td><td>${r.d.pal}</td></tr>
+        <tr><td>Salidas laterales D1</td><td>${r.d.D1}</td><td>Salida de fondo D2</td><td>${r.d.D2}</td></tr>
+        <tr><td>Registro desarenador</td><td>${r.d.reg}</td><td>Rejilla para ${clase}</td><td>${M2_REJILLAS[clase]}</td></tr>
+      </tbody></table></div>
+    <h4 style="margin:12px 0 6px">Envolvente de concreto (tabla oficial TECHNODRAIN, canal tipo M EN 1433)</h4>
+    <div class="result-grid">
+      <div class="result-metric"><div class="val">${r.e.S} / ${r.e.R}</div><div class="lbl">Cama S / falcado R por lado (mm)</div></div>
+      <div class="result-metric"><div class="val">f'c ${r.e.fc}</div><div class="lbl">Concreto kg/cm² (${r.e.cls} EN 206)</div></div>
+      <div class="result-metric"><div class="val">${f(r.anchoZ/10,1)} × ${f(r.profZ/10,1)}</div><div class="lbl">Zanja ancho × profundidad (cm)</div></div>
+      <div class="result-metric"><div class="val">${f(r.vol_m,3)}</div><div class="lbl">Concreto (m³ por metro)</div></div>
+      <div class="result-metric"><div class="val">${f(r.vol_tot,2)}</div><div class="lbl">Concreto total para ${f(r.Lm,1)} m (m³)</div></div>
+      <div class="result-metric"><div class="val">${r.piezas} pzas · ${r.tarimas} tarima(s)</div><div class="lbl">Canal: ${f(r.kg_tot,1)} kg sin rejillas</div></div>
+    </div>
+    <ul style="margin:8px 0 0 18px;font-size:13px;line-height:1.5">
+      <li>Concreto fluido S4 (revenimiento 16–21 cm) con superplastificante, agregado máx. 15–18 mm. ${r.e.ref ? '<strong>Acero de refuerzo obligatorio en D400.</strong>' : ''}</li>
+      <li>Empieza desde el registro de salida; sella el machihembrado con sellador bituminoso; coloca y atornilla las rejillas antes de colar.</li>
+      <li>Acabado final 3–5 mm arriba de la rejilla. Volumen calculado hasta el borde superior del canal; resta el pavimento si ocupa esa altura y suma 5–10 % de desperdicio.</li>
+      <li>📦 Objeto BIM IFC4 (LOD 200): <a href="assets/bim/${r.d.ifc}" download>${r.d.ifc}</a> · <a href="assets/bim/ASSUR_TECHNODRAIN_EVO_biblioteca_completa.ifc" download>biblioteca EVO completa</a></li>
+    </ul>`;
 }
 
 // =============================================================
@@ -4552,6 +4651,18 @@ function generarPDF() {
       ['Clase de carga', c.sel.carga],
       ['Uso recomendado', c.sel.uso]
     ];
+    if(c.diseno) {
+      const r = c.diseno;
+      rows2.push(
+        ['Clase requerida / rejilla', r.clase + ' · ' + M2_REJILLAS[r.clase]],
+        ['Código / medida exterior', r.d.cod + ' · ' + r.d.Lext + '×' + r.d.Hext + ' mm'],
+        ['Peso canal / salidas', r.d.kg + ' kg/pza · D1 ' + r.d.D1 + ' · D2 ' + r.d.D2],
+        ['Envolvente S / R', r.e.S + ' / ' + r.e.R + ' mm · f\'c ' + r.e.fc + ' kg/cm² (' + r.e.cls + ')' + (r.e.ref ? ' + acero' : '')],
+        ['Zanja ancho × profundidad', (r.anchoZ/10).toFixed(1) + ' × ' + (r.profZ/10).toFixed(1) + ' cm'],
+        ['Concreto', r.vol_m.toFixed(3) + ' m³/m · ' + r.vol_tot.toFixed(2) + ' m³ en ' + r.Lm + ' m'],
+        ['Piezas / tarimas', r.piezas + ' pzas · ' + r.tarimas + ' tarima(s)']
+      );
+    }
     y = pdfTable(doc, rows2, y, W, M, INK);
     y += 4;
   }
