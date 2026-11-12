@@ -2,12 +2,23 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {execFileSync} = require('node:child_process');
+const {gunzipSync} = require('node:zlib');
+const {createHash} = require('node:crypto');
 const {JSDOM, VirtualConsole} = require('jsdom');
 const root = path.resolve(__dirname, '..');
 const current = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const previous = execFileSync('git', ['show', '26ecc91ef16f7bca9e625fff1425a2f1d89129a3:index.html'],
-  {cwd:root, encoding:'utf8', maxBuffer:20e6});
+const fixture = require('./fixtures/m9-pr5-26ecc91.json');
+const previousBytes = gunzipSync(fs.readFileSync(path.join(__dirname, 'fixtures', fixture.file)));
+const fixtureHash = createHash('sha256').update(previousBytes).digest('hex');
+// Fallar antes de ejecutar una referencia alterada; no requiere Git ni red.
+assert.equal(fixtureHash,fixture.sha256,'La fixture histórica debe conservar su SHA-256');
+const previous = previousBytes.toString('utf8');
+
+test('La referencia histórica es autocontenida y conserva su integridad', () => {
+  assert.equal(previousBytes.length,fixture.bytes);
+  assert.equal(fixtureHash,fixture.sha256);
+  assert.equal(fixture.commit,'26ecc91ef16f7bca9e625fff1425a2f1d89129a3');
+});
 
 function app(html = current) {
   const errors = [], vc = new VirtualConsole();
