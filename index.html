@@ -1772,9 +1772,9 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
           <!-- ══ Verificación contractual de f'c del tubo — N·CMT·3·02/04 ══ -->
           <div style="margin-top:12px">
-            <label style="font-weight:700">f'c máximo especificado en proyecto (kg/cm²) <span style="font-size:.68rem;color:#64748b;font-weight:400">(N·CMT·3·02/04 — calidad del tubo contratado)</span></label>
+            <label style="font-weight:700">f'c de referencia contractual (kg/cm²) <span style="font-size:.68rem;color:#64748b;font-weight:400">(comparación numérica; no certifica el contrato)</span></label>
             <input type="number" id="m9-fc-max" value="0" min="0" max="600" step="10" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
-            <div style="font-size:.68rem;color:#64748b;margin-top:3px">Deja <b>0</b> para no verificar. Si el Grado NMX resultante exige un f'c mayor al especificado, el módulo lo marca como <b>no conforme</b> (requiere concepto extraordinario). Ejemplo: especificaciones particulares SICT que contratan tubo de f'c 280–350 kg/cm².</div>
+            <div style="font-size:.68rem;color:#64748b;margin-top:3px">Deja <b>0</b> para no comparar. Se convierte MPa a kg/cm² sin tolerancia contractual automática. Revisa si el contrato establece resistencia mínima, máxima, equivalencia comercial o un concepto específico; la comparación no autoriza precios ni certifica conformidad.</div>
           </div>
 
 
@@ -2508,7 +2508,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <div style="font-weight:800;font-size:.86rem;color:#1d4ed8;margin-bottom:9px">✅ Verificación de cumplimiento normativo SICT</div>
       <div id="m9-sict-check-list" style="font-size:.76rem;line-height:1.55"></div>
       <div style="font-size:.65rem;color:#64748b;margin-top:9px;padding-top:7px;border-top:1px solid #e2e8f0;line-height:1.5">
-        <b>Normas verificadas:</b> N·CTR·CAR·1·03·002/20 (alcantarillas de tubos de concreto) · N·CTR·CAR·1·01·007/11 (excavación para estructuras) · N·CTR·CAR·1·01·011/20 (rellenos) · N·CMT·4·02·001 (materiales para subbases) · N·CMT·1·03 (materiales para subrasante) · N·CMT·3·02/04 (calidad de tubos de concreto) · N·PRY·CAR·6·01·003 (cargas y acciones) · M·MMP·1·02/03 (clasificación de fragmentos de roca y suelos).
+        <b>Revisiones automáticas parciales y referencias constructivas:</b> N·CTR·CAR·1·03·002/20 (alcantarillas de tubos de concreto) · N·CTR·CAR·1·01·007/11 (excavación para estructuras) · N·CTR·CAR·1·01·011/20 (rellenos) · N·CMT·4·02·001 (materiales para subbases) · N·CMT·1·03 (materiales para subrasante) · N·CMT·3·02/04 (calidad de tubos de concreto) · N·PRY·CAR·6·01·003 (cargas y acciones) · M·MMP·1·02/03 (clasificación de fragmentos de roca y suelos). No se verifican ensayos de laboratorio ni la conformidad integral del proyecto o contrato.
       </div>
     </div>
 
@@ -2804,6 +2804,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <div class="result-metric"><div class="val" id="rep-m9-grado">—</div><div class="lbl">Grado NMX-C-402</div></div>
       </div>
       <div id="rep-m9-badge" style="margin-top:8px"></div>
+      <div id="rep-m9-sict" style="margin-top:10px;font-size:.78rem;line-height:1.5;overflow-wrap:anywhere"></div>
     </div>
 
     <!-- Módulo 8 Verificación de Instalación en Reporte -->
@@ -4320,6 +4321,7 @@ function actualizarReporte() {
     var m9BadgeElEmpty = document.getElementById('rep-m9-badge');
     if (m9BadgeElEmpty) m9BadgeElEmpty.innerHTML = '';
   }
+  m9RenderReporteSICT(STATE.m9);
 
   // Módulo 8 — Verificación de Instalación en Reporte
   if (STATE.instalacion) {
@@ -4868,6 +4870,7 @@ function generarPDF() {
       ['Verificación NMX-C-402', m9p.disenioEspecial ? 'DISEÑO ESPECIAL (NMX-C-401 Sec.7)' : 'CUMPLE catálogo estándar']
     ];
     y = pdfTable(doc, rowsM9, y, W, M, INK);
+    y = pdfM9SICT(doc, m9p, y + 4, W, M, INK);
     y += 4;
   }
 
@@ -5849,7 +5852,6 @@ var M9_SICT = {
   chaflan:       0.20,  // G.4.3 — sección triangular 20 × 20 cm, mortero cemento-arena 1:3
   sueloCemEsp:   0.40,  // G.6 — espesor de la protección de suelo-cemento
   capaLateral:   0.15,  // G.5.1 — relleno lateral en capas de 15 cm
-  capaCiment:    0.20,  // Capa de cimentación en suelo CH/MH (20 cm, material subrasante)
   relleCompact:  90,    // N·CTR·CAR·1·01·011/20 G.2.4 — 90 % mín. AASHTO estándar
   tolExcav:      0.10   // N·CTR·CAR·1·01·007/11 — tolerancia ±10 cm en paredes-molde
 };
@@ -6110,7 +6112,8 @@ function m9CheckAcpaMismatch() {
   }
 }
 
-function m9SyncTrafico() {
+// Actualiza únicamente el preset IMT; no llama calcM9 ni altera carga personalizada.
+function m9ActualizarPresetIMT() {
   var sel = document.getElementById('m9-trafico');
   var inp = document.getElementById('m9-q-traf');
   if(!sel || !inp) return;
@@ -6120,13 +6123,20 @@ function m9SyncTrafico() {
     // distribuida tabulada. El valor conservador se calcula como la envolvente
     // del modelo al colchón mínimo normativo de 1 m (N·CTR·CAR·1·03·002/20 G.5.2).
     var dn = parseFloat((document.getElementById('m9-dn') || {}).value) || 610;
-    var ep = parseFloat((document.getElementById('m9-espesor') || {}).value) ||
+    var campo = parseFloat((document.getElementById('m9-espesor') || {}).value);
+    // Mismo espesor efectivo que calcM9, incluso con captura decimal.
+    var ep = Number.isFinite(campo) && campo > 0 ? Math.round(campo) :
              (M9_PARED_B[dn] || Math.round(dn * 0.095));
     var env = m9CalcLRFD_IMT(M9_IMT_H_REF, dn, ep, v);
     if(env) inp.value = env.qL.toFixed(1);
-  } else if(v !== 'custom') {
-    inp.value = v;
   }
+}
+
+function m9SyncTrafico() {
+  var sel = document.getElementById('m9-trafico');
+  var inp = document.getElementById('m9-q-traf');
+  if(!sel || !inp) return;
+  if(sel.value !== 'custom' && !M9_IMT_MODELOS[sel.value]) inp.value = sel.value;
   m9UpdateIMTInfo();
   calcM9();
 }
@@ -6522,14 +6532,28 @@ function m9UpdateLRFDBadge(hr, qTraf, traficoTipo) {
 // normas SICT aplicables y pinta un checklist con semáforo. NO modifica el
 // cálculo estructural: solo verifica y reporta.
 // ══════════════════════════════════════════════════════════════
+// SUCS clasifica el suelo; no sustituye el estudio geotécnico ni define plantilla.
+// N·CTR·CAR·1·03·002/20 G.3 remite espesor/material/compactación al proyecto.
+function m9EvaluarSuelo(suelo) {
+  var s = M9_SUCS[suelo] || M9_SUCS.SC;
+  var inicio = suelo + ' - ' + s.n + ': ';
+  var base = 'El proyecto o la aprobación de la Secretaría debe definir espesor, materiales, compactación y nivel de la plantilla (N·CTR·CAR·1·03·002/20 G.3). No se deducen 20 cm ni 95 % universales del grupo SUCS.';
+  if(suelo === 'Pt') return {estado:'bad', texto:inicio + 'turba: requiere evaluación geotécnica y solución de sustitución o mejoramiento antes de definir el apoyo. ' + base};
+  if(s.altaComp || s.org) return {estado:'warn', texto:inicio + (s.org ? 'suelo orgánico' : 'suelo de alta compresibilidad') + '; verificar asentamientos y necesidad de sustitución o mejoramiento con el laboratorio y el proyectista. ' + base};
+  return {estado:'info', texto:inicio + 'la clasificación por sí sola no acredita capacidad portante ni exime de cimentación adicional. ' + base};
+}
+
 function m9VerificarSICT(ctx) {
   var listEl = document.getElementById('m9-sict-check-list');
   if(!listEl) return null;
 
-  var rows = [], nOk = 0, nWarn = 0, nBad = 0;
+  var rows = [], items = [], nOk = 0, nWarn = 0, nBad = 0;
 
   // add(estado, norma, clausula, texto)  estado: 'ok' | 'warn' | 'bad' | 'info'
   function add(estado, norma, clausula, texto) {
+    var plano = document.createElement('div');
+    plano.innerHTML = texto;
+    items.push({estado:estado, norma:norma, clausula:clausula, texto:plano.textContent});
     if(estado === 'ok')   nOk++;
     if(estado === 'warn') nWarn++;
     if(estado === 'bad')  nBad++;
@@ -6548,7 +6572,6 @@ function m9VerificarSICT(ctx) {
   var N007 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b701\u00b7007/11';
   var N011 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b701\u00b7011/20';
   var C402 = 'N\u00b7CMT\u00b74\u00b702\u00b7001';
-  var C103 = 'N\u00b7CMT\u00b71\u00b703';
   var C302 = 'N\u00b7CMT\u00b73\u00b702/04';
   var PRY  = 'N\u00b7PRY\u00b7CAR\u00b76\u00b701\u00b7003';
   var MMP  = 'M\u00b7MMP\u00b71\u00b702/03';
@@ -6607,38 +6630,12 @@ function m9VerificarSICT(ctx) {
     'durante los trabajos.');
 
   // ── 5. Suelo de desplante — M·MMP·1·02 + capa de cimentación
-  var s = M9_SUCS[ctx.suelo] || M9_SUCS['SC'];
-  if(ctx.suelo === 'Pt') {
-    add('bad', MMP, 'Turba',
-      'Suelo de desplante <b>Pt \u2014 ' + s.n + '</b>: <b>no apto</b> como apoyo. Debe removerse en todo el ancho ' +
-      'y sustituirse por material controlado antes de desplantar la plantilla; con turba el factor de ' +
-      'encamado B\u2093 real es indeterminado.');
-  } else if(s.altaComp) {
-    add('warn', MMP + ' + ' + N002, 'G.3',
-      'Suelo de desplante <b>' + ctx.suelo + ' \u2014 ' + s.n + '</b> (\u03c9<sub>L</sub> &gt; 50 %). Requiere ' +
-      '<b>profundizar 20 cm adicionales en todo el ancho</b> y colocar una <b>capa de cimentaci\u00f3n de 20 cm</b> ' +
-      'con material para subrasante, sobre la cual se desplanta la plantilla de apoyo.');
-    add('info', C103, 'Tabla 1',
-      'Material de la capa de cimentaci\u00f3n (subrasante): tama\u00f1o m\u00e1ximo <b>76 mm</b>, l\u00edmite l\u00edquido ' +
-      '<b>\u2264 40 %</b>, \u00edndice pl\u00e1stico <b>\u2264 12 %</b>, CBR <b>\u2265 20 %</b>, expansi\u00f3n <b>\u2264 2 %</b>, ' +
-      'compactado al <b>100 \u00b1 2 %</b> de la masa volum\u00e9trica seca m\u00e1xima AASHTO est\u00e1ndar.');
-  } else if(s.org) {
-    add('warn', MMP, 'Suelo org\u00e1nico',
-      'Suelo de desplante <b>' + ctx.suelo + ' \u2014 ' + s.n + '</b>: material org\u00e1nico, apoyo ' + s.apto +
-      '. Verifica con el laboratorio de obra si procede sustituirlo o interponer capa de cimentaci\u00f3n.');
-  } else {
-    add('ok', MMP, 'SUCS',
-      'Suelo de desplante <b>' + ctx.suelo + ' \u2014 ' + s.n + '</b>: apoyo ' + s.apto +
-      ', sin requisito de capa de cimentaci\u00f3n adicional. Compactar el fondo antes de la plantilla.');
-  }
+  var sueloRevision = m9EvaluarSuelo(ctx.suelo);
+  add(sueloRevision.estado, MMP + ' + ' + N002, 'SUCS / G.3', sueloRevision.texto);
 
   // ── 6. Plantilla de apoyo — G.3 + N·CMT·4·02·001
   add('info', N002 + ' + ' + C402, 'G.3 / Tabla 1\u20132',
-    'Plantilla de apoyo con geometr\u00eda similar al tubo, espesor y grado de compactaci\u00f3n de proyecto ' +
-    '(usual 15 cm). Material para subbase: <b>100 % de compactaci\u00f3n AASHTO modificada</b>, l\u00edmite l\u00edquido ' +
-    '<b>\u2264 30 %</b> (\u2264 25 % si \u03a3L &gt; 10\u2076), \u00edndice pl\u00e1stico <b>\u2264 10 %</b> (\u2264 6 %), ' +
-    'CBR <b>\u2265 50 %</b> (\u2265 60 %), equivalente de arena <b>\u2265 30 %</b> (\u2265 40 %), ' +
-    'desgaste Los \u00c1ngeles <b>\u2264 50 %</b> (\u2264 40 %) y tama\u00f1o m\u00e1ximo de part\u00edcula \u2264 25 % del espesor.');
+    'Plantilla de apoyo con geometría similar al tubo. El espesor, materiales, compactación y nivel serán los indicados en el proyecto o aprobados por la Secretaría. Si el proyecto especifica material para subbase, comprobar la edición, categoría y ensayos aplicables; este módulo no recibe resultados de laboratorio.');
 
   // ── 7. Relleno — N·CTR·CAR·1·01·011/20
   if(ctx.Fa >= 3.0) {
@@ -6660,7 +6657,7 @@ function m9VerificarSICT(ctx) {
     add('ok', PRY, 'Modelo ' + mm.label,
       'Carga viva del <b>veh\u00edculo de proyecto mexicano ' + mm.label + '</b> (carreteras tipo ' + mm.carr + '), ' +
       'grupo cr\u00edtico <b>' + mm.grupo + '</b> para claro &lt; 30 m.' +
-      (ctx.lrfd ? ' Gobierna la condici\u00f3n de <b>' + (ctx.lrfd.gobierna === 'grupo' ? 'grupo de ejes' : 'eje aislado') +
+      (ctx.lrfd ? ' Comparativa LRFD a cobertura real (se aplica solo con el modo activo). Gobierna la condición de <b>' + (ctx.lrfd.gobierna === 'grupo' ? 'grupo de ejes' : 'eje aislado') +
         '</b>: q<sub>L</sub>(eje) = ' + ctx.lrfd.qL_eje.toFixed(2) + ' kN/m vs q<sub>L</sub>(grupo) = ' +
         ctx.lrfd.qL_grupo.toFixed(2) + ' kN/m.' : ''));
   } else if(ctx.qTraf > 0 && (ctx.traficoTipo === '48' || ctx.traficoTipo === '96' || ctx.traficoTipo === '120')) {
@@ -6680,7 +6677,9 @@ function m9VerificarSICT(ctx) {
   }
 
   // ── 9. Calidad del tubo / f'c contratado — N·CMT·3·02/04
-  if(!ctx.grado) {
+  if(ctx.tipoTubo === 'simple') {
+    add('info', C302, 'Alcance', 'La comparación de resistencia del Grado NMX-C-402 no aplica al tubo simple NMX-C-401. Revisar su especificación por separado.');
+  } else if(!ctx.grado) {
     add('bad', C302, 'Clases 1\u20134',
       'El dise\u00f1o excede el cat\u00e1logo: <b>ninguna Clase SCT (1\u20134) cubre q<sub>calc</sub> = ' +
       ctx.qCalc.toFixed(1) + ' N/m/mm</b>. Requiere dise\u00f1o especial, mejorar el encamado o cambiar de ' +
@@ -6688,28 +6687,15 @@ function m9VerificarSICT(ctx) {
   } else {
     var fcKg = ctx.fcMPa * 10.1972;
     if(ctx.fcMax > 0) {
-      // Tolerancia del 2 %: la NMX-C-402 tabula f'c en MPa y las especificaciones
-      // mexicanas en kg/cm\u00b2. El Grado 3 (34,5 MPa = 351,8 kg/cm\u00b2) corresponde en la
-      // pr\u00e1ctica al tubo comercial de "350 kg/cm\u00b2", as\u00ed que una diferencia de redondeo
-      // entre sistemas de unidades no debe reportarse como incumplimiento contractual.
-      var tolFc = ctx.fcMax * 0.02;
-      if(fcKg <= ctx.fcMax + tolFc) {
-        add('ok', C302, 'Clase ' + ctx.grado,
-          'Clase ' + ctx.grado + ' SCT \u2261 Grado ' + ctx.grado + ' NMX-C-402 requiere <b>f\'c = ' +
-          ctx.fcMPa.toFixed(1) + ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>, dentro del f\'c ' +
-          'especificado en proyecto (' + ctx.fcMax.toFixed(0) + ' kg/cm\u00b2, tolerancia \u00b12 % por redondeo MPa\u2194kg/cm\u00b2). <b>Conforme al concepto contratado.</b>');
-      } else {
-        add('bad', C302, 'Clase ' + ctx.grado,
-          '<b>NO CONFORME:</b> Clase ' + ctx.grado + ' SCT requiere <b>f\'c = ' + ctx.fcMPa.toFixed(1) +
-          ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>, superior al <b>f\'c ' + ctx.fcMax.toFixed(0) +
-          ' kg/cm\u00b2</b> especificado en proyecto. Este tubo <b>no est\u00e1 cubierto por el precio unitario ' +
-          'contratado</b>: requiere concepto extraordinario, o mejorar el encamado (sube B\u2093) para bajar de Clase.');
-      }
+      var supera = fcKg > ctx.fcMax;
+      add(supera ? 'warn' : 'info', C302, 'Comparación numérica',
+        'Grado ' + ctx.grado + ': f\'c = ' + ctx.fcMPa.toFixed(1) + ' MPa = ' + fcKg.toFixed(2) +
+        ' kg/cm², ' + (supera ? 'superior' : 'no superior') + ' a la referencia capturada de ' +
+        ctx.fcMax.toFixed(2) + ' kg/cm². Sin tolerancia contractual automática. Confirmar unidades, carácter mínimo/máximo y aceptación documental con el proyectista; no certifica conformidad ni cobertura del precio contratado.');
     } else {
       add('info', C302, 'Clase ' + ctx.grado,
         'Clase ' + ctx.grado + ' SCT \u2261 Grado ' + ctx.grado + ' NMX-C-402, <b>f\'c = ' + ctx.fcMPa.toFixed(1) +
-        ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>. Captura el f\'c m\u00e1ximo del proyecto para verificar ' +
-        'la conformidad con el concepto contratado.');
+        ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>. Sin referencia contractual capturada; no se evalúa conformidad con el contrato.');
     }
   }
 
@@ -6729,14 +6715,75 @@ function m9VerificarSICT(ctx) {
       ? '\u274c ' + nBad + ' incumplimiento(s) normativo(s) detectado(s)'
       : estadoGlobal === 'warn'
       ? '\u26a0\ufe0f ' + nWarn + ' punto(s) por revisar antes de construir'
-      : '\u2705 Sin incumplimientos detectados en las verificaciones autom\u00e1ticas';
+      : 'Sin alertas en las comparaciones disponibles; no certifica cumplimiento integral';
   var header =
     '<div style="background:' + resumenBg + ';color:' + resumenCol +
     ';border-radius:6px;padding:7px 10px;margin-bottom:8px;font-weight:800;font-size:.79rem;text-align:center">' +
     resumenTxt + '</div>';
 
   listEl.innerHTML = header + rows.join('');
-  return { ok:nOk, warn:nWarn, bad:nBad, estado:estadoGlobal };
+  return { ok:nOk, warn:nWarn, bad:nBad, estado:estadoGlobal, resumen:resumenTxt, items:items };
+}
+
+// La misma instantánea STATE alimenta pantalla y PDF, sin recalcular el diseño.
+function m9FilasTrazabilidad(m9) {
+  return [
+    ['Alcance', 'Revisiones automáticas parciales. No certifica proyecto, laboratorio ni contrato.'],
+    ['Modelo de carga', m9.modeloIMT || m9.traficoTipo || 'Sin modelo'],
+    ['Modo', m9.useLRFD ? 'LRFD a cobertura real' : 'Conservador (IMT: referencia a 1 m)'],
+    ['Geometría', 'DN ' + m9.DN + ' mm; espesor ' + m9.espesor + ' mm; cobertura ' + m9.hr + ' m'],
+    ['Carga viva', 'Preset ' + m9.qTrafPreset.toFixed(1) + '; efectiva ' + m9.qTrafEfectiva.toFixed(2) + ' kN/m'],
+    ['Suelo de desplante', m9.suelo],
+    ['Referencia contractual', m9.fcMax > 0 ? m9.fcMax + ' kg/cm²; sin tolerancia automática' : 'No capturada'],
+    ['Resumen SICT', m9.sict.resumen]
+  ];
+}
+
+function m9RenderReporteSICT(m9) {
+  var wrap = document.getElementById('rep-m9-sict');
+  if(!wrap) return;
+  wrap.replaceChildren();
+  if(!m9 || !m9.sict) return;
+  var textos = m9FilasTrazabilidad(m9).map(function(r){ return r[0] + ': ' + r[1]; });
+  m9.sict.items.forEach(function(item) {
+    textos.push('[' + item.estado + '] ' + item.texto + ' (' + item.norma + '; ' + item.clausula + ')');
+  });
+  textos.forEach(function(texto) {
+    var p = document.createElement('p');
+    p.style.marginBottom = '6px';
+    p.textContent = texto;
+    wrap.appendChild(p);
+  });
+}
+
+// pdfTable tiene celdas de altura fija: no se usa para advertencias multilínea.
+function pdfM9SICT(doc, m9, y, W, M, INK) {
+  if(!m9.sict) return y;
+  var textos = ['M9 - Trazabilidad y advertencias SICT'];
+  m9FilasTrazabilidad(m9).forEach(function(r) { textos.push(r[0] + ': ' + r[1]); });
+  m9.sict.items.forEach(function(item) {
+    textos.push('[' + item.estado + '] ' + item.texto + ' (' + item.norma + '; ' + item.clausula + ')');
+  });
+  textos.push('Referencia de plantilla G.3: https://normas.imt.mx/storage/normativa/N-CTR-CAR-1-03-002-20.pdf');
+  doc.setTextColor(...INK);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  textos.forEach(function(texto) {
+    // Helvetica no soporta todos los símbolos técnicos; conservar unidades legibles.
+    var plano = texto.replace(/[✅❌⚠️]/gu, '').replace(/ₓ/g, 'x').replace(/≥/g, '>=')
+      .replace(/≤/g, '<=').replace(/≡/g, '=').replace(/→/g, '->').replace(/×/g, 'x')
+      .replace(/γ/g, 'gamma').replace(/ω/g, 'w').replace(/Σ/g, 'Sigma').replace(/⁶/g, '^6');
+    var lineas = doc.splitTextToSize(plano, W - 2 * M - 6);
+    lineas.forEach(function(linea) {
+      if(y > 268) { doc.addPage(); y = 20; }
+      if(texto.indexOf('Referencia de plantilla G.3:') === 0 && doc.textWithLink) {
+        doc.textWithLink(linea, M + 3, y, {url:'https://normas.imt.mx/storage/normativa/N-CTR-CAR-1-03-002-20.pdf'});
+      } else doc.text(linea, M + 3, y);
+      y += 4.2;
+    });
+    y += 2;
+  });
+  return y;
 }
 
 // ── ASISTENTE: sugiere encamado mínimo para Grado 1 ─────────────────────────
@@ -6872,6 +6919,8 @@ function m9TipoTuboChange() {
 }
 
 function calcM9() {
+  // Refrescar antes de leer qTraf: cubre DN, espesor, modelo y llamadas programáticas.
+  m9ActualizarPresetIMT();
   if(typeof m9CheckAcpaMismatch === 'function') m9CheckAcpaMismatch();
   var DN     = parseFloat(document.getElementById('m9-dn').value)   || 610;
   var e      = parseFloat(document.getElementById('m9-espesor').value) || 75;
@@ -7178,18 +7227,12 @@ function calcM9() {
   var sueloEl  = document.getElementById('m9-suelo-fondo');
   var sueloKey = sueloEl ? sueloEl.value : 'SC';
   var sueloInf = document.getElementById('m9-suelo-info');
-  var sDat     = M9_SUCS[sueloKey] || M9_SUCS['SC'];
   if(sueloInf) {
-    if(sueloKey === 'Pt') {
-      sueloInf.style.background = '#fee2e2'; sueloInf.style.borderColor = '#fca5a5'; sueloInf.style.color = '#7f1d1d';
-      sueloInf.innerHTML = '<b>' + sueloKey + ' \u2014 ' + sDat.n + '</b>: no apto como apoyo. Remover y sustituir en todo el ancho de la excavaci\u00f3n.';
-    } else if(sDat.altaComp) {
-      sueloInf.style.background = '#fef9c3'; sueloInf.style.borderColor = '#fde68a'; sueloInf.style.color = '#713f12';
-      sueloInf.innerHTML = '<b>' + sueloKey + ' \u2014 ' + sDat.n + '</b> (\u03c9<sub>L</sub> &gt; 50 %): profundizar <b>+20 cm</b> y colocar <b>capa de cimentaci\u00f3n de 20 cm</b> de material para subrasante (N\u00b7CMT\u00b71\u00b703) al 100 \u00b1 2 % AASHTO est\u00e1ndar, antes de la plantilla.';
-    } else {
-      sueloInf.style.background = '#f0fdf4'; sueloInf.style.borderColor = '#86efac'; sueloInf.style.color = '#14532d';
-      sueloInf.innerHTML = '<b>' + sueloKey + ' \u2014 ' + sDat.n + '</b>: apoyo ' + sDat.apto + '. Sin capa de cimentaci\u00f3n adicional; compactar el fondo al 95 % AASHTO est\u00e1ndar antes de la plantilla.';
-    }
+    var sueloRevision = m9EvaluarSuelo(sueloKey);
+    var colores = sueloRevision.estado === 'bad' ? ['#fee2e2','#fca5a5','#7f1d1d'] :
+                  sueloRevision.estado === 'warn' ? ['#fef9c3','#fde68a','#713f12'] : ['#f8fafc','#e2e8f0','#475569'];
+    sueloInf.style.background = colores[0]; sueloInf.style.borderColor = colores[1]; sueloInf.style.color = colores[2];
+    sueloInf.textContent = sueloRevision.texto;
   }
 
   // ── Verificación de cumplimiento normativo SICT ──────────────────
@@ -7203,6 +7246,7 @@ function calcM9() {
     lrfd: lrfdDataBase,
     grado: gradoSel ? gradoSel.g : null,
     fcMPa: gradoSel ? gradoSel.fc : 0,
+    tipoTubo: tipoTuboEl ? tipoTuboEl.value : 'reforzado',
     fcMax: parseFloat((document.getElementById('m9-fc-max') || {}).value) || 0
   });
   if(STATE.m9) {
@@ -7211,6 +7255,9 @@ function calcM9() {
     STATE.m9.modeloIMT  = esIMT ? M9_IMT_MODELOS[traficoTipo].label : null;
     STATE.m9.fcMax      = parseFloat((document.getElementById('m9-fc-max') || {}).value) || 0;
     STATE.m9.sict       = sictRes;
+    STATE.m9.espesor    = e_pared;
+    STATE.m9.qTrafPreset = qTraf;
+    STATE.m9.qTrafEfectiva = qTrafEfectiva;
   }
 
   // ── Asistente de optimización: sugerir encamado ──────────────────
