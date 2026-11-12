@@ -1682,7 +1682,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
             <!-- Cabecera toggle -->
             <div style="background:#e0f2fe;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="m9ToggleLRFD()">
-              <input type="checkbox" id="m9-lrfd-toggle" style="width:16px;height:16px;accent-color:#01696f;cursor:pointer;flex-shrink:0" onchange="calcM9()">
+              <input type="checkbox" id="m9-lrfd-toggle" aria-label="Activar modo LRFD" style="width:16px;height:16px;accent-color:#01696f;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation()" onchange="calcM9()">
               <div style="flex:1">
                 <div style="font-size:.84rem;font-weight:700;color:#0c4a6e">Modo LRFD — Atenuación AASHTO 12.10.4.3</div>
                 <div id="m9-lrfd-hint" style="font-size:.7rem;color:#0369a1;margin-top:1px">
