@@ -101,6 +101,96 @@ test('IMT con LRFD usa la cobertura real, no el preset de referencia', () => {
   a.close();
 });
 
+function comprobarModoReportado(a, seleccionado, aplicado, modo) {
+  const r=state(a);
+  assert.equal(r.useLRFD,seleccionado,'El checkbox conserva la selección');
+  assert.equal(r.lrfdAplicado,aplicado,'El estado distingue la aplicación efectiva');
+  assert.equal(a.w.m9FilasTrazabilidad(r).find(f=>f[0]==='Modo')[1],modo);
+  a.w.actualizarReporte();
+  assert.ok(a.w.document.getElementById('rep-m9-sict').textContent.includes('Modo: '+modo));
+  const lines=[];
+  const doc={setTextColor(){},setFont(){},setFontSize(){},addPage(){},
+    splitTextToSize(t){return [t];},text(t){lines.push(t);}};
+  a.w.pdfM9SICT(doc,r,20,210,15,[0,0,0]);
+  assert.ok(lines.includes('Modo: '+modo),'La trazabilidad PDF coincide con la pantalla');
+  // Evaluar las filas reales del exportador, no una copia de su condición.
+  const filas=current.match(/var rowsM9 = (\[[\s\S]*?\n    \]);/);
+  assert.ok(filas,'La tabla M9 debe existir en generarPDF');
+  const rows=a.w.eval('(function(m9p){return '+filas[1]+';})(STATE.m9)');
+  assert.equal(rows.find(f=>f[0]==='Modo LRFD aplicado')[1],aplicado?'Sí':'No');
+  assert.deepEqual(a.errors,[]);
+}
+
+for(const modelo of ['50','80','0']) {
+  for(const seleccionado of [false,true]) {
+    test('Modo reportado '+modelo+': LRFD seleccionado='+seleccionado+' pero no aplicado',()=>{
+      const a=app();
+      try {
+        scenario(a,modelo,1070,3);
+        const antes=state(a);
+        a.w.document.getElementById('m9-lrfd-toggle').checked=seleccionado;
+        a.w.calcM9();
+        comprobarModoReportado(a,seleccionado,false,seleccionado
+          ? 'LRFD seleccionado, no aplicable a esta carga'
+          : 'Conservador (sin LRFD)');
+        const despues=state(a);
+        for(const key of ['qTrafPreset','qTrafEfectiva','qCalc','qTotal','qr','grado'])
+          assert.equal(despues[key],antes[key],key+' no cambia sin aplicación LRFD');
+      } finally { a.close(); }
+    });
+  }
+}
+
+for(const modelo of ['imt665','imt665c','imt205','96','custom']) {
+  for(const seleccionado of [false,true]) {
+    test('Modo reportado '+modelo+': LRFD aplicado solo con selección activa='+seleccionado,()=>{
+      const a=app();
+      try {
+        scenario(a,modelo,1070,3);
+        if(modelo==='custom') {set(a,'m9-q-traf',77.7); a.w.calcM9();}
+        a.w.document.getElementById('m9-lrfd-toggle').checked=seleccionado;
+        a.w.calcM9();
+        comprobarModoReportado(a,seleccionado,seleccionado,seleccionado
+          ? 'LRFD a cobertura real'
+          : modelo.startsWith('imt') ? 'Conservador (IMT: referencia a 1 m)'
+          : 'Conservador (sin LRFD)');
+        const r=state(a);
+        const carga=seleccionado ? (modelo.startsWith('imt')
+          ? a.w.m9CalcLRFD_IMT(3,1070,r.espesor,modelo).qL
+          : a.w.calcLRFD_qL(3,1070,r.espesor,142.3).qL) : r.qTrafPreset;
+        assert.equal(r.qTrafEfectiva,carga,'La carga efectiva corresponde al modo aplicado');
+      } finally { a.close(); }
+    });
+  }
+}
+
+test('Cambio IMT → FAA → IMT no deja el modo reportado obsoleto',()=>{
+  const a=app();
+  try {
+    scenario(a,'imt665',1070,3);
+    a.w.document.getElementById('m9-lrfd-toggle').checked=true;
+    a.w.calcM9();
+    comprobarModoReportado(a,true,true,'LRFD a cobertura real');
+    set(a,'m9-trafico','50'); a.w.m9SyncTrafico();
+    comprobarModoReportado(a,true,false,'LRFD seleccionado, no aplicable a esta carga');
+    set(a,'m9-trafico','imt665'); a.w.m9SyncTrafico();
+    comprobarModoReportado(a,true,true,'LRFD a cobertura real');
+    a.w.document.getElementById('m9-lrfd-toggle').checked=false; a.w.calcM9();
+    comprobarModoReportado(a,false,false,'Conservador (IMT: referencia a 1 m)');
+  } finally { a.close(); }
+});
+
+test('Carga personalizada cero con LRFD seleccionado no se reporta como aplicado',()=>{
+  const a=app();
+  try {
+    scenario(a,'custom',1070,3);
+    set(a,'m9-q-traf',0);
+    a.w.document.getElementById('m9-lrfd-toggle').checked=true; a.w.calcM9();
+    comprobarModoReportado(a,true,false,'LRFD seleccionado, no aplicable a esta carga');
+    assert.equal(state(a).qTrafEfectiva,0);
+  } finally { a.close(); }
+});
+
 for(const suelo of ['CH','MH','OH','OL','Pt','SC']) {
   test('Suelo '+suelo+': ayuda y checklist comparten la misma evaluación', () => {
     const a=app(); scenario(a); set(a,'m9-suelo-fondo',suelo); a.w.calcM9();

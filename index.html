@@ -4862,7 +4862,7 @@ function generarPDF() {
       ['Carga de relleno qr', m9p.qr.toFixed(2) + ' kN/m'],
       ['Carga total q_total', m9p.qTotal.toFixed(2) + ' kN/m'],
       ['Momento de diseño q_calc', m9p.qCalc.toFixed(2) + ' N/m/mm'],
-      ['Modo LRFD activo', m9p.useLRFD ? 'Sí' : 'No'],
+      ['Modo LRFD aplicado', m9p.lrfdAplicado ? 'Sí' : 'No'],
       ['Grado NMX-C-402', m9p.disenioEspecial ? 'Fuera de catálogo — DISEÑO ESPECIAL' : 'Grado ' + m9p.grado],
       ['Equivalencia Clase SCT', m9p.claseSCT],
       ['Clase ASTM C76M-22A', m9p.claseASTM ? 'Clase ' + m9p.claseASTM : '—'],
@@ -6727,10 +6727,13 @@ function m9VerificarSICT(ctx) {
 
 // La misma instantánea STATE alimenta pantalla y PDF, sin recalcular el diseño.
 function m9FilasTrazabilidad(m9) {
+  var modo = m9.lrfdAplicado ? 'LRFD a cobertura real'
+    : m9.useLRFD ? 'LRFD seleccionado, no aplicable a esta carga'
+    : m9.modeloIMT ? 'Conservador (IMT: referencia a 1 m)' : 'Conservador (sin LRFD)';
   return [
     ['Alcance', 'Revisiones automáticas parciales. No certifica proyecto, laboratorio ni contrato.'],
     ['Modelo de carga', m9.modeloIMT || m9.traficoTipo || 'Sin modelo'],
-    ['Modo', m9.useLRFD ? 'LRFD a cobertura real' : 'Conservador (IMT: referencia a 1 m)'],
+    ['Modo', modo],
     ['Geometría', 'DN ' + m9.DN + ' mm; espesor ' + m9.espesor + ' mm; cobertura ' + m9.hr + ' m'],
     ['Carga viva', 'Preset ' + m9.qTrafPreset.toFixed(1) + '; efectiva ' + m9.qTrafEfectiva.toFixed(2) + ' kN/m'],
     ['Suelo de desplante', m9.suelo],
@@ -7136,6 +7139,8 @@ function calcM9() {
     disenioEspecial: !gradoSel,
     claseSCTEncamado: claseSCT_enc,
     useLRFD: useLRFD,
+    // Seleccionar el modo no implica aplicarlo (FAA, ferroviario y carga cero).
+    lrfdAplicado: !!(lrfdData && useLRFD),
     // Tipo de tubería activo (reforzado NMX-402 / simple NMX-401) y su resultado —
     // agregado en el refactor de ago-2026 para que el Reporte Global también
     // pueda reflejar el resultado de tubo simple sin refuerzo (antes solo se
