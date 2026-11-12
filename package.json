@@ -1,0 +1,13 @@
+{
+  "name": "assur-calculadora-hidraulica",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}

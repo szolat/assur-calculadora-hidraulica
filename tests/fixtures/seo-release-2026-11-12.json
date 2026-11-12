@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/szolat/assur-calculadora-hidraulica",
+  "sourceBase": "65ff146d20532a032944e33adb21e2b3ec900510",
+  "revision": "release/reportes-pdf-2026-11-12",
+  "reviewedOn": "2026-11-12",
+  "path": "index.html",
+  "algorithm": "sha256",
+  "scope": "Integración #5/#9/#10/#11 y reportes M1-M10, impresión y paginación PDF",
+  "scripts": [
+    "cdfd3db81a75ded996474bbb4bab2860374b6e8d680fb18b60dbe3f6d4810018",
+    "dd7c082b906f53e67131fb1f449c62049c281eddbb3be80ce01bab48629c2058",
+    "49f55285ae355ecebc7d06793bc5dc324c5c8aaa1c0e7c574942b9c13300f101",
+    "4f836a7500e945ad4911a52576d1804cf4883e7ef02473082f1bbfb683e208d2"
+  ],
+  "body": "4c700b985565a3936177a2eb3ef6195a72104ff812254fcb52343d1a1c4226ed"
+}

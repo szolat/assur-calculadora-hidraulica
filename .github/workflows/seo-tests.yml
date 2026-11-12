@@ -1,0 +1,32 @@
+name: SEO tests (no deploy)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-tests-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  seo-tests:
+    name: SEO / Node 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '20.20.2'
+          package-manager-cache: false
+      - name: Run portable SEO regression suite
+        run: node --test tests/seo.test.cjs

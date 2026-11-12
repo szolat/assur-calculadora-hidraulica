@@ -1,0 +1,39 @@
+name: LRFD and reports tests (no deploy)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lrfd-toggle-tests-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  lrfd-toggle-tests:
+    name: LRFD + reports / Chromium
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: qa/lrfd-toggle
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '20.20.2'
+          package-manager-cache: false
+      - name: Install isolated test dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium and runner system dependencies
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Run LRFD and M1-M10 PDF/print regression suites
+        run: npm test

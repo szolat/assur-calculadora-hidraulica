@@ -1,9 +1,37 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora Hidráulica — ASSUR MX</title>
+<title>Calculadora hidráulica de drenaje pluvial | ASSUR MX</title>
+<meta name="description" content="Calcula caudal, canales, tuberías y drenaje pluvial o sanitario. Consulta resultados por módulo y genera un reporte PDF con la Calculadora Hidráulica ASSUR.">
+<link rel="canonical" href="https://calculadora.assur.mx/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ASSUR MX">
+<meta property="og:locale" content="es_MX">
+<meta property="og:url" content="https://calculadora.assur.mx/">
+<meta property="og:title" content="Calculadora hidráulica de drenaje pluvial | ASSUR MX">
+<meta property="og:description" content="Calcula caudal, canales, tuberías y drenaje pluvial o sanitario. Consulta resultados por módulo y genera un reporte PDF con la Calculadora Hidráulica ASSUR.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "@id": "https://calculadora.assur.mx/#software",
+  "name": "Calculadora Hidráulica ASSUR",
+  "url": "https://calculadora.assur.mx/",
+  "description": "Herramienta de cálculo orientativo para drenaje pluvial y sanitario, con módulos de caudal, canales, tuberías y reporte PDF. No sustituye un proyecto ejecutivo.",
+  "applicationCategory": "EngineeringApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "Requiere JavaScript.",
+  "inLanguage": "es-MX",
+  "publisher": {
+    "@type": "Organization",
+    "name": "ASSUR MX",
+    "url": "https://www.assur.mx/"
+  },
+  "isAccessibleForFree": true
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -228,6 +256,23 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 .caudal-rec strong{color:#0A2D37}
 
 /* RESPONSIVE */
+@page { size:A4; margin:12mm; }
+@media print {
+  body{background:#fff;color:#000;min-height:0;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .hero,.tabs-nav,.contact-bar,.modal-overlay,.section,.btn{display:none!important}
+  #sec-reporte{display:block!important;padding:0;max-width:none;width:100%}
+  #sec-reporte .card{box-shadow:none;border:1px solid #ccc;padding:12px;margin-bottom:12px}
+  #sec-reporte h2,#sec-reporte h3{break-after:avoid}
+  #sec-reporte .result-metric,#sec-reporte tr{break-inside:avoid}
+  #sec-reporte .table-wrap{overflow:visible}
+  #sec-reporte table{table-layout:fixed;font-size:9pt}
+  #sec-reporte th,#sec-reporte td{overflow-wrap:anywhere;white-space:normal}
+  #sec-reporte #rep-graficas{break-inside:avoid}
+  #sec-reporte thead{display:table-header-group}
+  #sec-reporte canvas{max-width:100%!important;height:auto!important}
+  #sec-reporte .result-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #sec-reporte .result-metric .val{font-size:13pt;overflow-wrap:anywhere}
+}
 @media(max-width:600px){
   .hero{padding:18px 16px 14px}
   .section{padding:16px}
@@ -1589,6 +1634,30 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <input type="number" id="m9-b" value="1.2" min="0.4" max="8" step="0.05" oninput="calcM9()" style="flex:1;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
               <button onclick="m9SuggestB()" title="Sugerir ancho mínimo" style="padding:0 10px;border:1.5px solid var(--line);border-radius:6px;font-size:.75rem;background:#f1f5f9;color:#334155;cursor:pointer;white-space:nowrap">📐 Sugerir b</button>
             </div>
+            <div id="m9-b-sct-hint" style="font-size:.68rem;color:#64748b;margin-top:3px"></div>
+          </div>
+
+          <!-- ══ Suelo de desplante — SUCS M·MMP·1·02/03 + capa de cimentación SICT ══ -->
+          <div style="margin-bottom:10px">
+            <label>Suelo de desplante (fondo de excavación) <span style="font-size:.68rem;color:#64748b;font-weight:400">(SUCS · M·MMP·1·02/03 SICT)</span></label>
+            <select id="m9-suelo-fondo" onchange="calcM9()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:.83rem">
+              <option value="GW">GW — Grava bien graduada (Cu&gt;4, Cc 1–3, &lt;5% finos)</option>
+              <option value="GP">GP — Grava mal graduada (&lt;5% finos)</option>
+              <option value="GM">GM — Grava limosa (&gt;12% finos, fracción fina ML/MH)</option>
+              <option value="GC">GC — Grava arcillosa (&gt;12% finos, fracción fina CL/CH)</option>
+              <option value="SW">SW — Arena bien graduada (Cu&gt;6, Cc 1–3)</option>
+              <option value="SP">SP — Arena mal graduada</option>
+              <option value="SM">SM — Arena limosa</option>
+              <option value="SC" selected>SC — Arena arcillosa</option>
+              <option value="ML">ML — Limo de baja compresibilidad (zona I)</option>
+              <option value="CL">CL — Arcilla de baja compresibilidad (zona II)</option>
+              <option value="OL">OL — Limo orgánico de baja compresibilidad</option>
+              <option value="MH">MH — Limo de ALTA compresibilidad (ωL&gt;50%, zona III)</option>
+              <option value="CH">CH — Arcilla de ALTA compresibilidad (ωL&gt;50%, zona IV)</option>
+              <option value="OH">OH — Limo orgánico de ALTA compresibilidad</option>
+              <option value="Pt">Pt — Turba (suelo altamente orgánico)</option>
+            </select>
+            <div id="m9-suelo-info" style="font-size:.68rem;line-height:1.5;margin-top:4px;padding:5px 8px;border-radius:5px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569"></div>
           </div>
 
           <div style="margin-bottom:10px">
@@ -1662,10 +1731,14 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <option value="48">🚗 H-10 — vialidad ligera / autos (AASHTO H-10 · 98 kN/eje)</option>
               <option value="96" selected>🚛 H-20 — carretera estándar / camiones (AASHTO H-20 · 178 kN/eje)</option>
               <option value="120">🛣️ H-25 — carretera pesada / tráiler (AASHTO H-25 · 222 kN/eje)</option>
+              <option value="imt665">🇲🇽 IMT 66.5 — carretera ET/A/B (SICT N·PRY·CAR·6·01·003 · tridem 3×123 kN)</option>
+              <option value="imt665c">🇲🇽 IMT 66.5 Tipo C — factor 0,9 (SICT N·PRY·CAR·6·01·003 · tridem 3×110,7 kN)</option>
+              <option value="imt205">🇲🇽 IMT 20.5 — carretera tipo D / rural (SICT N·PRY·CAR·6·01·003 · tándem 2×88 kN)</option>
               <option value="50">✈️ Aeropuerto FAA — DC-9/B737 (900 kN · FAA AC 150)</option>
               <option value="80">🚂 Ferroviario Cooper E-80 (AREMA · 356 kN/eje)</option>
               <option value="custom">✏️ Personalizada</option>
             </select>
+            <div id="m9-imt-info" style="display:none;font-size:.68rem;line-height:1.5;margin-top:5px;padding:6px 9px;background:#ecfdf5;border-left:3px solid #059669;border-radius:0 5px 5px 0;color:#065f46"></div>
           </div>
 
           <div style="margin-bottom:10px">
@@ -1682,7 +1755,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
 
             <!-- Cabecera toggle -->
             <div style="background:#e0f2fe;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:pointer" onclick="m9ToggleLRFD()">
-              <input type="checkbox" id="m9-lrfd-toggle" style="width:16px;height:16px;accent-color:#01696f;cursor:pointer;flex-shrink:0" onchange="calcM9()">
+              <input type="checkbox" id="m9-lrfd-toggle" aria-label="Activar modo LRFD" style="width:16px;height:16px;accent-color:#01696f;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation()" onchange="calcM9()">
               <div style="flex:1">
                 <div style="font-size:.84rem;font-weight:700;color:#0c4a6e">Modo LRFD — Atenuación AASHTO 12.10.4.3</div>
                 <div id="m9-lrfd-hint" style="font-size:.7rem;color:#0369a1;margin-top:1px">
@@ -1755,6 +1828,13 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
               <b>FS=1.5</b> eleva el D-load calculado +50% → clase más conservadora.<br>
               <b>FS=1.0</b> cumple ACPA Eq.4.24 estricto (D₀.₀₁); usar en proyectos AASHTO o exportación.
             </div>
+          </div>
+
+          <!-- ══ Verificación contractual de f'c del tubo — N·CMT·3·02/04 ══ -->
+          <div style="margin-top:12px">
+            <label style="font-weight:700">f'c de referencia contractual (kg/cm²) <span style="font-size:.68rem;color:#64748b;font-weight:400">(comparación numérica; no certifica el contrato)</span></label>
+            <input type="number" id="m9-fc-max" value="0" min="0" max="600" step="10" oninput="calcM9()" style="width:100%;margin-top:4px;padding:7px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:.85rem">
+            <div style="font-size:.68rem;color:#64748b;margin-top:3px">Deja <b>0</b> para no comparar. Se convierte MPa a kg/cm² sin tolerancia contractual automática. Revisa si el contrato establece resistencia mínima, máxima, equivalencia comercial o un concepto específico; la comparación no autoriza precios ni certifica conformidad.</div>
           </div>
 
 
@@ -2483,6 +2563,15 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
     </div>
 
     <!-- Advertencia automática DN<600mm + carga vehicular -->
+    <!-- ══ VERIFICACIÓN DE CUMPLIMIENTO NORMATIVO SICT ══ -->
+    <div id="m9-sict-check-wrap" style="margin-top:16px;background:#fff;border:1.5px solid #93c5fd;border-radius:8px;padding:12px 14px">
+      <div style="font-weight:800;font-size:.86rem;color:#1d4ed8;margin-bottom:9px">✅ Verificación de cumplimiento normativo SICT</div>
+      <div id="m9-sict-check-list" style="font-size:.76rem;line-height:1.55"></div>
+      <div style="font-size:.65rem;color:#64748b;margin-top:9px;padding-top:7px;border-top:1px solid #e2e8f0;line-height:1.5">
+        <b>Revisiones automáticas parciales y referencias constructivas:</b> N·CTR·CAR·1·03·002/20 (alcantarillas de tubos de concreto) · N·CTR·CAR·1·01·007/11 (excavación para estructuras) · N·CTR·CAR·1·01·011/20 (rellenos) · N·CMT·4·02·001 (materiales para subbases) · N·CMT·1·03 (materiales para subrasante) · N·CMT·3·02/04 (calidad de tubos de concreto) · N·PRY·CAR·6·01·003 (cargas y acciones) · M·MMP·1·02/03 (clasificación de fragmentos de roca y suelos). No se verifican ensayos de laboratorio ni la conformidad integral del proyecto o contrato.
+      </div>
+    </div>
+
     <div id="m9-warn-dn" style="display:none;margin-top:12px;background:#fef9c3;border:1.5px solid #eab308;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#713f12;line-height:1.5"></div>
     <div id="m9-warn-b" style="display:none;margin-top:8px;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:.78rem;color:#78350f;line-height:1.5"></div>
     <div id="m9-bmin-info" style="margin-top:8px;font-size:.76rem;color:#475569;padding:6px 10px;background:#f1f5f9;border-radius:6px;display:none"></div>
@@ -2727,10 +2816,16 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
       <h2 style="font-size:1.2rem;color:var(--teal-d);margin-bottom:4px">📋 Reporte Global ASSUR</h2>
       <p style="font-size:.82rem;color:#666">Consolida los resultados de las secciones calculadas</p>
     </div>
+    <button class="btn btn-outline" onclick="imprimirReporte()">Imprimir / Guardar PDF</button>
     <button class="btn btn-gold" onclick="abrirModalPDF()">📄 Descargar PDF</button>
   </div>
 
   <!-- Resumen de métricas -->
+  <div class="card">
+    <h2>Cobertura de módulos M1–M10</h2>
+    <p class="card-sub">Se incluyen los resultados calculados en esta sesión. “Sin calcular” no significa cumplimiento ni resultado cero.</p>
+    <div class="table-wrap"><table><thead><tr><th>Módulo</th><th>Estado del reporte</th></tr></thead><tbody id="rep-modulos"></tbody></table></div>
+  </div>
   <div class="card">
     <h2>📊 Métricas Calculadas</h2>
     <div id="rep-metricas" class="result-grid" style="margin-top:12px">
@@ -2775,6 +2870,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
         <div class="result-metric"><div class="val" id="rep-m9-grado">—</div><div class="lbl">Grado NMX-C-402</div></div>
       </div>
       <div id="rep-m9-badge" style="margin-top:8px"></div>
+      <div id="rep-m9-sict" style="margin-top:10px;font-size:.78rem;line-height:1.5;overflow-wrap:anywhere"></div>
     </div>
 
     <!-- Módulo 8 Verificación de Instalación en Reporte -->
@@ -2818,7 +2914,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   </div>
 
   <!-- Gráficas -->
-  <div class="card">
+  <div class="card" id="rep-graficas">
     <h2>📉 Gráficas de Verificación</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:14px">
       <div class="chart-wrap">
@@ -4246,7 +4342,47 @@ function calcAgua() {
 // =============================================================
 let chartVel = null, chartCaudal = null;
 
+const REPORTE_MODULOS = [
+  {key:'caudal', id:'M1', nombre:'Caudal'},
+  {key:'canal', id:'M2', nombre:'Canal TECHNODRAIN'},
+  {key:'manning', id:'M3', nombre:'Manning'},
+  {key:'pozos', id:'M4', nombre:'Pozos de visita'},
+  {key:'perfilData', id:'M5', nombre:'Perfil hidráulico'},
+  {key:'agua', id:'M6', nombre:'Agua a presión'},
+  {key:'sanitario', id:'M7', nombre:'Sanitario'},
+  {key:'instalacion', id:'M8', nombre:'Instalación'},
+  {key:'m9', id:'M9', nombre:'Diseño de concreto'},
+  {key:'m10', id:'M10', nombre:'Jacking'}
+];
+
+function imprimirReporte() {
+  prepararImpresion();
+  window.print();
+}
+
+// Ctrl+P también prepara el reporte sin cambiar la pestaña del usuario.
+function prepararImpresion() {
+  actualizarReporte();
+  [chartVel, chartCaudal].forEach(function(chart) {
+    if (!chart) return;
+    chart.stop();
+    chart.options.animation = false;
+    chart.resize(300, 180);
+    chart.update('none');
+  });
+}
+window.addEventListener('beforeprint', prepararImpresion);
+window.addEventListener('afterprint', function() {
+  [chartVel, chartCaudal].forEach(function(chart) {
+    if (chart) chart.resize();
+  });
+});
+
 function actualizarReporte() {
+  document.getElementById('rep-modulos').innerHTML = REPORTE_MODULOS.map(function(m) {
+    return '<tr><td>' + m.id + ' · ' + m.nombre + '</td><td>' +
+      (STATE[m.key] ? 'Calculado · incluido' : 'Sin calcular') + '</td></tr>';
+  }).join('');
   // Métricas
   document.getElementById('rep-Q').textContent     = STATE.caudal  ? STATE.caudal.Q.toFixed(2)  : '—';
   document.getElementById('rep-Qm').textContent    = STATE.caudal  ? STATE.caudal.Qm.toFixed(3) : '—';
@@ -4262,8 +4398,9 @@ function actualizarReporte() {
     const fl = STATE.pozos.flotacion;
     const fsEl = document.getElementById('rep-pv-fs-fl');
     if (fsEl) {
-      fsEl.textContent = fl.FS_fl !== undefined ? fl.FS_fl.toFixed(2) : '—';
-      fsEl.style.color = fl.FS_fl === undefined ? '' : fl.FS_fl >= 2.0 ? '#437A22' : fl.FS_fl >= 1.5 ? '#964219' : '#A12C7B';
+      const sinEmpuje = fl.H_sub <= 0 || fl.B <= 0;
+      fsEl.textContent = sinEmpuje ? 'No aplica: sin empuje hidrostático' : Number.isFinite(fl.FS_fl) ? fl.FS_fl.toFixed(2) : 'N/D';
+      fsEl.style.color = sinEmpuje || !Number.isFinite(fl.FS_fl) ? '' : fl.FS_fl >= 2.0 ? '#437A22' : fl.FS_fl >= 1.5 ? '#964219' : '#A12C7B';
     }
   } else {
     const fsEl = document.getElementById('rep-pv-fs-fl');
@@ -4327,6 +4464,7 @@ function actualizarReporte() {
     },
     options:{
       responsive:true,
+      animation:false,
       plugins:{legend:{display:false},annotation:{}},
       scales:{y:{min:0,max:3.5,title:{display:true,text:'m/s'}}}
     }
@@ -4351,6 +4489,7 @@ function actualizarReporte() {
     },
     options:{
       responsive:true,
+      animation:false,
       plugins:{legend:{display:false}},
       scales:{y:{title:{display:true,text:'l/s'}}}
     }
@@ -4378,6 +4517,7 @@ function actualizarReporte() {
     var m9BadgeElEmpty = document.getElementById('rep-m9-badge');
     if (m9BadgeElEmpty) m9BadgeElEmpty.innerHTML = '';
   }
+  m9RenderReporteSICT(STATE.m9);
 
   // Módulo 8 — Verificación de Instalación en Reporte
   if (STATE.instalacion) {
@@ -4573,9 +4713,16 @@ function generarPDF() {
   const correo = document.getElementById('pdf-correo').value.trim();
 
   if(!nombre || !tel || !correo) {
+    document.getElementById('pdf-error').textContent = 'Por favor complete todos los campos.';
     document.getElementById('pdf-error').style.display = 'block';
     return;
   }
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    document.getElementById('pdf-error').textContent = 'No se pudo cargar el motor PDF. Reintente o use Imprimir / Guardar PDF.';
+    document.getElementById('pdf-error').style.display = 'block';
+    return;
+  }
+  actualizarReporte();
   document.getElementById('pdf-error').style.display = 'none';
   cerrarModal();
 
@@ -4585,6 +4732,13 @@ function generarPDF() {
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  // Helvetica estándar no cubre flechas, emoji ni símbolos griegos.
+  const textPDF = doc.text.bind(doc);
+  doc.text = function(text) {
+    const args = Array.prototype.slice.call(arguments, 1);
+    return textPDF.apply(doc, [Array.isArray(text) ? text.map(pdfTexto) : pdfTexto(text)].concat(args));
+  };
+  doc.setProperties({title:'Reporte hidráulico ASSUR MX',subject:'Resultados de módulos calculados M1 a M10',author:'ASSUR MX'});
   const W = 210, M = 15;
   let y = 15;
 
@@ -4623,10 +4777,15 @@ function generarPDF() {
   doc.text(`Correo: ${correo}`, M+4, y+19);
   y += 28;
 
+  y = pdfSection(doc, 'Cobertura de módulos M1-M10', y, W, M, TEAL, TEALD, INK);
+  y = pdfTable(doc, REPORTE_MODULOS.map(function(m) {
+    return [m.id + ' - ' + m.nombre, STATE[m.key] ? 'Calculado - incluido' : 'Sin calcular'];
+  }), y, W, M, INK) + 4;
+
   // SECCIÓN CAUDAL
   if(STATE.caudal) {
     const c = STATE.caudal;
-    y = pdfSection(doc, '1. Caudal de Diseño — Método Racional (SGAPDS-29)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, 'M1. Caudal de Diseño — Método Racional (SGAPDS-29)', y, W, M, TEAL, TEALD, INK);
     const rows1 = [
       ['Estado',c.estado],['Tr seleccionado',[2,5,10,25,50][c.trIdx]+' años'],
       ['Intensidad I',c.I+' mm/hr'],['Coef. Escorrentía C',c.C],
@@ -4640,7 +4799,7 @@ function generarPDF() {
   // SECCIÓN CANAL EVO
   if(STATE.canal) {
     const c = STATE.canal;
-    y = pdfSection(doc, '2. Canal TECHNODRAIN EVO Seleccionado (EN 1433)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, 'M2. Canal TECHNODRAIN EVO Seleccionado (EN 1433)', y, W, M, TEAL, TEALD, INK);
     const llenado = (c.Q_dis / c.sel.hid.Q * 100).toFixed(1);
     const rows2 = [
       ['Q diseño', c.Q_dis.toFixed(1)+' l/s'],
@@ -4673,7 +4832,7 @@ function generarPDF() {
   // SECCIÓN MANNING
   if(STATE.manning) {
     const m = STATE.manning;
-    y = pdfSection(doc, '3. Manning — Pendiente Mínima (NMX-E-215)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, 'M3. Manning — Pendiente Mínima (NMX-E-215)', y, W, M, TEAL, TEALD, INK);
     const rows3 = [
       ['DN nominal',m.DN+' mm'],['Di interior',m.Di_mm.toFixed(0)+' mm'],
       ['Serie',m.serie],['Coef. Manning n',m.n],
@@ -4690,7 +4849,7 @@ function generarPDF() {
   // SECCIÓN POZOS
   if(STATE.pozos) {
     const p = STATE.pozos;
-    y = pdfSection(doc, '4. Pozos de Visita (NOM-001-CONAGUA)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, 'M4. Pozos de Visita (NOM-001-CONAGUA)', y, W, M, TEAL, TEALD, INK);
     const rows4 = [
       ['DN',p.DN+' mm'],['Di',+(p.Di_m*1000).toFixed(0)+' mm'],
       ['Tipo de pozo',p.pozoInfo.tipo],['Dimensiones',p.pozoInfo.dim],
@@ -4716,8 +4875,9 @@ function generarPDF() {
       doc.text('Flotación del Pozo (ACPA DD-41)  —  FS ≥ 2.0', M, y+5);
       y += 9;
       // Semaforo de FS
-      const fsVal = fl.FS_fl !== undefined ? fl.FS_fl : null;
-      const fsStr = fsVal !== null ? fsVal.toFixed(2) : 'N/D';
+      const sinEmpuje = fl.H_sub <= 0 || fl.B <= 0;
+      const fsVal = Number.isFinite(fl.FS_fl) && !sinEmpuje ? fl.FS_fl : null;
+      const fsStr = sinEmpuje ? 'No aplica: sin empuje hidrostático' : fsVal !== null ? fsVal.toFixed(2) : 'N/D';
       const fsColor = fsVal === null ? INK : fsVal >= 2.0 ? [67,122,34] : fsVal >= 1.5 ? [150,66,25] : [161,44,123];
       const fsLabel = fsVal === null ? '' : fsVal >= 2.0 ? ' ✔ CUMPLE' : fsVal >= 1.5 ? ' ⚠ PRECAUCION' : ' ✖ NO CUMPLE';
       const rowsFL = [
@@ -4822,10 +4982,29 @@ function generarPDF() {
     y += 4;
   }
 
+  // SECCIÓN PERFIL HIDRÁULICO (M5)
+  if (STATE.perfilData) {
+    var pfp = STATE.perfilData;
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = pdfSection(doc, 'M5. Perfil Hidráulico — Plantilla vs. Terreno (NMX-E-215)', y, W, M, TEAL, TEALD, INK);
+    var profMaxPdf = (pfp.profExcav && pfp.profExcav.length) ? Math.max.apply(null, pfp.profExcav) : undefined;
+    var rowsPerfil = [
+      ['Diámetro nominal DN', pfp.DN + ' mm'],
+      ['Diámetro interior Di', pfp.Di_m !== undefined ? (pfp.Di_m * 1000).toFixed(1) + ' mm' : '—'],
+      ['Pendiente mínima S_min', (pfp.S_min * 100).toFixed(3) + ' %'],
+      ['Pendiente de terreno S_ter', (pfp.S_ter * 100).toFixed(3) + ' %'],
+      ['Pendiente de diseño S_dis', (pfp.S_dis * 100).toFixed(3) + ' %'],
+      ['Profundidad máxima de excavación', profMaxPdf !== undefined ? profMaxPdf.toFixed(2) + ' m' : '—'],
+      ['Altura mínima de colchón Hmin', pfp.Hmin !== undefined ? pfp.Hmin.toFixed(2) + ' m' : '—']
+    ];
+    y = pdfTable(doc, rowsPerfil, y, W, M, INK);
+    y += 4;
+  }
+
   // SECCIÓN AGUA A PRESIÓN
   if(STATE.agua) {
     const a = STATE.agua;
-    y = pdfSection(doc, '5. Agua a Presión — Biaxial PVC-O (ISO 16422)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, 'M6. Agua a Presión — Biaxial PVC-O (ISO 16422)', y, W, M, TEAL, TEALD, INK);
     const rows5 = [
       ['Tubería', a.tuboLabel],
       ['Clase / SDR', a.clase],
@@ -4846,58 +5025,31 @@ function generarPDF() {
   }
 
 
-  // SECCIÓN M10 — JACKING (ACPA DD4 / ASCE 27-00)
-  if(STATE.m10) {
-    var mx = STATE.m10;
-    y = pdfSection(doc, '9. Jacking — Instalación sin Zanja (ACPA DD4 / ASCE 27-00)', y, W, M, TEAL, TEALD, INK);
-    var rowsM10 = [
-      ['Diámetro nominal DN', mx.DN + ' mm'],
-      ['Espesor de pared e', mx.e_mm + ' mm'],
-      ['Diámetro exterior Do', (mx.DN + 2*mx.e_mm) + ' mm'],
-      ['Resistencia f\'c', mx.fc_MPa + ' MPa (' + (mx.fc_MPa * 145.038).toFixed(0) + ' psi)'],
-      ['Longitud de jacking L', mx.L + ' m'],
-      ['Altura de relleno H', mx.H + ' m'],
-      ['Ancho excavación Bt', mx.Bt + ' m'],
-      ['Método de instalación', mx.metodo === 'micro' ? 'Microtunneling (DN<914mm)' : 'TBM / Escudo (DN>=914mm)'],
-      ['Coef. Marston Ct', mx.Ct.toFixed(4)],
-      ['Carga tierra Wt (DD4 Ec.3)', mx.Wt_kNm.toFixed(2) + ' kN/m'],
-      ['Bedding factor Bf', mx.Bf + (mx.Bf >= 3.0 ? ' (con lechada anular)' : ' (sin lechada anular)')],
-      ['Factor de seguridad FS', mx.FS],
-      ['D-load requerido (DD4 Ec.4)', mx.Dload.toFixed(0) + ' lb/ft/ft'],
-      ['Clase ASTM C76M-22A', mx.claseASTM ? 'Clase ' + mx.claseASTM : 'DISEÑO ESPECIAL (D-load > 3000)'],
-      ['Grado NMX-C-402', mx.gradoNMX ? 'Grado ' + mx.gradoNMX : 'Fuera de catálogo — Diseño Especial'],
-      ['Esfuerzo allowable fJ (ASCE Ec.1)', mx.fJ_MPa.toFixed(2) + ' MPa (phi=0.9, LF_J=1.2)'],
-      ['Empuje axial máx. P_max (ASCE Ec.2)', mx.Pmax_kN.toFixed(1) + ' kN'],
-      ['Cohesión suelo', mx.useCoh ? 'Incluida' : 'Ignorada (conservador, recomendado ASCE 27-00)']
-    ];
-    y = pdfTable(doc, rowsM10, y, W, M, INK);
-    y += 4;
-  }
-
-  // SECCIÓN PERFIL HIDRÁULICO (M5)
-  if (STATE.perfilData) {
-    var pfp = STATE.perfilData;
-    if (y > 240) { doc.addPage(); y = 20; }
-    y = pdfSection(doc, '6. Perfil Hidráulico — Plantilla vs. Terreno (NMX-E-215)', y, W, M, TEAL, TEALD, INK);
-    var profMaxPdf = (pfp.profExcav && pfp.profExcav.length) ? Math.max.apply(null, pfp.profExcav) : undefined;
-    var rowsPerfil = [
-      ['Diámetro nominal DN', pfp.DN + ' mm'],
-      ['Diámetro interior Di', pfp.Di_m !== undefined ? (pfp.Di_m * 1000).toFixed(1) + ' mm' : '—'],
-      ['Pendiente mínima S_min', (pfp.S_min * 100).toFixed(3) + ' %'],
-      ['Pendiente de terreno S_ter', (pfp.S_ter * 100).toFixed(3) + ' %'],
-      ['Pendiente de diseño S_dis', (pfp.S_dis * 100).toFixed(3) + ' %'],
-      ['Profundidad máxima de excavación', profMaxPdf !== undefined ? profMaxPdf.toFixed(2) + ' m' : '—'],
-      ['Altura mínima de colchón Hmin', pfp.Hmin !== undefined ? pfp.Hmin.toFixed(2) + ' m' : '—']
-    ];
-    y = pdfTable(doc, rowsPerfil, y, W, M, INK);
-    y += 4;
+  // SECCIÓN M7 — SANITARIO: resultados reales del cálculo Harmon.
+  if (STATE.sanitario) {
+    const s = STATE.sanitario;
+    y = pdfSection(doc, 'M7. Alcantarillado Sanitario — Harmon (SGAPDS-29)', y, W, M, TEAL, TEALD, INK);
+    y = pdfTable(doc, [
+      ['Diámetro nominal DN', s.dn + ' mm'],
+      ['Población de proyecto', s.pob + ' habitantes'],
+      ['Coeficiente de Manning n', s.n],
+      ['Pendiente de proyecto', s.sRaw + ' %'],
+      ['Gasto medio Qmed', s.Qmed.toFixed(3) + ' l/s'],
+      ['Gasto mínimo Qmin', s.Qmin.toFixed(3) + ' l/s'],
+      ['Coeficiente Harmon M', s.M.toFixed(3)],
+      ['Gasto máximo instantáneo Qinst', s.Qinst.toFixed(3) + ' l/s'],
+      ['Gasto máximo extraordinario Qext', s.Qext.toFixed(3) + ' l/s'],
+      ['Capacidad a tubo lleno', s.Qtf.toFixed(3) + ' l/s'],
+      ['Velocidad', s.v.toFixed(3) + ' m/s'],
+      ['Pendiente mínima', s.Smin.toFixed(4) + ' %']
+    ], y, W, M, INK) + 4;
   }
 
   // SECCIÓN VERIFICACIÓN DE INSTALACIÓN (M8)
   if (STATE.instalacion) {
     var instp = STATE.instalacion;
     if (y > 240) { doc.addPage(); y = 20; }
-    y = pdfSection(doc, '7. Verificación de Instalación — Deflexión IOWA (NOM-001-CONAGUA)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, 'M8. Verificación de Instalación — Deflexión IOWA (NOM-001-CONAGUA)', y, W, M, TEAL, TEALD, INK);
     var rowsInst = [
       ['Diámetro nominal DN', instp.diametro + ' mm'],
       ['Tubería', instp.tubo || '—'],
@@ -4919,7 +5071,7 @@ function generarPDF() {
   if (STATE.m9) {
     var m9p = STATE.m9;
     if (y > 240) { doc.addPage(); y = 20; }
-    y = pdfSection(doc, '8. Diseño Estructural de Tubería de Concreto — Método Marston (NMX-C-402 / NMX-C-401)', y, W, M, TEAL, TEALD, INK);
+    y = pdfSection(doc, 'M9. Diseño Estructural de Tubería de Concreto — Método Marston (NMX-C-402 / NMX-C-401)', y, W, M, TEAL, TEALD, INK);
     var rowsM9 = [
       ['Diámetro nominal DN', m9p.DN + ' mm'],
       ['Altura de relleno hr', m9p.hr + ' m'],
@@ -4930,7 +5082,7 @@ function generarPDF() {
       ['Carga de relleno qr', m9p.qr.toFixed(2) + ' kN/m'],
       ['Carga total q_total', m9p.qTotal.toFixed(2) + ' kN/m'],
       ['Momento de diseño q_calc', m9p.qCalc.toFixed(2) + ' N/m/mm'],
-      ['Modo LRFD activo', m9p.useLRFD ? 'Sí' : 'No'],
+      ['Modo LRFD aplicado', m9p.lrfdAplicado ? 'Sí' : 'No'],
       ['Grado NMX-C-402', m9p.disenioEspecial ? 'Fuera de catálogo — DISEÑO ESPECIAL' : 'Grado ' + m9p.grado],
       ['Equivalencia Clase SCT', m9p.claseSCT],
       ['Clase ASTM C76M-22A', m9p.claseASTM ? 'Clase ' + m9p.claseASTM : '—'],
@@ -4938,6 +5090,35 @@ function generarPDF() {
       ['Verificación NMX-C-402', m9p.disenioEspecial ? 'DISEÑO ESPECIAL (NMX-C-401 Sec.7)' : 'CUMPLE catálogo estándar']
     ];
     y = pdfTable(doc, rowsM9, y, W, M, INK);
+    y = pdfM9SICT(doc, m9p, y + 4, W, M, INK);
+    y += 4;
+  }
+
+  // SECCIÓN M10 — JACKING (ACPA DD4 / ASCE 27-00)
+  if(STATE.m10) {
+    var mx = STATE.m10;
+    y = pdfSection(doc, 'M10. Jacking — Instalación sin Zanja (ACPA DD4 / ASCE 27-00)', y, W, M, TEAL, TEALD, INK);
+    var rowsM10 = [
+      ['Diámetro nominal DN', mx.DN + ' mm'],
+      ['Espesor de pared e', mx.e_mm + ' mm'],
+      ['Diámetro exterior Do', (mx.DN + 2*mx.e_mm) + ' mm'],
+      ['Resistencia f\'c', mx.fc_MPa + ' MPa (' + (mx.fc_MPa * 145.038).toFixed(0) + ' psi)'],
+      ['Longitud de jacking L', mx.L + ' m'],
+      ['Altura de relleno H', mx.H + ' m'],
+      ['Ancho excavación Bt', mx.Bt + ' m'],
+      ['Método de instalación', mx.metodo === 'micro' ? 'Microtunneling (DN<914mm)' : 'TBM / Escudo (DN>=914mm)'],
+      ['Coef. Marston Ct', mx.Ct.toFixed(4)],
+      ['Carga tierra Wt (DD4 Ec.3)', mx.Wt_kNm.toFixed(2) + ' kN/m'],
+      ['Bedding factor Bf', mx.Bf + (mx.Bf >= 3.0 ? ' (con lechada anular)' : ' (sin lechada anular)')],
+      ['Factor de seguridad FS', mx.FS],
+      ['D-load requerido (DD4 Ec.4)', mx.Dload.toFixed(0) + ' lb/ft/ft'],
+      ['Clase ASTM C76M-22A', mx.claseASTM ? 'Clase ' + mx.claseASTM : 'DISEÑO ESPECIAL (D-load > 3000)'],
+      ['Grado NMX-C-402', mx.gradoNMX ? 'Grado ' + mx.gradoNMX : 'Fuera de catálogo — Diseño Especial'],
+      ['Esfuerzo allowable fJ (ASCE Ec.1)', mx.fJ_MPa.toFixed(2) + ' MPa (phi=0.9, LF_J=1.2)'],
+      ['Empuje axial máx. P_max (ASCE Ec.2)', mx.Pmax_kN.toFixed(1) + ' kN'],
+      ['Cohesión suelo', mx.useCoh ? 'Incluida' : 'Ignorada (conservador, recomendado ASCE 27-00)']
+    ];
+    y = pdfTable(doc, rowsM10, y, W, M, INK);
     y += 4;
   }
 
@@ -4975,30 +5156,9 @@ function generarPDF() {
      nota: STATE.instalacion ? `dy/D=${parseFloat(STATE.instalacion.defl).toFixed(2)}% <= ${STATE.instalacion.limite}%` : 'Sin calcular'}
   ];
 
-  // Table header
-  doc.setFillColor(...TEALD);
-  doc.rect(M, y, W-2*M, 7, 'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
-  doc.text('Norma', M+2, y+5);
-  doc.text('Estado', M+60, y+5);
-  doc.text('Resultado', M+90, y+5);
-  y += 7;
-
-  normas.forEach((n,i) => {
-    const bg = i%2===0 ? [248,248,248] : [255,255,255];
-    doc.setFillColor(...bg);
-    doc.rect(M, y, W-2*M, 8, 'F');
-    doc.setTextColor(...INK); doc.setFontSize(8); doc.setFont('helvetica','bold');
-    doc.text(n.norma, M+2, y+5.5);
-    const stateStr = !n.calculado ? '  —' : n.ok ? '[OK]' : '[REVISAR]';
-    const stateColor = !n.calculado ? [150,150,150] : n.ok ? [31,157,85] : [209,153,0];
-    doc.setTextColor(...stateColor); doc.setFont('helvetica','bold');
-    doc.text(stateStr, M+60, y+5.5);
-    doc.setTextColor(...INK); doc.setFont('helvetica','normal');
-    doc.text(n.nota, M+90, y+5.5);
-    y += 8;
-  });
-  y += 8;
+  y = pdfTable(doc, normas.map(function(n) {
+    return [n.norma, (!n.calculado ? '[Sin calcular] ' : n.ok ? '[OK] ' : '[REVISAR] ') + n.nota];
+  }), y, W, M, INK) + 8;
 
   // Sección normativa consolidada
   if(y > 230) { doc.addPage(); y = 20; }
@@ -5011,60 +5171,68 @@ function generarPDF() {
     ['ISO 16422 / NMX-E-258', 'PVC-O a presion | Velocidad 0.6-2.5 m/s | Factor temp. (Anexo C)'],
     ['NMX-C-402 / ASTM C76M-22A', 'Jacking: Marston Ct=f(H,Bt,Kmu) | D-load=(Wt/Bf/D)*FS | ACPA DD4 / ASCE 27-00']
   ];
-  normaLines.forEach((r, i) => {
-    if(y > 268) { doc.addPage(); y = 20; }
-    const bg = i%2===0 ? [248,252,251] : [255,255,255];
-    doc.setFillColor(...bg); doc.rect(M, y, W-2*M, 6.5, 'F');
-    doc.setTextColor(1,105,111); doc.setFontSize(8); doc.setFont('helvetica','bold');
-    doc.text(r[0], M+3, y+4.5);
-    doc.setTextColor(...INK); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
-    doc.text(r[1], M+70, y+4.5);
-    y += 6.5;
-  });
-  y += 4;
+  y = pdfTable(doc, normaLines, y, W, M, INK) + 4;
 
   // Aviso legal
-  if(y > 250) { doc.addPage(); y = 20; }
-  doc.setFillColor(245,244,240);
-  doc.rect(M, y, W-2*M, 22, 'F');
-  doc.setFillColor(1,105,111); doc.rect(M, y, 3, 22, 'F');
+  if(y > 240) { doc.addPage(); y = 20; }
   doc.setTextColor(120,110,100); doc.setFontSize(7.5); doc.setFont('helvetica','italic');
   const legal = 'Calculo orientativo — No es un proyecto ejecutivo. Basado en SGAPDS-29 (CONAGUA 2009), EN 1433, NMX-E-215 y NOM-001-CONAGUA-2011.';
   const legal2 = 'Para el diseno definitivo, consulte a un ingeniero civil o Director Responsable de Obra (DRO).';
   const legal3 = 'Los resultados deben ser verificados por un profesional certificado antes de la construccion.';
-  doc.text(legal, M+6, y+6);
-  doc.text(legal2, M+6, y+12);
-  doc.text(legal3, M+6, y+18);
+  const legalLines = doc.splitTextToSize(pdfTexto(legal + ' ' + legal2 + ' ' + legal3), W-2*M-12);
+  doc.text(legalLines, M+6, y+6);
 
-  y += 26;
-  // Footer
-  doc.setFillColor(...TEALD);
-  doc.rect(0, 282, W, 15, 'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','normal');
-  doc.text('WhatsApp: +52 55 4571 5720  |  contacto@assur.mx  |  ventas@assur.mx  |  www.assur.mx', W/2, 290, {align:'center'});
+  // Pie y número en todas las páginas, fuera del área de tablas.
+  const totalPages = doc.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page++) {
+    doc.setPage(page);
+    doc.setFillColor(...TEALD);
+    doc.rect(0, 282, W, 15, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('WhatsApp: +52 55 4571 5720 | contacto@assur.mx | ventas@assur.mx | www.assur.mx', W/2, 288, {align:'center'});
+    doc.text('Página ' + page + ' de ' + totalPages, W/2, 293, {align:'center'});
+  }
 
   doc.save(`Reporte_Hidraulico_ASSUR_${nombre.replace(/\s+/g,'_')}.pdf`);
 }
 
+function pdfTexto(text) {
+  return String(text).replace(/[—–]/g,'-').replace(/→/g,'->')
+    .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/Δ/g,'Delta')
+    .replace(/σ/g,'sigma').replace(/γ/g,'gamma').replace(/φ/g,'phi')
+    .replace(/∈/g,'en').replace(/\u2030/g,' por mil')
+    .replace(/[\u{1F000}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu,'')
+    .replace(/[^\x20-\xFF\n]/g,'?');
+}
+
 function pdfSection(doc, title, y, W, M, TEAL, TEALD, INK) {
-  if(y > 260) { doc.addPage(); y = 20; }
+  doc.setFontSize(10); doc.setFont('helvetica','bold');
+  const lines = doc.splitTextToSize(pdfTexto(title), W-2*M-6);
+  const height = Math.max(8, lines.length * 4.5 + 4);
+  if(y + height + 10 > 274) { doc.addPage(); y = 20; }
   doc.setFillColor(...TEAL);
-  doc.rect(M, y, W-2*M, 8, 'F');
+  doc.rect(M, y, W-2*M, height, 'F');
   doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
-  doc.text(title, M+3, y+5.5);
-  return y + 10;
+  doc.text(lines, M+3, y+5.5);
+  return y + height + 2;
 }
 
 function pdfTable(doc, rows, y, W, M, INK) {
   rows.forEach((r,i) => {
-    if(y > 268) { doc.addPage(); y = 20; }
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica','bold');
+    const labels = doc.splitTextToSize(pdfTexto(r[0]), 62);
+    doc.setFont('helvetica','normal');
+    const values = doc.splitTextToSize(pdfTexto(r[1]), W-2*M-73);
+    const height = Math.max(6.5, Math.max(labels.length, values.length) * 3.6 + 3);
+    if(y + height > 274) { doc.addPage(); y = 20; }
     const bg = i%2===0 ? [248,248,248] : [255,255,255];
     doc.setFillColor(...bg);
-    doc.rect(M, y, W-2*M, 6.5, 'F');
+    doc.rect(M, y, W-2*M, height, 'F');
     doc.setTextColor(...INK); doc.setFontSize(8.5);
-    doc.setFont('helvetica','bold'); doc.text(r[0], M+3, y+4.5);
-    doc.setFont('helvetica','normal'); doc.text(String(r[1]), M+70, y+4.5);
-    y += 6.5;
+    doc.setFont('helvetica','bold'); doc.text(labels, M+3, y+4.5);
+    doc.setFont('helvetica','normal'); doc.text(values, M+70, y+4.5);
+    y += height;
   });
   return y;
 }
@@ -5858,6 +6026,123 @@ var M9_BFLL_DATA = [
   [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.0, 1.9, 1.8]
 ];
 
+// ══════════════════════════════════════════════════════════════
+// MÓDULO 9 — INTEGRACIÓN NORMATIVA SICT (ago-2026)
+// Normas incorporadas en este bloque:
+//   N·PRY·CAR·6·01·003  Cargas y Acciones (modelos IMT 66.5 / IMT 20.5)
+//   M·MMP·1·02/03       Clasificación de Fragmentos de Roca y Suelos (SUCS)
+//   N·CTR·CAR·1·03·002/20 Alcantarillas de Tubos de Concreto (G.2.2, G.3, G.4.3, G.5, G.6)
+//   N·CTR·CAR·1·01·011/20 Rellenos (G.2.3, G.2.4, G.2.5)
+//   N·CMT·4·02·001       Materiales para Subbases (plantilla de apoyo)
+//   N·CMT·1·03          Materiales para Subrasante (capa de cimentación)
+//   N·CMT·3·02/04       Calidad de Tubos de Concreto (f'c contratado)
+//   N·CTR·CAR·1·01·007/11 Excavación para Estructuras
+// ══════════════════════════════════════════════════════════════
+
+// ── Modelos de carga viva vehicular SICT — N·PRY·CAR·6·01·003, "Cargas y Acciones"
+// Son modelos VIRTUALES de análisis estructural; no representan un vehículo real.
+// Para claros MENORES de 30 m (caso de toda alcantarilla) la Norma divide los grupos:
+//   IMT 66.5: w=0 · P2 → 2 × 118 kN (12 t) @ 1,2 m · P3 → 3 × 123 kN (12,5 t) @ 1,2 m
+//   IMT 20.5: P5 → 2 × 88 kN (9 t) @ 1,2 m
+// El grupo P3 (tridem 3 × 123 kN) es el más desfavorable para tubería enterrada.
+// Carreteras tipo C: las cargas del IMT 66.5 se multiplican por 0,9 → 123 × 0,9 = 110,7 kN.
+var M9_IMT_MODELOS = {
+  'imt665':  { label:'IMT 66.5',          Peje:123.0, n:3, sep:1.2, carr:'ET, A y B',            grupo:'P3 = 3 × 123 kN (12,5 t) @ 1,2 m' },
+  'imt665c': { label:'IMT 66.5 (Tipo C)', Peje:110.7, n:3, sep:1.2, carr:'C (factor 0,9)',       grupo:'P3 × 0,9 = 3 × 110,7 kN @ 1,2 m' },
+  'imt205':  { label:'IMT 20.5',          Peje: 88.0, n:2, sep:1.2, carr:'D y caminos rurales',  grupo:'P5 = 2 × 88 kN (9 t) @ 1,2 m' }
+};
+// Cobertura de referencia del valor "conservador" de los presets IMT: el colchón
+// MÍNIMO normativo de 1 m (N·CTR·CAR·1·03·002/20 G.5.2). A esa profundidad q_L es
+// máxima, así que funciona como envolvente fija equivalente a los presets
+// H-10/H-20/H-25 (que también son envolventes de poca cobertura). El valor NO
+// está tabulado en la Norma: se calcula con las cargas reales de N·PRY·CAR·6·01·003.
+var M9_IMT_H_REF = 1.0;
+
+// ── Grupos SUCS — M·MMP·1·02/03 "Clasificación de Fragmentos de Roca y Suelos"
+// altaComp: suelo fino de ALTA compresibilidad (ωL > 50 %) → CH, MH, OH
+// org:      suelo orgánico → OL, OH, Pt
+var M9_SUCS = {
+  'GW':{n:'Grava bien graduada',                    altaComp:false, org:false, apto:'excelente'},
+  'GP':{n:'Grava mal graduada',                     altaComp:false, org:false, apto:'bueno'},
+  'GM':{n:'Grava limosa',                           altaComp:false, org:false, apto:'bueno'},
+  'GC':{n:'Grava arcillosa',                        altaComp:false, org:false, apto:'bueno'},
+  'SW':{n:'Arena bien graduada',                    altaComp:false, org:false, apto:'excelente'},
+  'SP':{n:'Arena mal graduada',                     altaComp:false, org:false, apto:'bueno'},
+  'SM':{n:'Arena limosa',                           altaComp:false, org:false, apto:'bueno'},
+  'SC':{n:'Arena arcillosa',                        altaComp:false, org:false, apto:'bueno'},
+  'ML':{n:'Limo de baja compresibilidad',           altaComp:false, org:false, apto:'regular'},
+  'CL':{n:'Arcilla de baja compresibilidad',        altaComp:false, org:false, apto:'regular'},
+  'OL':{n:'Limo orgánico de baja compresibilidad',  altaComp:false, org:true,  apto:'deficiente'},
+  'MH':{n:'Limo de alta compresibilidad',           altaComp:true,  org:false, apto:'deficiente'},
+  'CH':{n:'Arcilla de alta compresibilidad',        altaComp:true,  org:false, apto:'deficiente'},
+  'OH':{n:'Limo orgánico de alta compresibilidad',  altaComp:true,  org:true,  apto:'deficiente'},
+  'Pt':{n:'Turba (altamente orgánico)',             altaComp:true,  org:true,  apto:'no apto'}
+};
+
+// ── Requisitos numéricos SICT usados por m9VerificarSICT() ─────────────────
+var M9_SICT = {
+  holguraLado:   0.50,  // N·CTR·CAR·1·03·002/20 G.2.2 — 50 cm a cada lado de la alcantarilla
+  colchonMin:    1.00,  // G.5.2 — colchón mínimo de 1 m sobre el tubo
+  baseTerraplen: 3.0,   // G.5.2 — base superior del terraplén de protección = 3 × diámetro
+  chaflan:       0.20,  // G.4.3 — sección triangular 20 × 20 cm, mortero cemento-arena 1:3
+  sueloCemEsp:   0.40,  // G.6 — espesor de la protección de suelo-cemento
+  capaLateral:   0.15,  // G.5.1 — relleno lateral en capas de 15 cm
+  relleCompact:  90,    // N·CTR·CAR·1·01·011/20 G.2.4 — 90 % mín. AASHTO estándar
+  tolExcav:      0.10   // N·CTR·CAR·1·01·007/11 — tolerancia ±10 cm en paredes-molde
+};
+
+// ── m9CalcLRFD_IMT — carga viva de los modelos SICT IMT 66.5 / IMT 20.5 sobre
+// tubería enterrada.
+//
+// N·PRY·CAR·6·01·003 define las MAGNITUDES y SEPARACIONES de los grupos de ejes,
+// pero no un método propio de distribución de la carga con la profundidad para
+// tubería enterrada. Por eso se conserva el procedimiento AASHTO LRFD 3.6.1.2.6 /
+// 12.10.4.3 ya implementado en calcLRFD_qL() y solo se sustituyen las cargas por
+// las del vehículo de proyecto mexicano. Esto queda explícito en el proceso de
+// cálculo para que el resultado sea auditable.
+//
+// Se evalúan DOS condiciones y se toma la MÁS DESFAVORABLE:
+//   (a) EJE AISLADO   — P_eje       , E_l = 0,61 + H·tan40°
+//   (b) GRUPO DE EJES — n · P_eje   , E_l = 0,61 + sep·(n−1) + H·tan40°
+// A poca cobertura gobierna (a); al crecer H las huellas se traslapan y gobierna (b).
+function m9CalcLRFD_IMT(H_m, DN_mm, ePared_mm, modeloKey) {
+  var m = M9_IMT_MODELOS[modeloKey];
+  if(!m) return null;
+  var eje  = calcLRFD_qL(H_m, DN_mm, ePared_mm, m.Peje);   // condición (a)
+  var H_ft = H_m * 3.28084;
+  var IM   = H_ft >= 8.0 ? 0.0 : Math.max(0, 33.0 * (1.0 - H_ft / 8.0));
+  var D_o  = (DN_mm + 2.0 * ePared_mm) / 1000.0;
+  var E_w  = 0.06 * H_m + D_o;
+  var E_lg = 0.61 + m.sep * (m.n - 1) + H_m * Math.tan(40.0 * Math.PI / 180.0);
+  var p_g  = (1.0 + IM / 100.0) * (m.n * m.Peje) / (E_w * E_lg);  // condición (b)
+  var q_g  = p_g * D_o;
+  var usaGrupo = (q_g >= eje.qL);
+  var out = usaGrupo
+    ? { qL:q_g, IM:IM, Ew:E_w, El:E_lg, pL:p_g, Do:D_o, H_ft:H_ft, Paxle:(m.n * m.Peje) }
+    : { qL:eje.qL, IM:eje.IM, Ew:eje.Ew, El:eje.El, pL:eje.pL, Do:eje.Do, H_ft:eje.H_ft, Paxle:eje.Paxle };
+  out.modelo    = m;
+  out.modeloKey = modeloKey;
+  out.gobierna  = usaGrupo ? 'grupo' : 'eje';
+  out.qL_eje    = eje.qL;
+  out.qL_grupo  = q_g;
+  return out;
+}
+
+// ── m9UpdateIMTInfo — muestra el detalle del modelo IMT elegido bajo el selector
+function m9UpdateIMTInfo() {
+  var sel  = document.getElementById('m9-trafico');
+  var info = document.getElementById('m9-imt-info');
+  if(!sel || !info) return;
+  var m = M9_IMT_MODELOS[sel.value];
+  if(!m) { info.style.display = 'none'; return; }
+  info.style.display = '';
+  info.innerHTML =
+    '<b>' + m.label + '</b> — N·PRY·CAR·6·01·003 "Cargas y Acciones", carreteras tipo <b>' + m.carr + '</b>.<br>' +
+    'Claro &lt; 30 m (toda alcantarilla): w = 0 y el grupo crítico es <b>' + m.grupo + '</b>.<br>' +
+    'q<sub>tráfico</sub> conservadora = envolvente del modelo al colchón mínimo de ' + M9_IMT_H_REF.toFixed(2) +
+    ' m (G.5.2). Activa el Modo LRFD para atenuarla a la profundidad real de proyecto.';
+}
+
 // ── m9CalcCargaRelleno — cálculo PURO (sin DOM) de la carga Marston de
 // relleno según el tipo de instalación. Extraído de calcM9() para permitir
 // pruebas/reuso independientes del renderizado.
@@ -6062,11 +6347,32 @@ function m9CheckAcpaMismatch() {
   }
 }
 
+// Actualiza únicamente el preset IMT; no llama calcM9 ni altera carga personalizada.
+function m9ActualizarPresetIMT() {
+  var sel = document.getElementById('m9-trafico');
+  var inp = document.getElementById('m9-q-traf');
+  if(!sel || !inp) return;
+  var v = sel.value;
+  if(M9_IMT_MODELOS[v]) {
+    // Preset SICT: la Norma N·PRY·CAR·6·01·003 da CARGAS POR EJE, no una carga
+    // distribuida tabulada. El valor conservador se calcula como la envolvente
+    // del modelo al colchón mínimo normativo de 1 m (N·CTR·CAR·1·03·002/20 G.5.2).
+    var dn = parseFloat((document.getElementById('m9-dn') || {}).value) || 610;
+    var campo = parseFloat((document.getElementById('m9-espesor') || {}).value);
+    // Mismo espesor efectivo que calcM9, incluso con captura decimal.
+    var ep = Number.isFinite(campo) && campo > 0 ? Math.round(campo) :
+             (M9_PARED_B[dn] || Math.round(dn * 0.095));
+    var env = m9CalcLRFD_IMT(M9_IMT_H_REF, dn, ep, v);
+    if(env) inp.value = env.qL.toFixed(1);
+  }
+}
+
 function m9SyncTrafico() {
   var sel = document.getElementById('m9-trafico');
   var inp = document.getElementById('m9-q-traf');
   if(!sel || !inp) return;
-  if(sel.value !== 'custom') inp.value = sel.value;
+  if(sel.value !== 'custom' && !M9_IMT_MODELOS[sel.value]) inp.value = sel.value;
+  m9UpdateIMTInfo();
   calcM9();
 }
 
@@ -6435,7 +6741,8 @@ function m9UpdateLRFDBadge(hr, qTraf, traficoTipo) {
   var hint  = document.getElementById('m9-lrfd-hint');
   var cb    = document.getElementById('m9-lrfd-toggle');
   if(!badge) return;
-  var esHiway = (traficoTipo==='48'||traficoTipo==='96'||traficoTipo==='120');
+  var esHiway = (traficoTipo==='48'||traficoTipo==='96'||traficoTipo==='120'||
+                 !!M9_IMT_MODELOS[traficoTipo]);
   var esProf  = hr >= 5.0;
   // Mostrar badge recomendado si H>=5m con carga vehicular
   badge.style.display = (esProf && esHiway && qTraf > 0) ? '' : 'none';
@@ -6453,6 +6760,268 @@ function m9UpdateLRFDBadge(hr, qTraf, traficoTipo) {
       hint.style.color = '#0369a1';
     }
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// m9VerificarSICT — contrasta el diseño contra los requisitos numéricos de las
+// normas SICT aplicables y pinta un checklist con semáforo. NO modifica el
+// cálculo estructural: solo verifica y reporta.
+// ══════════════════════════════════════════════════════════════
+// SUCS clasifica el suelo; no sustituye el estudio geotécnico ni define plantilla.
+// N·CTR·CAR·1·03·002/20 G.3 remite espesor/material/compactación al proyecto.
+function m9EvaluarSuelo(suelo) {
+  var s = M9_SUCS[suelo] || M9_SUCS.SC;
+  var inicio = suelo + ' - ' + s.n + ': ';
+  var base = 'El proyecto o la aprobación de la Secretaría debe definir espesor, materiales, compactación y nivel de la plantilla (N·CTR·CAR·1·03·002/20 G.3). No se deducen 20 cm ni 95 % universales del grupo SUCS.';
+  if(suelo === 'Pt') return {estado:'bad', texto:inicio + 'turba: requiere evaluación geotécnica y solución de sustitución o mejoramiento antes de definir el apoyo. ' + base};
+  if(s.altaComp || s.org) return {estado:'warn', texto:inicio + (s.org ? 'suelo orgánico' : 'suelo de alta compresibilidad') + '; verificar asentamientos y necesidad de sustitución o mejoramiento con el laboratorio y el proyectista. ' + base};
+  return {estado:'info', texto:inicio + 'la clasificación por sí sola no acredita capacidad portante ni exime de cimentación adicional. ' + base};
+}
+
+function m9VerificarSICT(ctx) {
+  var listEl = document.getElementById('m9-sict-check-list');
+  if(!listEl) return null;
+
+  var rows = [], items = [], nOk = 0, nWarn = 0, nBad = 0;
+
+  // add(estado, norma, clausula, texto)  estado: 'ok' | 'warn' | 'bad' | 'info'
+  function add(estado, norma, clausula, texto) {
+    var plano = document.createElement('div');
+    plano.innerHTML = texto;
+    items.push({estado:estado, norma:norma, clausula:clausula, texto:plano.textContent});
+    if(estado === 'ok')   nOk++;
+    if(estado === 'warn') nWarn++;
+    if(estado === 'bad')  nBad++;
+    var ico = estado === 'ok' ? '\u2705' : estado === 'warn' ? '\u26a0\ufe0f' : estado === 'bad' ? '\u274c' : '\u2139\ufe0f';
+    var bg  = estado === 'ok' ? '#f0fdf4' : estado === 'warn' ? '#fef9c3' : estado === 'bad' ? '#fee2e2' : '#f8fafc';
+    var bd  = estado === 'ok' ? '#86efac' : estado === 'warn' ? '#fde68a' : estado === 'bad' ? '#fca5a5' : '#e2e8f0';
+    rows.push(
+      '<div style="display:flex;gap:8px;align-items:flex-start;background:' + bg +
+      ';border:1px solid ' + bd + ';border-radius:6px;padding:6px 9px;margin-bottom:5px">' +
+      '<span style="flex-shrink:0">' + ico + '</span><div style="flex:1">' + texto +
+      '<div style="font-size:.66rem;color:#64748b;margin-top:2px">' + norma +
+      (clausula ? ' \u00b7 ' + clausula : '') + '</div></div></div>');
+  }
+
+  var N002 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b703\u00b7002/20';
+  var N007 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b701\u00b7007/11';
+  var N011 = 'N\u00b7CTR\u00b7CAR\u00b71\u00b701\u00b7011/20';
+  var C402 = 'N\u00b7CMT\u00b74\u00b702\u00b7001';
+  var C302 = 'N\u00b7CMT\u00b73\u00b702/04';
+  var PRY  = 'N\u00b7PRY\u00b7CAR\u00b76\u00b701\u00b7003';
+  var MMP  = 'M\u00b7MMP\u00b71\u00b702/03';
+
+  // ── 1. Colchón mínimo sobre el tubo — G.5.2
+  if(ctx.hr >= M9_SICT.colchonMin) {
+    add('ok', N002, 'G.5.2',
+      'Colch\u00f3n sobre el tubo <b>h = ' + ctx.hr.toFixed(2) + ' m \u2265 1,00 m</b> m\u00ednimo normativo.');
+  } else if(ctx.qTraf > 0) {
+    add('bad', N002, 'G.5.2',
+      'Colch\u00f3n <b>h = ' + ctx.hr.toFixed(2) + ' m &lt; 1,00 m</b> con carga vehicular activa. La Norma exige ' +
+      '<b>colch\u00f3n m\u00ednimo de un (1) metro</b> sobre el tubo; con menor cobertura el dise\u00f1o no es aceptable ' +
+      'sin losa de reparto o protecci\u00f3n especial.');
+  } else {
+    add('warn', N002, 'G.5.2',
+      'Colch\u00f3n <b>h = ' + ctx.hr.toFixed(2) + ' m &lt; 1,00 m</b>. Sin carga vehicular es admisible solo si el ' +
+      'proyecto lo justifica; la Norma pide 1 m como m\u00ednimo general.');
+  }
+
+  // ── 2. Terraplén de protección — G.5.2
+  var baseTerr = M9_SICT.baseTerraplen * (ctx.DN / 1000);
+  add('info', N002, 'G.5.2',
+    'Terrapl\u00e9n de protecci\u00f3n requerido: <b>base superior = 3 \u00d7 DN = ' + baseTerr.toFixed(2) + ' m</b> ' +
+    '(DN ' + ctx.DN + ' mm), compactado a mano o con equipo manual. Relleno lateral en capas de <b>15 cm</b> ' +
+    'sim\u00e9tricas a ambos lados.');
+
+  // ── 3. Holgura de excavación / ancho de zanja — G.2.2
+  var bMinSCT = ctx.Bc + 2 * M9_SICT.holguraLado;
+  var bMinNMX = ctx.Bc + 0.40;
+  if(ctx.esZanja) {
+    if(ctx.b >= bMinSCT) {
+      add('ok', N002, 'G.2.2',
+        'Ancho de zanja <b>b = ' + ctx.b.toFixed(2) + ' m \u2265 ' + bMinSCT.toFixed(2) + ' m</b> ' +
+        '(B<sub>c</sub> ' + ctx.Bc.toFixed(3) + ' m + holgura de 50 cm a cada lado).');
+    } else if(ctx.b >= bMinNMX) {
+      add('warn', N002, 'G.2.2',
+        'Ancho de zanja <b>b = ' + ctx.b.toFixed(2) + ' m</b> cumple el m\u00ednimo NMX-C-402 (' + bMinNMX.toFixed(2) +
+        ' m) pero <b>no la holgura SICT de 50 cm por lado</b> (requiere b \u2265 ' + bMinSCT.toFixed(2) + ' m). ' +
+        'En obra SICT ampl\u00eda la zanja: la carga Marston aumentar\u00e1 y puede subir el Grado.');
+    } else {
+      add('bad', N002, 'G.2.2',
+        'Ancho de zanja <b>b = ' + ctx.b.toFixed(2) + ' m</b> por debajo de ambos m\u00ednimos: NMX-C-402 ' +
+        bMinNMX.toFixed(2) + ' m y SICT ' + bMinSCT.toFixed(2) + ' m (holgura 50 cm/lado). No hay espacio para ' +
+        'compactar el acostillado.');
+    }
+  } else {
+    add('info', N002, 'G.2.2',
+      'Instalaci\u00f3n en terrapl\u00e9n: no aplica ancho de zanja. Si hubiera excavaci\u00f3n parcial, la holgura ' +
+      'normativa es de <b>50 cm a cada lado</b> (b \u2265 ' + bMinSCT.toFixed(2) + ' m).');
+  }
+
+  // ── 4. Excavación para estructuras — N·CTR·CAR·1·01·007/11
+  add('info', N007, 'G.4',
+    'Excavaci\u00f3n a las dimensiones y niveles de proyecto, con <b>tolerancia \u00b110 cm</b> en paredes que ' +
+    'sirvan de molde, fondo libre de ra\u00edces y piedras salientes, y protecci\u00f3n contra inundaciones ' +
+    'durante los trabajos.');
+
+  // ── 5. Suelo de desplante — M·MMP·1·02 + capa de cimentación
+  var sueloRevision = m9EvaluarSuelo(ctx.suelo);
+  add(sueloRevision.estado, MMP + ' + ' + N002, 'SUCS / G.3', sueloRevision.texto);
+
+  // ── 6. Plantilla de apoyo — G.3 + N·CMT·4·02·001
+  add('info', N002 + ' + ' + C402, 'G.3 / Tabla 1\u20132',
+    'Plantilla de apoyo con geometría similar al tubo. El espesor, materiales, compactación y nivel serán los indicados en el proyecto o aprobados por la Secretaría. Si el proyecto especifica material para subbase, comprobar la edición, categoría y ensayos aplicables; este módulo no recibe resultados de laboratorio.');
+
+  // ── 7. Relleno — N·CTR·CAR·1·01·011/20
+  if(ctx.Fa >= 3.0) {
+    add('warn', N011, 'G.2.4 / G.2.5',
+      'El B\u2093 = ' + ctx.Fa + ' elegido supone <b>relleno compactado por encima del m\u00ednimo normativo</b>. ' +
+      'La Norma exige solo <b>90 % de la masa volum\u00e9trica seca m\u00e1xima AASHTO est\u00e1ndar</b>, compactado ' +
+      'sim\u00e9tricamente a mano o con equipo manual. Para sostener ese B\u2093 el proyecto debe especificar ' +
+      'expl\u00edcitamente el grado superior (90 % PN para B\u2093=3,0 \u00b7 95 % PN para B\u2093\u22654,0) y verificarlo con calas.');
+  } else {
+    add('ok', N011, 'G.2.4 / G.2.5',
+      'B\u2093 = ' + ctx.Fa + ' compatible con el relleno normativo m\u00ednimo: <b>90 % AASHTO est\u00e1ndar</b>, ' +
+      'capas del espesor compactable por el equipo, colocadas y compactadas <b>sim\u00e9tricamente</b> a ambos ' +
+      'lados del tubo. Control: c = A/100 calas.');
+  }
+
+  // ── 8. Carga viva — N·PRY·CAR·6·01·003
+  if(ctx.esIMT) {
+    var mm = M9_IMT_MODELOS[ctx.traficoTipo];
+    add('ok', PRY, 'Modelo ' + mm.label,
+      'Carga viva del <b>veh\u00edculo de proyecto mexicano ' + mm.label + '</b> (carreteras tipo ' + mm.carr + '), ' +
+      'grupo cr\u00edtico <b>' + mm.grupo + '</b> para claro &lt; 30 m.' +
+      (ctx.lrfd ? ' Comparativa LRFD a cobertura real (se aplica solo con el modo activo). Gobierna la condición de <b>' + (ctx.lrfd.gobierna === 'grupo' ? 'grupo de ejes' : 'eje aislado') +
+        '</b>: q<sub>L</sub>(eje) = ' + ctx.lrfd.qL_eje.toFixed(2) + ' kN/m vs q<sub>L</sub>(grupo) = ' +
+        ctx.lrfd.qL_grupo.toFixed(2) + ' kN/m.' : ''));
+  } else if(ctx.qTraf > 0 && (ctx.traficoTipo === '48' || ctx.traficoTipo === '96' || ctx.traficoTipo === '120')) {
+    add('warn', PRY, 'Modelos IMT 66.5 / IMT 20.5',
+      'Est\u00e1s usando una carga <b>AASHTO H-' + (ctx.traficoTipo === '48' ? '10' : ctx.traficoTipo === '96' ? '20' : '25') +
+      '</b>. Para obra de la red carretera federal la Norma aplicable es el modelo <b>IMT 66.5</b> ' +
+      '(carreteras ET, A, B y C) o <b>IMT 20.5</b> (tipo D y caminos rurales). Selecci\u00f3nalo en el men\u00fa ' +
+      'de carga viva para verificar con el veh\u00edculo de proyecto correcto.');
+  } else if(ctx.qTraf > 0) {
+    add('info', PRY, 'Cargas y acciones',
+      'Carga viva no vehicular carretera (FAA / AREMA / personalizada). Si la obra pertenece a la red ' +
+      'carretera federal, verifica adem\u00e1s con el modelo IMT 66.5 o IMT 20.5.');
+  } else {
+    add('info', PRY, 'Cargas y acciones',
+      'Sin carga viva. Si la alcantarilla cruza un arroyo vial, debe verificarse con IMT 66.5 (tipos ET, A, B, C) ' +
+      'o IMT 20.5 (tipo D y caminos rurales).');
+  }
+
+  // ── 9. Calidad del tubo / f'c contratado — N·CMT·3·02/04
+  if(ctx.tipoTubo === 'simple') {
+    add('info', C302, 'Alcance', 'La comparación de resistencia del Grado NMX-C-402 no aplica al tubo simple NMX-C-401. Revisar su especificación por separado.');
+  } else if(!ctx.grado) {
+    add('bad', C302, 'Clases 1\u20134',
+      'El dise\u00f1o excede el cat\u00e1logo: <b>ninguna Clase SCT (1\u20134) cubre q<sub>calc</sub> = ' +
+      ctx.qCalc.toFixed(1) + ' N/m/mm</b>. Requiere dise\u00f1o especial, mejorar el encamado o cambiar de ' +
+      'soluci\u00f3n estructural.');
+  } else {
+    var fcKg = ctx.fcMPa * 10.1972;
+    if(ctx.fcMax > 0) {
+      var supera = fcKg > ctx.fcMax;
+      add(supera ? 'warn' : 'info', C302, 'Comparación numérica',
+        'Grado ' + ctx.grado + ': f\'c = ' + ctx.fcMPa.toFixed(1) + ' MPa = ' + fcKg.toFixed(2) +
+        ' kg/cm², ' + (supera ? 'superior' : 'no superior') + ' a la referencia capturada de ' +
+        ctx.fcMax.toFixed(2) + ' kg/cm². Sin tolerancia contractual automática. Confirmar unidades, carácter mínimo/máximo y aceptación documental con el proyectista; no certifica conformidad ni cobertura del precio contratado.');
+    } else {
+      add('info', C302, 'Clase ' + ctx.grado,
+        'Clase ' + ctx.grado + ' SCT \u2261 Grado ' + ctx.grado + ' NMX-C-402, <b>f\'c = ' + ctx.fcMPa.toFixed(1) +
+        ' MPa \u2248 ' + fcKg.toFixed(0) + ' kg/cm\u00b2</b>. Sin referencia contractual capturada; no se evalúa conformidad con el contrato.');
+    }
+  }
+
+  // ── 10. Colocación, chaflán y protecciones — G.4 / G.6 / G.7
+  add('info', N002, 'G.4.1\u2013G.4.3 / G.6 / G.7',
+    'Colocaci\u00f3n de <b>aguas abajo hacia aguas arriba</b> con la junta macho hacia aguas abajo y juntas ' +
+    'selladas con <b>mortero cemento-arena 1:3</b>. <b>Chafl\u00e1n</b> de secci\u00f3n triangular <b>20 \u00d7 20 cm</b> ' +
+    '(mortero 1:3) en ambos costados, en toda la longitud entre tubo y plantilla. Si se usa protecci\u00f3n de ' +
+    '<b>suelo-cemento</b>: base menor = di\u00e1metro exterior (' + ctx.Bc.toFixed(3) + ' m) y espesor <b>\u2265 40 cm</b> ' +
+    'desde el punto m\u00e1s alto del tubo. Muros de cabeza con canales de entrada y salida <b>\u2265 5 m</b> por extremo.');
+
+  // ── Encabezado con el resumen
+  var estadoGlobal = nBad > 0 ? 'bad' : nWarn > 0 ? 'warn' : 'ok';
+  var resumenBg  = estadoGlobal === 'bad' ? '#fee2e2' : estadoGlobal === 'warn' ? '#fef9c3' : '#f0fdf4';
+  var resumenCol = estadoGlobal === 'bad' ? '#7f1d1d' : estadoGlobal === 'warn' ? '#713f12' : '#14532d';
+  var resumenTxt = estadoGlobal === 'bad'
+      ? '\u274c ' + nBad + ' incumplimiento(s) normativo(s) detectado(s)'
+      : estadoGlobal === 'warn'
+      ? '\u26a0\ufe0f ' + nWarn + ' punto(s) por revisar antes de construir'
+      : 'Sin alertas en las comparaciones disponibles; no certifica cumplimiento integral';
+  var header =
+    '<div style="background:' + resumenBg + ';color:' + resumenCol +
+    ';border-radius:6px;padding:7px 10px;margin-bottom:8px;font-weight:800;font-size:.79rem;text-align:center">' +
+    resumenTxt + '</div>';
+
+  listEl.innerHTML = header + rows.join('');
+  return { ok:nOk, warn:nWarn, bad:nBad, estado:estadoGlobal, resumen:resumenTxt, items:items };
+}
+
+// La misma instantánea STATE alimenta pantalla y PDF, sin recalcular el diseño.
+function m9FilasTrazabilidad(m9) {
+  var modo = m9.lrfdAplicado ? 'LRFD a cobertura real'
+    : m9.useLRFD ? 'LRFD seleccionado, no aplicable a esta carga'
+    : m9.modeloIMT ? 'Conservador (IMT: referencia a 1 m)' : 'Conservador (sin LRFD)';
+  return [
+    ['Alcance', 'Revisiones automáticas parciales. No certifica proyecto, laboratorio ni contrato.'],
+    ['Modelo de carga', m9.modeloIMT || m9.traficoTipo || 'Sin modelo'],
+    ['Modo', modo],
+    ['Geometría', 'DN ' + m9.DN + ' mm; espesor ' + m9.espesor + ' mm; cobertura ' + m9.hr + ' m'],
+    ['Carga viva', 'Preset ' + m9.qTrafPreset.toFixed(1) + '; efectiva ' + m9.qTrafEfectiva.toFixed(2) + ' kN/m'],
+    ['Suelo de desplante', m9.suelo],
+    ['Referencia contractual', m9.fcMax > 0 ? m9.fcMax + ' kg/cm²; sin tolerancia automática' : 'No capturada'],
+    ['Resumen SICT', m9.sict.resumen]
+  ];
+}
+
+function m9RenderReporteSICT(m9) {
+  var wrap = document.getElementById('rep-m9-sict');
+  if(!wrap) return;
+  wrap.replaceChildren();
+  if(!m9 || !m9.sict) return;
+  var textos = m9FilasTrazabilidad(m9).map(function(r){ return r[0] + ': ' + r[1]; });
+  m9.sict.items.forEach(function(item) {
+    textos.push('[' + item.estado + '] ' + item.texto + ' (' + item.norma + '; ' + item.clausula + ')');
+  });
+  textos.forEach(function(texto) {
+    var p = document.createElement('p');
+    p.style.marginBottom = '6px';
+    p.textContent = texto;
+    wrap.appendChild(p);
+  });
+}
+
+// pdfTable tiene celdas de altura fija: no se usa para advertencias multilínea.
+function pdfM9SICT(doc, m9, y, W, M, INK) {
+  if(!m9.sict) return y;
+  var textos = ['M9 - Trazabilidad y advertencias SICT'];
+  m9FilasTrazabilidad(m9).forEach(function(r) { textos.push(r[0] + ': ' + r[1]); });
+  m9.sict.items.forEach(function(item) {
+    textos.push('[' + item.estado + '] ' + item.texto + ' (' + item.norma + '; ' + item.clausula + ')');
+  });
+  textos.push('Referencia de plantilla G.3: https://normas.imt.mx/storage/normativa/N-CTR-CAR-1-03-002-20.pdf');
+  doc.setTextColor(...INK);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  textos.forEach(function(texto) {
+    // Helvetica no soporta todos los símbolos técnicos; conservar unidades legibles.
+    var plano = texto.replace(/[✅❌⚠️]/gu, '').replace(/ₓ/g, 'x').replace(/≥/g, '>=')
+      .replace(/≤/g, '<=').replace(/≡/g, '=').replace(/→/g, '->').replace(/×/g, 'x')
+      .replace(/γ/g, 'gamma').replace(/ω/g, 'w').replace(/Σ/g, 'Sigma').replace(/⁶/g, '^6');
+    var lineas = doc.splitTextToSize(plano, W - 2 * M - 6);
+    lineas.forEach(function(linea) {
+      if(y > 268) { doc.addPage(); y = 20; }
+      if(texto.indexOf('Referencia de plantilla G.3:') === 0 && doc.textWithLink) {
+        doc.textWithLink(linea, M + 3, y, {url:'https://normas.imt.mx/storage/normativa/N-CTR-CAR-1-03-002-20.pdf'});
+      } else doc.text(linea, M + 3, y);
+      y += 4.2;
+    });
+    y += 2;
+  });
+  return y;
 }
 
 // ── ASISTENTE: sugiere encamado mínimo para Grado 1 ─────────────────────────
@@ -6588,6 +7157,8 @@ function m9TipoTuboChange() {
 }
 
 function calcM9() {
+  // Refrescar antes de leer qTraf: cubre DN, espesor, modelo y llamadas programáticas.
+  m9ActualizarPresetIMT();
   if(typeof m9CheckAcpaMismatch === 'function') m9CheckAcpaMismatch();
   var DN     = parseFloat(document.getElementById('m9-dn').value)   || 610;
   var e      = parseFloat(document.getElementById('m9-espesor').value) || 75;
@@ -6609,14 +7180,17 @@ function calcM9() {
 
   // Tipo de tráfico desde el selector
   var traficoTipo = (document.getElementById('m9-trafico') || {}).value || '';
-  // LRFD aplica solo a cargas vehiculares H-xx (no FAA ni AREMA ni 0)
+  // LRFD aplica a cargas vehiculares H-xx (AASHTO) y a los modelos IMT 66.5 /
+  // IMT 20.5 de la Norma SICT N·PRY·CAR·6·01·003 — no a FAA, AREMA ni 0.
+  var esIMT       = !!M9_IMT_MODELOS[traficoTipo];
   var esVehicular = (traficoTipo === '48' || traficoTipo === '96' ||
-                     traficoTipo === '120' || traficoTipo === 'custom');
+                     traficoTipo === '120' || traficoTipo === 'custom' || esIMT);
   var lrfdApply   = qTraf > 0 && esVehicular;  // siempre calcular si aplica
 
-  // P_axle correspondiente (AASHTO HL-93)
-  var Paxle_lrfd = M9_PAXLE_MAP[traficoTipo] ||
-                   (qTraf <= 60 ? 71.2 : qTraf <= 108 ? 142.3 : 178.0);
+  // P_axle correspondiente: AASHTO HL-93, o el eje del modelo IMT (N·PRY·CAR·6·01·003)
+  var Paxle_lrfd = esIMT ? M9_IMT_MODELOS[traficoTipo].Peje :
+                   (M9_PAXLE_MAP[traficoTipo] ||
+                   (qTraf <= 60 ? 71.2 : qTraf <= 108 ? 142.3 : 178.0));
 
   // Actualizar badge/hint del toggle según H
   m9UpdateLRFDBadge(hr, qTraf, traficoTipo);
@@ -6642,7 +7216,9 @@ function calcM9() {
 
   // ── Calcular q_L LRFD (siempre que aplique — para panel comparativo) ────
   if(lrfdApply) {
-    lrfdDataBase = calcLRFD_qL(hr, DN, e_pared, Paxle_lrfd);
+    // Modelos IMT (SICT): evalúa eje aislado vs. grupo de ejes y toma el peor caso
+    lrfdDataBase = esIMT ? m9CalcLRFD_IMT(hr, DN, e_pared, traficoTipo)
+                         : calcLRFD_qL(hr, DN, e_pared, Paxle_lrfd);
     if(useLRFD) lrfdData = lrfdDataBase;  // usar en cálculo solo si toggle ON
   }
 
@@ -6665,6 +7241,11 @@ function calcM9() {
     proc.push('⚡ Modo LRFD AASHTO 12.10.4.3 activo:');
     proc.push('  H=' + hr + 'm → H_ft=' + (hr*3.28084).toFixed(2) + 'ft | IM=' + lrfdData.IM.toFixed(1) + '%');
     proc.push('  E_w=' + lrfdData.Ew.toFixed(3) + 'm | E_l=' + lrfdData.El.toFixed(3) + 'm');
+    if(lrfdData.modelo) {
+      proc.push('  Modelo SICT <b>' + lrfdData.modelo.label + '</b> (N\u00b7PRY\u00b7CAR\u00b76\u00b701\u00b7003) \u2014 ' + lrfdData.modelo.grupo);
+      proc.push('  Gobierna la condici\u00f3n de <b>' + (lrfdData.gobierna === 'grupo' ? 'GRUPO DE EJES' : 'EJE AISLADO') +
+                '</b>:  q_L(eje)=' + lrfdData.qL_eje.toFixed(2) + '  |  q_L(grupo)=' + lrfdData.qL_grupo.toFixed(2) + ' kN/m');
+    }
     proc.push('  q_L atenuada = <b>' + lrfdData.qL.toFixed(2) + ' kN/m</b>  (vs fijo conservador: ' + qTraf.toFixed(1) + ' kN/m)');
     proc.push('  Ahorro: ' + ((1 - lrfdData.qL/qTraf)*100).toFixed(0) + '% menos carga viva');
   } else {
@@ -6774,7 +7355,8 @@ function calcM9() {
     }
     if(sem) { sem.style.background = '#fee2e2'; sem.style.color = '#7f1d1d'; sem.innerHTML = espMsg; }
     // ── Tracker: registrar evento Diseño Especial ──────────────────
-    var cargaTipoLabel = qTraf <= 0 ? 'sin_trafico' :
+    var cargaTipoLabel = esIMT ? traficoTipo :
+                         qTraf <= 0 ? 'sin_trafico' :
                          qTraf <= 60  ? 'H10' :   // H-10 ≈ 48 kN/m (umbral hasta H-20)
                          qTraf <= 108 ? 'H20' :   // H-20 ≈ 96 kN/m (umbral hasta H-25)
                          'H25+';                   // H-25 = 120 kN/m
@@ -6792,6 +7374,8 @@ function calcM9() {
     disenioEspecial: !gradoSel,
     claseSCTEncamado: claseSCT_enc,
     useLRFD: useLRFD,
+    // Seleccionar el modo no implica aplicarlo (FAA, ferroviario y carga cero).
+    lrfdAplicado: !!(lrfdData && useLRFD),
     // Tipo de tubería activo (reforzado NMX-402 / simple NMX-401) y su resultado —
     // agregado en el refactor de ago-2026 para que el Reporte Global también
     // pueda reflejar el resultado de tubo simple sin refuerzo (antes solo se
@@ -6869,6 +7453,51 @@ function calcM9() {
 
   } else if(lrfdPanel) {
     lrfdPanel.style.display = 'none';
+  }
+
+  // ── Hint de ancho mínimo SCT vs NMX (holgura 50 cm/lado, G.2.2) ──
+  var bHintEl = document.getElementById('m9-b-sct-hint');
+  if(bHintEl) {
+    bHintEl.innerHTML = 'b<sub>mín</sub> NMX-C-402 = B<sub>c</sub> + 0.40 m = <b>' + (Bc + 0.40).toFixed(2) +
+      ' m</b> &nbsp;|&nbsp; b<sub>mín</sub> SICT = B<sub>c</sub> + 2\u00d70.50 m = <b>' + (Bc + 1.00).toFixed(2) +
+      ' m</b> (holgura de 50 cm a cada lado, N\u00b7CTR\u00b7CAR\u00b71\u00b703\u00b7002/20 G.2.2)';
+  }
+
+  // ── Info del suelo de desplante (M·MMP·1·02) ─────────────────────
+  var sueloEl  = document.getElementById('m9-suelo-fondo');
+  var sueloKey = sueloEl ? sueloEl.value : 'SC';
+  var sueloInf = document.getElementById('m9-suelo-info');
+  if(sueloInf) {
+    var sueloRevision = m9EvaluarSuelo(sueloKey);
+    var colores = sueloRevision.estado === 'bad' ? ['#fee2e2','#fca5a5','#7f1d1d'] :
+                  sueloRevision.estado === 'warn' ? ['#fef9c3','#fde68a','#713f12'] : ['#f8fafc','#e2e8f0','#475569'];
+    sueloInf.style.background = colores[0]; sueloInf.style.borderColor = colores[1]; sueloInf.style.color = colores[2];
+    sueloInf.textContent = sueloRevision.texto;
+  }
+
+  // ── Verificación de cumplimiento normativo SICT ──────────────────
+  if(typeof m9UpdateIMTInfo === 'function') m9UpdateIMTInfo();
+  var sictRes = m9VerificarSICT({
+    DN: DN, hr: hr, b: b, Bc: Bc, Fa: Fa, qTraf: qTraf, qCalc: qCalc,
+    esZanja: (tipo === 'zanja' || tipo === 'zanja-terraplenada' || tipo === 'zanja-inducida'),
+    suelo: sueloKey,
+    traficoTipo: traficoTipo,
+    esIMT: esIMT,
+    lrfd: lrfdDataBase,
+    grado: gradoSel ? gradoSel.g : null,
+    fcMPa: gradoSel ? gradoSel.fc : 0,
+    tipoTubo: tipoTuboEl ? tipoTuboEl.value : 'reforzado',
+    fcMax: parseFloat((document.getElementById('m9-fc-max') || {}).value) || 0
+  });
+  if(STATE.m9) {
+    STATE.m9.suelo      = sueloKey;
+    STATE.m9.traficoTipo = traficoTipo;
+    STATE.m9.modeloIMT  = esIMT ? M9_IMT_MODELOS[traficoTipo].label : null;
+    STATE.m9.fcMax      = parseFloat((document.getElementById('m9-fc-max') || {}).value) || 0;
+    STATE.m9.sict       = sictRes;
+    STATE.m9.espesor    = e_pared;
+    STATE.m9.qTrafPreset = qTraf;
+    STATE.m9.qTrafEfectiva = qTrafEfectiva;
   }
 
   // ── Asistente de optimización: sugerir encamado ──────────────────

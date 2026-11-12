@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/szolat/assur-calculadora-hidraulica",
+  "commit": "65ff146d20532a032944e33adb21e2b3ec900510",
+  "path": "index.html",
+  "algorithm": "sha256",
+  "scripts": [
+    "cdfd3db81a75ded996474bbb4bab2860374b6e8d680fb18b60dbe3f6d4810018",
+    "dd7c082b906f53e67131fb1f449c62049c281eddbb3be80ce01bab48629c2058",
+    "3d0d0e80c3a0c597338a4f9abd302a035fbe10ceb298e13c1851cdac8a238399",
+    "cd02c3b31adf82e8e07c563a1f1c2e26338ae1256b2cc9b144200951efcc8467"
+  ],
+  "body": "2a6a2ad625686e7e479e671baecf8ab1ca419dc92dbd7d10b1d7b333da64fb85"
+}
