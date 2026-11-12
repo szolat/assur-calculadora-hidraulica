@@ -39,7 +39,13 @@ test.beforeEach(async({page})=>{
     window.assurLogReporte=()=>{};
     const PDF=window.jspdf.jsPDF;
     window.jspdf.jsPDF=function(...args){
-      const doc=new PDF(...args),text=doc.text.bind(doc),calls=[];
+      const doc=new PDF(...args),text=doc.text.bind(doc),calls=[],images=[];
+      const addImage=doc.addImage.bind(doc);
+      doc.addImage=function(data,format,x,y,width,height){
+        const properties=doc.getImageProperties(data);
+        images.push({x,y,width,height,naturalWidth:properties.width,naturalHeight:properties.height});
+        return addImage(data,format,x,y,width,height);
+      };
       doc.text=function(t,x,y,options){
         calls.push({text:t,x,y,options,page:doc.getNumberOfPages(),
           widths:(Array.isArray(t)?t:[t]).map(v=>doc.getTextWidth(String(v))),
@@ -47,7 +53,7 @@ test.beforeEach(async({page})=>{
         return text(t,x,y,options);
       };
       doc.save=function(name){
-        window.__reportPDF={name,calls,pages:doc.getNumberOfPages(),
+        window.__reportPDF={name,calls,images,pages:doc.getNumberOfPages(),
           bytes:Array.from(new Uint8Array(doc.output('arraybuffer')))};
       };
       return doc;
@@ -128,6 +134,12 @@ test('M1–M10 juntos: datos coinciden, PDF paginado y textos dentro de A4',asyn
       overflows.push({text:c.text,left,right,y:c.y,page:c.page});
   }
   expect(overflows).toEqual([]);
+  const dimensions=pdf.calls.filter(c=>c.x===53 && pdfLines({calls:[c]}).some(t=>t.startsWith('Ø ')));
+  expect(dimensions).toHaveLength(3);
+  for(const c of dimensions) expect(Math.max(...c.widths)).toBeLessThanOrEqual(32.01);
+  expect(pdf.images).toHaveLength(1);
+  for(const image of pdf.images)
+    expect(image.width/image.height).toBeCloseTo(image.naturalWidth/image.naturalHeight,5);
   for(let p=1;p<=pdf.pages;p++) expect(lines).toContain('Página '+p+' de '+pdf.pages);
   fs.writeFileSync(testInfo.outputPath('Reporte_ASSUR_M1_M10.pdf'),Buffer.from(pdf.bytes));
   await page.emulateMedia({media:'print'});
@@ -146,6 +158,26 @@ test('M1–M10 juntos: datos coinciden, PDF paginado y textos dentro de A4',asyn
   expect(charts).toHaveLength(2);
   for(const chart of charts) expect(chart,JSON.stringify(chart)).toMatchObject({painted:expect.any(Number)});
   for(const chart of charts) expect(chart.painted,JSON.stringify(chart)).toBeGreaterThan(1000);
+});
+
+test('Pozos: dimensión larga cabe en su columna y repite encabezados al paginar',async({page})=>{
+  await calculate(page,modules[3]);
+  await page.evaluate(()=>{
+    const rows=STATE.pozos.pvRows;
+    STATE.pozos.pvRows=Array.from({length:60},(_,i)=>({
+      ...rows[i%rows.length],idx:i+1,
+      dim:'Pozo de visita prefabricado, diámetro interior 1.00 m; referencia SGAPDS-29 Tabla 2.30'
+    }));
+  });
+  const pdf=await exportPDF(page),lines=pdfLines(pdf);
+  expect(lines).toContain('PV-60');
+  expect(lines.filter(t=>t==='Dimensión').length).toBeGreaterThan(1);
+  const cells=pdf.calls.filter(c=>c.x===53&&Array.isArray(c.text));
+  expect(cells).toHaveLength(60);
+  for(const c of cells){
+    expect(Math.max(...c.widths)).toBeLessThanOrEqual(32.01);
+    expect(c.y+(c.widths.length-1)*c.lineHeight).toBeLessThan(270);
+  }
 });
 
 test('Sin cálculos: cobertura explícita y ninguna sección ficticia en PDF',async({page})=>{
