@@ -268,6 +268,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   #sec-reporte table{table-layout:fixed;font-size:9pt}
   #sec-reporte th,#sec-reporte td{overflow-wrap:anywhere}
   #sec-reporte thead{display:table-header-group}
+  #sec-reporte canvas{max-width:100%!important;height:auto!important}
   #sec-reporte .result-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   #sec-reporte .result-metric .val{font-size:13pt;overflow-wrap:anywhere}
 }
@@ -4354,12 +4355,27 @@ const REPORTE_MODULOS = [
 ];
 
 function imprimirReporte() {
-  actualizarReporte();
+  prepararImpresion();
   window.print();
 }
 
 // Ctrl+P también prepara el reporte sin cambiar la pestaña del usuario.
-window.addEventListener('beforeprint', actualizarReporte);
+function prepararImpresion() {
+  actualizarReporte();
+  [chartVel, chartCaudal].forEach(function(chart) {
+    if (!chart) return;
+    chart.stop();
+    chart.options.animation = false;
+    chart.resize(300, 180);
+    chart.update('none');
+  });
+}
+window.addEventListener('beforeprint', prepararImpresion);
+window.addEventListener('afterprint', function() {
+  [chartVel, chartCaudal].forEach(function(chart) {
+    if (chart) chart.resize();
+  });
+});
 
 function actualizarReporte() {
   document.getElementById('rep-modulos').innerHTML = REPORTE_MODULOS.map(function(m) {
@@ -4447,6 +4463,7 @@ function actualizarReporte() {
     },
     options:{
       responsive:true,
+      animation:false,
       plugins:{legend:{display:false},annotation:{}},
       scales:{y:{min:0,max:3.5,title:{display:true,text:'m/s'}}}
     }
@@ -4471,6 +4488,7 @@ function actualizarReporte() {
     },
     options:{
       responsive:true,
+      animation:false,
       plugins:{legend:{display:false}},
       scales:{y:{title:{display:true,text:'l/s'}}}
     }

@@ -131,7 +131,21 @@ test('M1–M10 juntos: datos coinciden, PDF paginado y textos dentro de A4',asyn
   for(let p=1;p<=pdf.pages;p++) expect(lines).toContain('Página '+p+' de '+pdf.pages);
   fs.writeFileSync(testInfo.outputPath('Reporte_ASSUR_M1_M10.pdf'),Buffer.from(pdf.bytes));
   await page.emulateMedia({media:'print'});
+  await page.evaluate(()=>{
+    window.addEventListener('beforeprint',()=>{
+      window.__printedCharts=['chart-vel','chart-caudal'].map(id=>{
+        const c=document.getElementById(id),pixels=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+        let painted=0;
+        for(let i=3;i<pixels.length;i+=4) if(pixels[i]>0) painted++;
+        return {id,painted,width:c.width,height:c.height};
+      });
+    });
+  });
   await page.pdf({path:testInfo.outputPath('Impresion_ASSUR_M1_M10.pdf'),format:'A4',printBackground:true,preferCSSPageSize:true});
+  const charts=await page.evaluate(()=>window.__printedCharts);
+  expect(charts).toHaveLength(2);
+  for(const chart of charts) expect(chart,JSON.stringify(chart)).toMatchObject({painted:expect.any(Number)});
+  for(const chart of charts) expect(chart.painted,JSON.stringify(chart)).toBeGreaterThan(1000);
 });
 
 test('Sin cálculos: cobertura explícita y ninguna sección ficticia en PDF',async({page})=>{
