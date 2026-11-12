@@ -266,7 +266,8 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   #sec-reporte .result-metric,#sec-reporte tr{break-inside:avoid}
   #sec-reporte .table-wrap{overflow:visible}
   #sec-reporte table{table-layout:fixed;font-size:9pt}
-  #sec-reporte th,#sec-reporte td{overflow-wrap:anywhere}
+  #sec-reporte th,#sec-reporte td{overflow-wrap:anywhere;white-space:normal}
+  #sec-reporte #rep-graficas{break-inside:avoid}
   #sec-reporte thead{display:table-header-group}
   #sec-reporte canvas{max-width:100%!important;height:auto!important}
   #sec-reporte .result-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -2913,7 +2914,7 @@ tr.highlight td{background:#e6f4f4;font-weight:700}
   </div>
 
   <!-- Gráficas -->
-  <div class="card">
+  <div class="card" id="rep-graficas">
     <h2>📉 Gráficas de Verificación</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:14px">
       <div class="chart-wrap">
