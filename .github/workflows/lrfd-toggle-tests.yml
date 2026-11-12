@@ -1,4 +1,4 @@
-name: LRFD browser tests (no deploy)
+name: LRFD and reports tests (no deploy)
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   lrfd-toggle-tests:
-    name: LRFD / Chromium
+    name: LRFD + reports / Chromium
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
@@ -35,5 +35,5 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install Chromium and runner system dependencies
         run: npx --no-install playwright install --with-deps chromium
-      - name: Run LRFD browser regression suite
+      - name: Run LRFD and M1-M10 PDF/print regression suites
         run: npm test

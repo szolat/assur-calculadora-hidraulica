@@ -1,5 +1,13 @@
 # Regresión del checkbox LRFD
 
+## Reportes M1–M10, impresión y PDF (12/11/2026)
+
+La suite incluye `reportes.spec.cjs`: cada módulo calculado mediante controles reales, los diez juntos, cobertura sin cálculos, falta del motor PDF, Ctrl+P y botón de impresión. Usa las mismas versiones Chart.js 4.4.1 y jsPDF 2.5.1 que la aplicación, instaladas solo como dependencias de desarrollo. Las bibliotecas se sirven desde el lockfile durante las pruebas; no se sustituyen por un PDF simulado.
+
+El exportador real produce bytes PDF en memoria. La prueba conjunta verifica valores contra `STATE`, encabezados M1–M10, ausencia de `undefined`/`NaN`/`Infinity`, límites de texto A4 y números de página; guarda PDF descargable y PDF de impresión en `test-results` (ignorado por Git). Se bloquean las conexiones externas y se anula el registro de solicitantes: no se envían datos QA a Google Sheets ni a terceros.
+
+La validación de impresión es virtual (Chromium/A4), no una prueba de impresora física. No constituye auditoría normativa integral ni cobertura completa de combinaciones de entrada, Firefox o WebKit.
+
 Pruebas de Chromium con clic y teclado reales sobre el HTML de la aplicación, sin servidor ni despliegue. El paquete está aislado para no introducir dependencias de navegador en la suite M9 del PR #9.
 
 Desde la raíz del repositorio, con Node >=20 y npm:

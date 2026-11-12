@@ -2,7 +2,7 @@ const {defineConfig}=require('@playwright/test');
 
 module.exports=defineConfig({
   testDir:__dirname,
-  testMatch:'lrfd-toggle.spec.cjs',
+  testMatch:'*.spec.cjs',
   fullyParallel:false,
   workers:1,
   retries:0,

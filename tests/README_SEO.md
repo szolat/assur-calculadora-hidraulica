@@ -14,7 +14,11 @@ Para ejecutar desde otro directorio, pasar la ruta absoluta al archivo de prueba
 
 La suite conserva las verificaciones de aislamiento del cambio SEO y de metadatos, pero ya no ejecuta procesos Git ni consulta `origin/main`. Puede ejecutarse desde un ZIP o exportación sin `.git`, sin historial, sin Git en PATH y sin descargar una referencia de red.
 
-La referencia es específica del cambio SEO contra esa base: modificaciones intencionales posteriores a scripts o body exigirán revisar el diff y actualizar explícitamente las huellas. No se debe regenerar el manifiesto desde el HTML actual solo para silenciar una falla.
+La referencia original se conserva como evidencia histórica del cambio exclusivamente SEO.
+
+El 12/11/2026 se revisa explícitamente el nuevo alcance: integración de #5/#9, #10 y #11, detalle PDF Sanitario M7, cobertura M1–M10, impresión y paginación. La suite activa usa `fixtures/seo-release-2026-11-12.json`, identificado por esa revisión y por la base de procedencia, no como si fuera el commit del HTML original. Las regresiones M9, LRFD y reportes validan el comportamiento combinado. No se actualizan las huellas automáticamente en CI ni se elimina la referencia anterior.
+
+Modificaciones intencionales posteriores a scripts o body exigen revisar el diff y actualizar explícitamente las huellas; no debe hacerse solo para silenciar una falla.
 
 ## Alcance
 
