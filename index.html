@@ -4755,7 +4755,10 @@ function generarPDF() {
   // Logo
   try {
     const logoSrc = document.querySelector('.hero img').src;
-    doc.addImage(logoSrc, 'JPEG', M, 8, 30, 22);
+    const logo = doc.getImageProperties(logoSrc);
+    const scale = Math.min(30 / logo.width, 22 / logo.height);
+    const logoW = logo.width * scale, logoH = logo.height * scale;
+    doc.addImage(logoSrc, 'JPEG', M + (30-logoW)/2, 8 + (22-logoH)/2, logoW, logoH);
   } catch(e) { /* skip */ }
 
   doc.setTextColor(255,255,255);
@@ -4951,32 +4954,42 @@ function generarPDF() {
       doc.setTextColor(...TEALD);
       doc.text('Tabla de Profundidades por Pozo de Visita', M, y+5);
       y += 9;
-      // Header
-      doc.setFillColor(...TEALD);
-      doc.rect(M, y, W-2*M, 6, 'F');
-      doc.setTextColor(255,255,255); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
-      doc.text('PV', M+2, y+4.2);
-      doc.text('Dist (m)', M+18, y+4.2);
-      doc.text('Dimensión', M+38, y+4.2);
-      doc.text('C.Terreno', M+72, y+4.2);
-      doc.text('C.Plantilla', M+100, y+4.2);
-      doc.text('Prof (m)', M+130, y+4.2);
-      y += 6;
+      const pvX = [2,18,38,72,100,130];
+      const pvWidths = [14,18,32,26,28,48];
+      function pvHeader() {
+        doc.setFillColor(...TEALD);
+        doc.rect(M, y, W-2*M, 6, 'F');
+        doc.setTextColor(255,255,255); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+        ['PV','Dist (m)','Dimensión','C.Terreno','C.Plantilla','Prof (m)'].forEach(function(label,c) {
+          doc.text(label, M+pvX[c], y+4.2);
+        });
+        y += 6;
+      }
+      pvHeader();
       p.pvRows.forEach((r,idx) => {
-        if(y > 268) { doc.addPage(); y = 20; }
+        doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+        const values = ['PV-'+r.idx, r.dist.toFixed(1), r.dim || '',
+          r.cotaTerr !== undefined ? r.cotaTerr.toFixed(3) : '', r.cotaP.toFixed(3),
+          r.profundidad !== undefined ? r.profundidad.toFixed(3) : ''];
+        const lines = values.map(function(value,c) {
+          if(c === 5 && r.profundidad < 1.20) doc.setFont('helvetica','bold');
+          const wrapped = doc.splitTextToSize(pdfTexto(value), pvWidths[c]);
+          doc.setFont('helvetica','normal');
+          return wrapped;
+        });
+        const rowHeight = Math.max(5.5, Math.max.apply(null, lines.map(function(l) { return l.length; })) * 3.5 + 2);
+        if(y + rowHeight > 270) { doc.addPage(); y = 20; pvHeader(); }
         const bg = idx%2===0 ? [248,248,248] : [255,255,255];
-        doc.setFillColor(...bg); doc.rect(M, y, W-2*M, 5.5, 'F');
+        doc.setFillColor(...bg); doc.rect(M, y, W-2*M, rowHeight, 'F');
         doc.setTextColor(...INK); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
-        doc.text('PV-'+r.idx, M+2, y+4);
-        doc.text(r.dist.toFixed(1), M+18, y+4);
-        doc.text(r.dim || '', M+38, y+4);
-        doc.text(r.cotaTerr !== undefined ? r.cotaTerr.toFixed(3) : '', M+72, y+4);
-        doc.text(r.cotaP.toFixed(3), M+100, y+4);
-        const profOk = r.profundidad >= 1.20;
-        if(!profOk) { doc.setTextColor(214,69,69); doc.setFont('helvetica','bold'); }
-        doc.text(r.profundidad !== undefined ? r.profundidad.toFixed(3) : '', M+130, y+4);
-        doc.setTextColor(...INK); doc.setFont('helvetica','normal');
-        y += 5.5;
+        lines.forEach(function(cell,c) {
+          if(c === 5 && r.profundidad < 1.20) {
+            doc.setTextColor(214,69,69); doc.setFont('helvetica','bold');
+          }
+          doc.text(cell, M+pvX[c], y+4);
+          doc.setTextColor(...INK); doc.setFont('helvetica','normal');
+        });
+        y += rowHeight;
       });
     }
     y += 4;
