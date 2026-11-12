@@ -1,16 +1,25 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const {execFileSync} = require('node:child_process');
+const {createHash} = require('node:crypto');
 const path = require('node:path');
 const root=path.resolve(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const main=execFileSync('git',['show','origin/main:index.html'],{cwd:root,encoding:'utf8',maxBuffer:20e6});
-test('SEO: scripts ejecutables y cuerpo idénticos a main',()=>{
+const baseline=require('./fixtures/seo-main-65ff146.json');
+const hash=value=>createHash('sha256').update(value).digest('hex');
+test('SEO: referencia local fija y con huellas SHA-256 válidas',()=>{
+  assert.equal(baseline.commit,'65ff146d20532a032944e33adb21e2b3ec900510');
+  assert.equal(baseline.path,'index.html');
+  assert.equal(baseline.algorithm,'sha256');
+  assert.ok(baseline.scripts.length>0);
+  for(const digest of [...baseline.scripts,baseline.body])
+    assert.match(digest,/^[a-f0-9]{64}$/);
+});
+test('SEO: scripts ejecutables y cuerpo conservados respecto a la base revisada',()=>{
   const scripts=x=>[...x.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
     .filter(m=>!m[1].includes('application/ld+json')).map(m=>m[0]);
-  assert.deepEqual(scripts(html),scripts(main));
-  assert.ok(html.split('<body>')[1].trimEnd()===main.split('<body>')[1].trimEnd(),
+  assert.deepEqual(scripts(html).map(hash),baseline.scripts);
+  assert.equal(hash(html.split('<body>')[1].trimEnd()),baseline.body,
     'El cuerpo no debe cambiar salvo el salto de línea final');
 });
 test('SEO: canonical, description, OG y JSON-LD coherentes',()=>{
